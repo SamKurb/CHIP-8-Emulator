@@ -17,6 +17,6 @@
 - Iron out some opcodes. Currently the emualator doesnt check if stack size is exceeded. This doesnt really matter for 99% of roms but would be good to add
 
 ## References used:
-https://en.wikipedia.org/wiki/CHIP-8 For general information on how everything is structured, as well as opcode specifications
-http://devernay.free.fr/hacks/chip8/C8TECH10.HTM - For opcode specifications
-https://tobiasvl.github.io/blog/write-a-chip-8-emulator/ - For information regarding quirks/ambiguous instructions as well as typical keyboard-to-input mappings
+- https://en.wikipedia.org/wiki/CHIP-8 For general information on how everything is structured, as well as opcode specifications
+- http://devernay.free.fr/hacks/chip8/C8TECH10.HTM - For opcode specifications
+- https://tobiasvl.github.io/blog/write-a-chip-8-emulator/ - For information regarding quirks/ambiguous instructions as well as typical keyboard-to-input mappings
