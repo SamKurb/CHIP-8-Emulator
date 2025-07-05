@@ -9,7 +9,7 @@
 - There is *alot* of static casting going on in the code, because I have narrowing conversions disabled on my compiler. Most arithmetic and logic operations promote to int, so doing something like Unsigned & Unsigned will create a (signed) int temporary and require the result to be casted back to unsigned
 
 ## To-do:
-- Improve user friendliness
+- Improve user friendliness (add an easier way to swap ROMS and alter settings rather than directly changing source code)
 - Clean up debug output. Add optional flag to disable it alltogether
 - Add configurable quirk settings (choose which quirks to enable/disable, so that different games can be played)
 - Add configurable colours to display
