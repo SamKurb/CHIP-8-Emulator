@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Assets">
+      <UniqueIdentifier>{685a88e6-fbc8-479e-8305-bfd706b9dc45}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\roms">
+      <UniqueIdentifier>{f620ff3a-1d1c-4c91-bb5b-28cea42f6b11}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="renderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="chip8.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="renderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utility.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="random.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="chip8.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="settings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SDL2 Template.aps" />
+    <None Include="SDL2.dll" />
+    <None Include="SDL2_image.dll" />
+    <None Include="SDL2_mixer.dll" />
+    <None Include="SDL2_ttf.dll" />
+    <None Include="assets\ibm.ch8">
+      <Filter>Assets</Filter>
+    </None>
+    <None Include="assets\3-corax+.ch8">
+      <Filter>Assets</Filter>
+    </None>
+    <None Include="assets\4-flags.ch8">
+      <Filter>Assets</Filter>
+    </None>
+    <None Include="assets\BC_test.ch8">
+      <Filter>Assets</Filter>
+    </None>
+    <None Include="assets\15puzzle.ch8">
+      <Filter>Assets</Filter>
+    </None>
+    <None Include="assets\rngTest.ch8">
+      <Filter>Assets</Filter>
+    </None>
+    <None Include="assets\5-quirks.ch8">
+      <Filter>Assets</Filter>
+    </None>
+    <None Include="assets\6-keypad.ch8">
+      <Filter>Assets</Filter>
+    </None>
+    <None Include="assets\Space Invaders [David Winter].ch8">
+      <Filter>Assets</Filter>
+    </None>
+    <None Include="assets\tetris.ch8">
+      <Filter>Assets</Filter>
+    </None>
+    <None Include="assets\snake.ch8">
+      <Filter>Assets</Filter>
+    </None>
+    <None Include="assets\superpong.ch8">
+      <Filter>Assets</Filter>
+    </None>
+    <None Include="assets\1dcell.ch8">
+      <Filter>Assets</Filter>
+    </None>
+    <None Include="assets\ghosts.ch8">
+      <Filter>Assets</Filter>
+    </None>
+  </ItemGroup>
+</Project>
