@@ -6,7 +6,7 @@
 - Able to run tetris, snake and other games
 
 ## Other notes:
-- There is *alot* of static casting going on in the code, because I have narrowing conversions disabled by my compiler. Most arithmetic and logic operations promote to int, so doing something like Unsigned & Unsigned will create a (signed) int temporary and require the result to be casted back to unsigned
+- There is *alot* of static casting going on in the code, because I have narrowing conversions disabled on my compiler. Most arithmetic and logic operations promote to int, so doing something like Unsigned & Unsigned will create a (signed) int temporary and require the result to be casted back to unsigned
 
 ## To-do:
 - Improve user friendliness
