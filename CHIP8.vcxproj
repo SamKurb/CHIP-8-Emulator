@@ -136,37 +136,39 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="chip8.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="renderer.cpp" />
+    <ClCompile Include="src\chip8.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="chip8.h" />
-    <ClInclude Include="random.h" />
-    <ClInclude Include="renderer.h" />
-    <ClInclude Include="settings.h" />
-    <ClInclude Include="utility.h" />
+    <ClInclude Include="src\chip8.h" />
+    <ClInclude Include="src\random.h" />
+    <ClInclude Include="src\renderer.h" />
+    <ClInclude Include="src\settings.h" />
+    <ClInclude Include="src\utility.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="assets\15puzzle.ch8" />
-    <None Include="assets\1dcell.ch8" />
-    <None Include="assets\3-corax+.ch8" />
-    <None Include="assets\4-flags.ch8" />
-    <None Include="assets\5-quirks.ch8" />
-    <None Include="assets\6-keypad.ch8" />
-    <None Include="assets\BC_test.ch8" />
-    <None Include="assets\ghosts.ch8" />
-    <None Include="assets\ibm.ch8" />
-    <None Include="assets\rngTest.ch8" />
-    <None Include="assets\snake.ch8" />
-    <None Include="assets\Space Invaders [David Winter].ch8" />
-    <None Include="assets\superpong.ch8" />
-    <None Include="assets\tetris.ch8" />
+    <None Include="libs\SDL2.dll" />
+    <None Include="libs\SDL2_image.dll" />
+    <None Include="libs\SDL2_mixer.dll" />
+    <None Include="libs\SDL2_ttf.dll" />
+    <None Include="roms\15puzzle.ch8" />
+    <None Include="roms\1dcell.ch8" />
+    <None Include="roms\3-corax+.ch8" />
+    <None Include="roms\4-flags.ch8" />
+    <None Include="roms\5-quirks.ch8" />
+    <None Include="roms\6-keypad.ch8" />
+    <None Include="roms\BC_test.ch8" />
+    <None Include="roms\ghosts.ch8" />
+    <None Include="roms\ibm.ch8" />
+    <None Include="roms\pong.ch8" />
+    <None Include="roms\rngTest.ch8" />
+    <None Include="roms\snake.ch8" />
+    <None Include="roms\Space Invaders [David Winter].ch8" />
+    <None Include="roms\superneatboy.ch8" />
+    <None Include="roms\superpong.ch8" />
+    <None Include="roms\tetris.ch8" />
     <None Include="SDL2 Template.aps" />
-    <None Include="SDL2.dll" />
-    <None Include="SDL2_image.dll" />
-    <None Include="SDL2_mixer.dll" />
-    <None Include="SDL2_ttf.dll" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -10,35 +10,36 @@
 namespace ROMS
 {
     // Currently works
-    const std::string ibm{ "assets/ibm.ch8" };
-    const std::string testopc{ "assets/3-corax+.ch8" };
-    const std::string testflags{ "assets/4-flags.ch8" };
-    const std::string testquirks{ "assets/5-quirks.ch8" };
-    const std::string testkeypad{ "assets/6-keypad.ch8" };
-    const std::string rngTest{ "assets/rngTest.ch8" };
+    const std::string ibm{ "roms/ibm.ch8" };
+    const std::string testopc{ "roms/3-corax+.ch8" };
+    const std::string testflags{ "roms/4-flags.ch8" };
+    const std::string testquirks{ "roms/5-quirks.ch8" };
+    const std::string testkeypad{ "roms/6-keypad.ch8" };
+    const std::string rngTest{ "roms/rngTest.ch8" };
 
     // Works completely fine
-    const std::string tetris{ "assets/tetris.ch8" };
-    const std::string snake{ "assets/snake.ch8" };
-    const std::string superPong{ "assets/superpong.ch8" };
-    const std::string pong{ "assets/pong.ch8" };
+    const std::string tetris{ "roms/tetris.ch8" };
+    const std::string snake{ "roms/snake.ch8" };
+    const std::string superPong{ "roms/superpong.ch8" };
+    const std::string pong{ "roms/pong.ch8" };
     
     // Works, but need to increase IPF by 2-3x
-    const std::string fallingGhosts{ "assets/ghosts.ch8" };
+    const std::string fallingGhosts{ "roms/ghosts.ch8" };
 
     // Also works but runs slowly, not sure if that is normal
-    const std::string cellAuotmata1d{ "assets/1dcell.ch8" };
+    const std::string cellAuotmata1d{ "roms/1dcell.ch8" };
 
     // Raises E12 error - might be due to quirk
-    const std::string bcTest{ "assets/BC_test.ch8" };
+    const std::string bcTest{ "roms/BC_test.ch8" };
 
     // Doesnt fully work - likely due to quirks
-    const std::string spaceInvaders{ "assets/Space Invaders [David Winter].ch8" };
+    const std::string spaceInvaders{ "roms/Space Invaders [David Winter].ch8" };
 
     // Not sure if this works properly - dont know the controls and dont know where I found it
-    const std::string puzzle15{ "assets/15puzzle.ch8" }
+    const std::string puzzle15{ "roms/15puzzle.ch8" };
 
 }
+
 int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
 {
     Chip8 chip{};

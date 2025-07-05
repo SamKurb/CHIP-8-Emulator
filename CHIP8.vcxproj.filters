@@ -13,88 +13,102 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Assets">
+    <Filter Include="roms">
       <UniqueIdentifier>{685a88e6-fbc8-479e-8305-bfd706b9dc45}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resource Files\roms">
-      <UniqueIdentifier>{f620ff3a-1d1c-4c91-bb5b-28cea42f6b11}</UniqueIdentifier>
+    <Filter Include="libs">
+      <UniqueIdentifier>{d3b19b96-6777-47fd-a314-ec62dba455d6}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="src\chip8.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="renderer.cpp">
+    <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="chip8.cpp">
+    <ClCompile Include="src\renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="renderer.h">
+    <ClInclude Include="src\chip8.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="utility.h">
+    <ClInclude Include="src\random.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="random.h">
+    <ClInclude Include="src\renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="chip8.h">
+    <ClInclude Include="src\settings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="settings.h">
+    <ClInclude Include="src\utility.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="SDL2 Template.aps" />
-    <None Include="SDL2.dll" />
-    <None Include="SDL2_image.dll" />
-    <None Include="SDL2_mixer.dll" />
-    <None Include="SDL2_ttf.dll" />
-    <None Include="assets\ibm.ch8">
-      <Filter>Assets</Filter>
+    <None Include="roms\1dcell.ch8">
+      <Filter>roms</Filter>
     </None>
-    <None Include="assets\3-corax+.ch8">
-      <Filter>Assets</Filter>
+    <None Include="roms\3-corax+.ch8">
+      <Filter>roms</Filter>
     </None>
-    <None Include="assets\4-flags.ch8">
-      <Filter>Assets</Filter>
+    <None Include="roms\4-flags.ch8">
+      <Filter>roms</Filter>
     </None>
-    <None Include="assets\BC_test.ch8">
-      <Filter>Assets</Filter>
+    <None Include="roms\5-quirks.ch8">
+      <Filter>roms</Filter>
     </None>
-    <None Include="assets\15puzzle.ch8">
-      <Filter>Assets</Filter>
+    <None Include="roms\6-keypad.ch8">
+      <Filter>roms</Filter>
     </None>
-    <None Include="assets\rngTest.ch8">
-      <Filter>Assets</Filter>
+    <None Include="roms\15puzzle.ch8">
+      <Filter>roms</Filter>
     </None>
-    <None Include="assets\5-quirks.ch8">
-      <Filter>Assets</Filter>
+    <None Include="roms\BC_test.ch8">
+      <Filter>roms</Filter>
     </None>
-    <None Include="assets\6-keypad.ch8">
-      <Filter>Assets</Filter>
+    <None Include="roms\ghosts.ch8">
+      <Filter>roms</Filter>
     </None>
-    <None Include="assets\Space Invaders [David Winter].ch8">
-      <Filter>Assets</Filter>
+    <None Include="roms\ibm.ch8">
+      <Filter>roms</Filter>
     </None>
-    <None Include="assets\tetris.ch8">
-      <Filter>Assets</Filter>
+    <None Include="roms\pong.ch8">
+      <Filter>roms</Filter>
     </None>
-    <None Include="assets\snake.ch8">
-      <Filter>Assets</Filter>
+    <None Include="roms\rngTest.ch8">
+      <Filter>roms</Filter>
     </None>
-    <None Include="assets\superpong.ch8">
-      <Filter>Assets</Filter>
+    <None Include="roms\snake.ch8">
+      <Filter>roms</Filter>
     </None>
-    <None Include="assets\1dcell.ch8">
-      <Filter>Assets</Filter>
+    <None Include="roms\Space Invaders [David Winter].ch8">
+      <Filter>roms</Filter>
     </None>
-    <None Include="assets\ghosts.ch8">
-      <Filter>Assets</Filter>
+    <None Include="roms\superneatboy.ch8">
+      <Filter>roms</Filter>
+    </None>
+    <None Include="roms\superpong.ch8">
+      <Filter>roms</Filter>
+    </None>
+    <None Include="roms\tetris.ch8">
+      <Filter>roms</Filter>
+    </None>
+    <None Include="libs\SDL2.dll">
+      <Filter>libs</Filter>
+    </None>
+    <None Include="libs\SDL2_image.dll">
+      <Filter>libs</Filter>
+    </None>
+    <None Include="libs\SDL2_mixer.dll">
+      <Filter>libs</Filter>
+    </None>
+    <None Include="libs\SDL2_ttf.dll">
+      <Filter>libs</Filter>
     </None>
   </ItemGroup>
 </Project>
