@@ -14,6 +14,7 @@
 - Add configurable quirk settings (choose which quirks to enable/disable, so that different games can be played)
 - Add configurable colours to display
 - Maybe add a GUI to see memory contents etc
+- Iron out some opcodes. Currently the emualator doesnt check if stack size is exceeded. This doesnt really matter for 99% of roms but would be good to add
 
 ## References used:
 https://en.wikipedia.org/wiki/CHIP-8 For general information on how everything is structured, as well as opcode specifications
