@@ -1,9 +1,12 @@
 # CHIP-8 Emulator/interpreter written in C++, using SDL2 for graphics
 
 ## Key notes:
-- Passes main tests
+- Passes All relevant modern day tests
 - Keyboard input works. Mapping can be changed
+- Sound works. Supports .wav files
 - Able to run tetris, snake and other games
+- Can configure which quirks are enabled and disabled
+- Can change the colour scheme of the display
 
 ## Other notes:
 - There is *alot* of static casting going on in the code, because I have narrowing conversions disabled on my compiler. Most arithmetic and logic operations promote to int, so doing something like Unsigned & Unsigned will create a (signed) int temporary and require the result to be casted back to unsigned
@@ -11,8 +14,6 @@
 ## To-do:
 - Improve user friendliness (add an easier way to swap ROMS and alter settings rather than directly changing source code)
 - Clean up debug output. Add optional flag to disable it alltogether
-- Add configurable quirk settings (choose which quirks to enable/disable, so that different games can be played)
-- Add configurable colours to display
 - Maybe add a GUI to see memory contents etc
 - Iron out some opcodes. Currently the emualator doesnt check if stack size is exceeded. This doesnt really matter for 99% of roms but would be good to add
 
