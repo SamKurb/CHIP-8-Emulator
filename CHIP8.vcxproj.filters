@@ -19,6 +19,9 @@
     <Filter Include="libs">
       <UniqueIdentifier>{d3b19b96-6777-47fd-a314-ec62dba455d6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="assets">
+      <UniqueIdentifier>{a1018896-36a1-4c3c-a10c-f98f4aa2d1c5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\chip8.cpp">
@@ -28,6 +31,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\renderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\audioplayer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -45,6 +51,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\utility.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\audioplayer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\colour.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -110,5 +122,19 @@
     <None Include="libs\SDL2_ttf.dll">
       <Filter>libs</Filter>
     </None>
+    <None Include="roms\brix.ch8">
+      <Filter>roms</Filter>
+    </None>
+    <None Include="roms\Hidden [David Winter, 1996].ch8">
+      <Filter>roms</Filter>
+    </None>
+    <None Include="roms\danm8ku.ch8">
+      <Filter>roms</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="assets\beep.wav">
+      <Filter>assets</Filter>
+    </Media>
   </ItemGroup>
 </Project>

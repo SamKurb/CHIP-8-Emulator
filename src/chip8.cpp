@@ -350,6 +350,11 @@ void Chip8::op8XY1(const uint16_t opcode)
     const uint16_t regY{ extractY(opcode) };
 
     m_registers[regX] |= m_registers[regY];
+
+    if (m_enabledQuirks.resetVF)
+    {
+        m_registers[0xF] = 0;
+    }
 }
 
 void Chip8::op8XY2(const uint16_t opcode)
@@ -360,6 +365,11 @@ void Chip8::op8XY2(const uint16_t opcode)
     const uint16_t regY{ extractY(opcode) };
 
     m_registers[regX] &= m_registers[regY];
+
+    if (m_enabledQuirks.resetVF)
+    {
+        m_registers[0xF] = 0;
+    }
 }
 
 void Chip8::op8XY3(const uint16_t opcode)
@@ -370,6 +380,11 @@ void Chip8::op8XY3(const uint16_t opcode)
     const uint16_t regY{ extractY(opcode) };
 
     m_registers[regX] ^= m_registers[regY];
+
+    if (m_enabledQuirks.resetVF)
+    {
+        m_registers[0xF] = 0;
+    }
 }
 
 void Chip8::op8XY4(const uint16_t opcode)
@@ -407,9 +422,12 @@ void Chip8::op8XY6(const uint16_t opcode)
     printOpcode(opcode);
 
     const uint16_t regX{ extractX(opcode) };
-    const uint16_t regY{ extractY(opcode) };
 
-    m_registers[regX] = m_registers[regY];
+    if (!m_enabledQuirks.shift)
+    {
+        const uint16_t regY{ extractY(opcode) };
+        m_registers[regX] = m_registers[regY];
+    }
 
     // is LSB == 1?
     bool bitShiftedOut{ (m_registers[regX] & 0x01) == 1 };
@@ -438,13 +456,17 @@ void Chip8::op8XYE(const uint16_t opcode)
 {
     printOpcode(opcode);
 
+    // Register X is the destination, Y the source
     const uint16_t regX{ extractX(opcode) };
-    const uint16_t regY{ extractY(opcode) };
 
-    m_registers[regX] = m_registers[regY];
+    if (!m_enabledQuirks.shift)
+    {
+        const uint16_t regY{ extractY(opcode) };
+        m_registers[regX] = m_registers[regY];
+    }
 
     // is MSB == 1?
-    bool bitShiftedOut{ (m_registers[regX] & 128) != 0 };
+    bool bitShiftedOut{ (m_registers[regX] & 0b1000'0000) == 128 };
 
     m_registers[regX] <<= 1;
     m_registers[0xF] = bitShiftedOut;
@@ -467,7 +489,7 @@ void Chip8::opANNN(const uint16_t opcode)
 {
     printOpcode(opcode);
 
-    const uint16_t addressToSet{ Utility::toU16(opcode & 0x0FFF) };
+    const uint16_t addressToSet{ extractNNN(opcode)};
     std::cout << addressToSet << '\n';
 
     std::cout << " Setting index register to address " << addressToSet << '\n';
@@ -481,9 +503,17 @@ void Chip8::opBNNN(const uint16_t opcode)
 {
     printOpcode(opcode);
 
-    const uint16_t address{ extractNNN(opcode) };
-
-    m_pc = Utility::toU16(address + m_registers[0x0]);
+	if (!m_enabledQuirks.jump)
+    { 
+        const uint16_t address{ extractNNN(opcode) };
+        m_pc = Utility::toU16(address + m_registers[0x0]);
+    }
+    else
+    {
+		const uint16_t regX{ extractX(opcode) };
+		const uint16_t address{ extractNNN(opcode) };
+		m_pc = Utility::toU16(address + m_registers[regX]);
+    }
 }
 
 void Chip8::opCXNN(const uint16_t opcode)
@@ -499,7 +529,6 @@ void Chip8::opCXNN(const uint16_t opcode)
 
 void Chip8::opDXYN(const uint16_t opcode)
 {
-    std::cout << "DXYN START\n";
     const uint16_t registerX{ Utility::toU16(extractX(opcode)) };
     const uint16_t registerY{ Utility::toU16(extractY(opcode)) };
 
@@ -521,11 +550,20 @@ void Chip8::opDXYN(const uint16_t opcode)
         {
             const uint8_t currBit{ Utility::toU8(nextByte >> (7 - j) & 1) };
 
-            const uint16_t nextPixelX{ Utility::toU16((xCoord + j))};
-            const uint16_t nextPixelY{ Utility::toU16((yCoord + i))};
+            uint16_t nextPixelX{ Utility::toU16((xCoord + j)) };
+            uint16_t nextPixelY{ Utility::toU16((yCoord + i)) };
 
-            if (nextPixelX > m_width - 1 || nextPixelY > m_height - 1)
-                continue;
+            if (m_enabledQuirks.wrapScreen)
+            {
+                nextPixelX %= m_width;
+                nextPixelY %= m_height;
+            }
+
+            // Skip rendering off-screen pixels if screenwrap quirk is off
+            if (!m_enabledQuirks.wrapScreen && (nextPixelX > m_width - 1 || nextPixelY > m_height - 1))
+            {
+                break;
+            }
 
             if (currBit == 1 && m_screen[nextPixelY][nextPixelX] == 1)
                 pixelTurnedOff = true;
@@ -534,10 +572,7 @@ void Chip8::opDXYN(const uint16_t opcode)
         }
     }
 
-    //printScreenBuffer();
     m_registers[0xF] = pixelTurnedOff;
-
-    std::cout << "DXYN DONE\n";
 }
 
 void Chip8::opEX9E(const uint16_t opcode)
@@ -643,6 +678,11 @@ void Chip8::opFX55(const uint16_t opcode)
     {
         m_memory[currMemLocation] = m_registers[currReg];
         ++currMemLocation;
+
+        if (m_enabledQuirks.index)
+        {
+            ++m_indexReg;
+        }
     }
 }
 
@@ -656,6 +696,10 @@ void Chip8::opFX65(const uint16_t opcode)
     {
         m_registers[currReg] = m_memory[currMemLocation];
         ++currMemLocation;
+        if (m_enabledQuirks.index)
+        {
+            ++m_indexReg;
+        }
     }
 } 
 

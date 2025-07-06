@@ -3,9 +3,9 @@
 
 #include <cstdint>
 #include <cstddef>
+#include "colour.h"
 
 // This header contains namespaces related to the different configurable settings of the emulator.
-
 namespace ChipConfig
 {
     // Do not change
@@ -26,13 +26,6 @@ namespace ChipConfig
 
 namespace DisplayConfig
 {
-    // More colours to be added
-    enum Colours : uint8_t
-    {
-        black = 0x00,
-        white = 0xFF,
-    };
-    
     constexpr int targetFPS{ 60 };
     constexpr bool displayGrid{ true };
 
@@ -43,7 +36,7 @@ namespace DisplayConfig
     static_assert((resolutionWidth% ChipConfig::screenWidth) == 0, "Chosen resolution width is not divisible by Chip8 screen width (in pixel count)");
     static_assert((resolutionHeight% ChipConfig::screenHeight) == 0, "Chosen resolution height is not divisible by Chip8 screen height (in pixel count)");
 
-    constexpr int offColour{ black };
-    constexpr int onColour{ white };
+    constexpr Colour::RGBValues offColour{ Colour::colours[Colour::black] };
+    constexpr Colour::RGBValues onColour{ Colour::colours[Colour::white] };
 }
 #endif

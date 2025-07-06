@@ -1,10 +1,13 @@
 #include "renderer.h"
 
 
-Renderer::Renderer(int width, int height, bool gridOn = true)
+Renderer::Renderer(int width, int height, bool gridOn,
+    Colour::RGBValues onPixelColour, Colour::RGBValues offPixelColour)
     : m_width{width}
     , m_height{height}
     , m_gridOn{gridOn}
+    , m_onPixelColour{onPixelColour}
+    , m_offPixelColour{offPixelColour}
 {
     bool success{ true };
 
@@ -36,12 +39,18 @@ Renderer::Renderer(int width, int height, bool gridOn = true)
             }
         }
     }
+
+	if (!success)
+	{
+		std::cout << "Renderer failed to initialise properly.\n";
+        std::exit(1);
+	}
 }
 
 void Renderer::drawGrid(const int pixelWidth, const int pixelHeight, int horizontalPixelAmount, int verticalPixelAmount)
 {
     // Draw vertical lines
-    for (int i{ 0 }; i < horizontalPixelAmount - 1; ++i)
+    for (int i{ 0 }; i < horizontalPixelAmount ; ++i)
     {
         int xCoord{ i * pixelWidth };
         SDL_RenderDrawLine(m_renderer, xCoord, 0, xCoord, m_height);

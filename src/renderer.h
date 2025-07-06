@@ -8,25 +8,21 @@
 
 #include "utility.h"
 #include "settings.h"
+#include "colour.h"
 
 class Renderer
 {
 public:
 
-    enum Colour : uint8_t
-    {
-        offColour = DisplayConfig::offColour,
-        onColour = DisplayConfig::onColour,
-    };
-
     struct Pixel
     {
         SDL_Rect rect{};
-        Colour colour{};
+        Colour::RGBValues colour{};
     };
 
 
-    Renderer(int width, int height, bool gridOn);
+    Renderer(int width, int height, bool gridOn,
+        Colour::RGBValues onPixelColour, Colour::RGBValues offPixelColour);
     ~Renderer();
 
     template<typename T, std::size_t R, std::size_t C>
@@ -43,8 +39,8 @@ public:
             for (std::size_t x{ 0 }; x < C; ++x)
             {
                 uint8_t pixelOn{ screenBuffer[y][x] };
+                Colour::RGBValues pixelColour{ pixelOn ? m_onPixelColour : m_offPixelColour};
 
-                Colour pixelColour{ pixelOn ? onColour : offColour};
                 int xCoordOnScreen{ Utility::toInt(x * pixelWidth)  };
                 int yCoordOnScreen{ Utility::toInt(y * pixelHeight) };
 
@@ -60,6 +56,7 @@ public:
 
         if (m_gridOn)
         {
+            SDL_SetRenderDrawColor(m_renderer, 0x00, 0x00, 0x00, 0xFF);
             drawGrid(pixelWidth, pixelHeight, C, R);
         }
     }
@@ -81,17 +78,27 @@ private:
     SDL_Surface* m_screenSurface{};
     SDL_Renderer* m_renderer{};
 
-    void clearDisplay(Colour colour = offColour)
+    const Colour::RGBValues m_offPixelColour{};
+    const Colour::RGBValues m_onPixelColour{};
+
+    void clearDisplay()
     {
-        SDL_SetRenderDrawColor(m_renderer, colour, colour, colour, 0xFF);
+        clearDisplay(m_offPixelColour);
+    }
+
+    void clearDisplay(Colour::RGBValues colour)
+    {
+        SDL_SetRenderDrawColor(m_renderer, colour.r, colour.b, colour.g, 0xFF);
         SDL_RenderClear(m_renderer);
     }
 
     void renderPixel(const Pixel& p)
     {
-        SDL_SetRenderDrawColor(m_renderer, p.colour, p.colour, p.colour, 0xFF);
+        SDL_SetRenderDrawColor(m_renderer, p.colour.r, p.colour.g, p.colour.b, 0xFF);
         SDL_RenderFillRect(m_renderer, &p.rect);
     }
+
+    
 };
 
 #endif

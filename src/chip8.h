@@ -19,8 +19,19 @@
 class Chip8
 {
 public:
-    Chip8()
-        : m_fontsLocation{ ChipConfig::fontsLocation }
+    struct QuirkFlags
+    {
+        bool resetVF{};
+        bool index{};
+        bool wrapScreen{};
+        bool shift{};
+        bool jump{};
+    };
+
+
+    Chip8(QuirkFlags quirks)
+        : m_fontsLocation{ ChipConfig::fontsLocation}
+		, m_enabledQuirks{ quirks }
     {
         loadFonts(m_fontsLocation);
     }
@@ -29,6 +40,8 @@ public:
     using Array2DU8 = std::array<std::array<uint8_t, c>, r>;
 
     const Array2DU8<ChipConfig::screenHeight, ChipConfig::screenWidth>& getScreenBuffer() const { return m_screen; }
+
+    const uint8_t getSoundTimer() const { return m_soundTimer; }
 
     void loadFile(const std::string name);
 
@@ -66,14 +79,6 @@ public:
     static_assert(std::size(keyMap) == 16);
 
     // WORK IN PROGRESS
-    struct quirkFlags
-    {
-        bool shift{};
-        bool index{};
-        bool jump{};
-        bool wrapScreen{};
-        bool clearLogic{};
-    };
 
 
 private:
@@ -210,7 +215,10 @@ private:
     
     };
 
-    const uint16_t m_fontsLocation{ ChipConfig::fontsLocation };    
+    const uint16_t m_fontsLocation{ ChipConfig::fontsLocation };
+
+	// Quirks
+    QuirkFlags m_enabledQuirks{};
 };
 
 
