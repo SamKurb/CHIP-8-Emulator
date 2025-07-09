@@ -4,17 +4,17 @@ This is an emulator/interpreter for the CHIP-8. It is written in C++, and uses t
 ## Key features:
 - Passes all relevant modern day tests (In particular, Timendus' tests: https://github.com/Timendus/chip8-test-suite)
 - Quirks are configurable. Supports all 6 main quirks (more detail below to be added)
-- Input works, with the input mapping being as follows:
-   CHIP-8 Keypad  Keyboard
-     +-+-+-+-+    +-+-+-+-+
-     |1|2|3|C|    |1|2|3|4|
-     +-+-+-+-+    +-+-+-+-+
-     |4|5|6|D|    |Q|W|E|R|
-     +-+-+-+-+ => +-+-+-+-+
-     |7|8|9|E|    |A|S|D|F|
-     +-+-+-+-+    +-+-+-+-+
-     |A|0|B|F|    |Z|X|C|V|
-     +-+-+-+-+    +-+-+-+-+
+- Input works, with the input mapping being as follows: <br>
+   CHIP-8 Keypad  Keyboard   <br>
+     +-+-+-+-+    +-+-+-+-+  <br>
+     |1|2|3|C|    |1|2|3|4|  <br>
+     +-+-+-+-+    +-+-+-+-+  <br>
+     |4|5|6|D|    |Q|W|E|R|  <br>
+     +-+-+-+-+ => +-+-+-+-+  <br>
+     |7|8|9|E|    |A|S|D|F|  <br>
+     +-+-+-+-+    +-+-+-+-+  <br>
+     |A|0|B|F|    |Z|X|C|V|  <br>
+     +-+-+-+-+    +-+-+-+-+  <br>
   Note: the input mapping can be changed by editing the source code in chip8.h, However I plan to make it configurable via editing a JSON file
 - Audio works. By default, uses a 440Hz sine wave as the audio to be outputted (beep.wav in assets folder). Can be changed by swapping the beep.wav audio file with another of the same name
 - Runs all games I have tested (some require quirks to be configured differently)
