@@ -26,12 +26,13 @@ public:
         bool wrapScreen{};
         bool shift{};
         bool jump{};
+        bool displayWait{};
     };
 
 
     Chip8(QuirkFlags quirks)
         : m_fontsLocation{ ChipConfig::fontsLocation}
-		, m_enabledQuirks{ quirks }
+		, m_isQuirkEnabled{ quirks }
     {
         loadFonts(m_fontsLocation);
     }
@@ -43,6 +44,11 @@ public:
 
     const uint8_t getSoundTimer() const { return m_soundTimer; }
 
+    const bool executedDXYN() const { return m_executedDXYNFlag; }
+    void resetDXYNFlag() { m_executedDXYNFlag = false; }
+
+    const QuirkFlags getEnabledQuirks() const { return m_isQuirkEnabled; }
+
     void loadFile(const std::string name);
 
     void performFDECycle();
@@ -51,6 +57,9 @@ public:
     void setKeyUp(std::size_t key);
     void setKeyDown(std::size_t key);
     void setPrevFrameInputs();
+
+    // We increment by 2 because memeory is 1 bytes per location but instructions are 2 bytes each, so to get to the next instruction PC needs to be icremeneted by 2 rather than 1
+    void incrementPC() { m_pc += 2; };
 
     // For debugging, prints contents of screen buffer to stdout
     void printScreenBuffer();
@@ -73,12 +82,10 @@ public:
         SDL_SCANCODE_R,    // D
         SDL_SCANCODE_F,    // E
         SDL_SCANCODE_V,    // F
-                           // On keypad
+                           // On CHIP-8 hex keypad
     };
 
     static_assert(std::size(keyMap) == 16);
-
-    // WORK IN PROGRESS
 
 
 private:
@@ -168,6 +175,36 @@ private:
     void opFX55(uint16_t opcode);
     void opFX65(uint16_t opcode);
 
+    // Wrapper functions to access memory, so that OOB is checked for. Will add logging in the future
+    template <typename T>
+    uint8_t readMemory(T location)
+    {
+        static_assert(std::is_unsigned<T>::value);
+
+        if (location >= std::size(m_memory))
+        {
+            std::cout << "Attempted to access OOB memory\n";
+            std::exit(1);
+        }
+
+        return m_memory[location];
+    }
+
+    template <typename T>
+    void writeToMemory(T location, uint8_t value)
+    {
+        static_assert(std::is_unsigned<T>::value);
+
+        if (location > std::size(m_memory))
+        {
+            std::cout << "Attempted to write to OOB memory\n";
+            std::exit(1);
+        }
+
+        m_memory[location] = value;
+    }
+
+
     // Input handling
     bool isAKeyPressed();
     uint8_t findFirstPressedKey();
@@ -187,7 +224,7 @@ private:
 
     Array2DU8 <ChipConfig::screenHeight, ChipConfig::screenWidth> m_screen{};
 
-    // Need to keep track of both current and last frame so that we can detect when a key was released
+    // Need to keep track of inputs from both current and last frame so that we can detect when a key was released
     std::array<bool, 16> m_keyDownThisFrame{};
     std::array<bool, 16> m_keyDownLastFrame{};
 
@@ -216,9 +253,12 @@ private:
     };
 
     const uint16_t m_fontsLocation{ ChipConfig::fontsLocation };
+    
+    // Used for implementing the display wait quirk. Assumption is that whenever execution of instructions is interrupted to draw a frame, this flag is reset back to false.
+    bool m_executedDXYNFlag{ false };
 
-	// Quirks
-    QuirkFlags m_enabledQuirks{};
+	// Quirk configurations (We alter the functionality of certain opcodes based on whether or not a quirk is enabled)
+    QuirkFlags m_isQuirkEnabled{};
 };
 
 

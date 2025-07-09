@@ -145,7 +145,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\audioplayer.cpp" />
     <ClCompile Include="src\chip8.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\renderer.cpp" />
@@ -170,12 +169,14 @@
     <None Include="roms\4-flags.ch8" />
     <None Include="roms\5-quirks.ch8" />
     <None Include="roms\6-keypad.ch8" />
+    <None Include="roms\AllInOne.ch8" />
     <None Include="roms\BC_test.ch8" />
     <None Include="roms\brix.ch8" />
     <None Include="roms\danm8ku.ch8" />
     <None Include="roms\ghosts.ch8" />
     <None Include="roms\Hidden [David Winter, 1996].ch8" />
     <None Include="roms\ibm.ch8" />
+    <None Include="roms\oob_test_7.ch8" />
     <None Include="roms\pong.ch8" />
     <None Include="roms\rngTest.ch8" />
     <None Include="roms\snake.ch8" />

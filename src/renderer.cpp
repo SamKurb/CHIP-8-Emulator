@@ -42,7 +42,7 @@ Renderer::Renderer(int width, int height, bool gridOn,
 
 	if (!success)
 	{
-		std::cout << "Renderer failed to initialise properly.\n";
+        std::cout << "Renderer failed to initialise properly.\n";
         std::exit(1);
 	}
 }

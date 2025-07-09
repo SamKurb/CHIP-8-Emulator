@@ -33,9 +33,6 @@
     <ClCompile Include="src\renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\audioplayer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\chip8.h">
@@ -129,6 +126,12 @@
       <Filter>roms</Filter>
     </None>
     <None Include="roms\danm8ku.ch8">
+      <Filter>roms</Filter>
+    </None>
+    <None Include="roms\oob_test_7.ch8">
+      <Filter>roms</Filter>
+    </None>
+    <None Include="roms\AllInOne.ch8">
       <Filter>roms</Filter>
     </None>
   </ItemGroup>

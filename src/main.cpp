@@ -23,6 +23,9 @@ namespace ROMS
     const std::string testSound{ "roms/7-beep.ch8" };
     const std::string rngTest{ "roms/rngTest.ch8" };
 
+    const std::string OOBTest{ "roms/oob_test_7.ch8" };
+    const std::string allInOneTest{ "roms/AllInOne.ch8" };
+
     // Works completely fine
     const std::string tetris{ "roms/tetris.ch8" };
     const std::string snake{ "roms/snake.ch8" };
@@ -62,6 +65,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
         false,  // wrap around screen quirk
         false,  // shift quirk
         false,  // jump quirk
+        true,   // display wait quirk
     };
 
     // FOR TESTING WITH testQuirks ROM
@@ -71,6 +75,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
         false,  // wrap around screen quirk
         true,   // shift quirk
         true,   // jump quirk
+        false,  // display wait quirk
     };
 
     Chip8 chip{ baseChip8Quirks };
@@ -84,10 +89,10 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
         DisplayConfig::onColour
     };
 
-    chip.loadFile(ROMS::testQuirks);
+    chip.loadFile(ROMS::allInOneTest);
 
     
-    SDL_Event e{};
+    SDL_Event event{};
 
     bool userHasQuit{ false };
     
@@ -98,36 +103,43 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
 
     AudioPlayer audio{ "assets/beep.wav" };
 
+    const Chip8::QuirkFlags isQuirkEnabled{ chip.getEnabledQuirks() };
+
     while (!userHasQuit)
     {
         frameInfo.startTimeMs = SDL_GetTicks();
-        
-        while (SDL_PollEvent(&e) != 0)
+
+        if (chip.getSoundTimer() == 0)
         {
-            if (e.type == SDL_QUIT)
+            audio.stopSound();
+        }
+        
+        while (SDL_PollEvent(&event) != 0)
+        {
+            if (event.type == SDL_QUIT)
             {
                 userHasQuit = true;
             }
-            else if (e.type == SDL_KEYDOWN)
+            else if (event.type == SDL_KEYDOWN)
             {
-                if (e.key.keysym.scancode == SDL_SCANCODE_ESCAPE)
+                if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE)
                 {
-                    userHasQuit = true;
+                    userHasQuit = true;  
                 }
 
                 for (std::size_t i{ 0 }; i < 16; ++i)
                 {
-                    if (e.key.keysym.scancode == chip.keyMap[i])
+                    if (event.key.keysym.scancode == chip.keyMap[i])
                     {
                         chip.setKeyDown(i);
                     }
                 }
             }
-            else if (e.type == SDL_KEYUP)
+            else if (event.type == SDL_KEYUP)
             {
                 for (std::size_t i{ 0 }; i < 16; ++i)
                 {
-                    if (e.key.keysym.scancode == chip.keyMap[i])
+                    if (event.key.keysym.scancode == chip.keyMap[i])
                     {
                         chip.setKeyUp(i);
                     }
@@ -137,14 +149,20 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
 
         chip.decrementTimers();
 
-        for (int i = 0; i < ChipConfig::instrPerFrame - 5; ++i)
+        for (int i = 0; i < ChipConfig::instrPerFrame; ++i)
         {
             chip.performFDECycle();
+
+            if (isQuirkEnabled.displayWait && chip.executedDXYN())
+            {
+                chip.resetDXYNFlag();
+                break;
+            }
         }
 
         if (chip.getSoundTimer() > 0)
         {
-            audio.playSound();
+            audio.startSound();
         }
 
         renderer.drawToScreen(chip.getScreenBuffer());

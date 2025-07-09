@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <string>
 #include <string_view>
+#include <memory>
 
 class AudioPlayer
 {
@@ -18,19 +19,19 @@ public:
 
         if (SDL_Init(SDL_INIT_AUDIO) < 0)
         {
-            std::cout << "SDL audio Failed to initialise. SDL_Error: " << SDL_GetError() << '\n';
+            // << "SDL audio Failed to initialise. SDL_Error: " << SDL_GetError() << '\n';
             success = false;
         }
 
         if (Mix_OpenAudio(m_soundFrequency, m_sampleFormat, m_numHardwareChannels, m_sampleSize) < 0)
         {
-            std::cout << "SDL_mixer could not initialize. SDL_mixer Error: " << Mix_GetError() << '\n';
+            // << "SDL_mixer could not initialize. SDL_mixer Error: " << Mix_GetError() << '\n';
             success = false;
         }
 
         if (!success)
         {
-            std::cout << "AudioPlayer failed to initialise properly.\n";
+            // << "AudioPlayer failed to initialise properly.\n";
             std::exit(1);
         }
 
@@ -44,9 +45,21 @@ public:
         Mix_Quit();
     }
 
-    void playSound()
+    void startSound()
     {
-        Mix_PlayChannel(-1, m_soundEffect, 0);
+        if (m_currentChannel == -1)
+        {
+            m_currentChannel = Mix_PlayChannel(-1, m_soundEffect, 0);
+        }
+    }
+
+    void stopSound()
+    {
+        if (m_currentChannel != -1)
+        {
+            Mix_HaltChannel(m_currentChannel);
+            m_currentChannel = -1;
+        }
     }
 
 private:
@@ -55,7 +68,7 @@ private:
     void loadSoundEffect()
     {
         m_soundEffect = Mix_LoadWAV(m_soundFileLocation.data());
-        if (m_soundEffect == NULL)
+        if (m_soundEffect == nullptr)
         {
             std::cout << "Failed to load sound effect in AudioPlayer::loadSoundEffect(). SDL_mixer Error: " << Mix_GetError() << '\n';
             std::exit(1);
@@ -67,9 +80,11 @@ private:
     static constexpr int m_soundFrequency{ 44100 };
     static constexpr Uint32 m_sampleFormat{ MIX_DEFAULT_FORMAT };
     static constexpr int m_numHardwareChannels{ 2 };
-    static constexpr int m_sampleSize{ 2048 }; // 2 KiB
+    static constexpr int m_sampleSize{ 512 }; // 2 KiB
 
     const std::string m_soundFileLocation{};
+
+    int m_currentChannel{ -1 };
 };
 
 #endif
