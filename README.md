@@ -1,11 +1,23 @@
-# CHIP-8 Emulator/interpreter written in C++, using SDL2 for graphics
+# Overview
+This is an emulator/interpreter for the CHIP-8. It is written in C++, and uses the SDL2 library for both graphics, input handling and audio output
 
-## Key notes:
-- Passes All relevant modern day tests
-- Keyboard input works. Mapping can be changed
-- Sound works. Supports .wav files
-- Able to run tetris, snake and other games
-- Can configure which quirks are enabled and disabled
+## Key features:
+- Passes all relevant modern day tests (In particular, Timendus' tests: https://github.com/Timendus/chip8-test-suite)
+- Quirks are configurable. Supports all 6 main quirks (more detail below to be added)
+- Input works, with the input mapping being as follows:
+   CHIP-8 Keypad  Keyboard
+     +-+-+-+-+    +-+-+-+-+
+     |1|2|3|C|    |1|2|3|4|
+     +-+-+-+-+    +-+-+-+-+
+     |4|5|6|D|    |Q|W|E|R|
+     +-+-+-+-+ => +-+-+-+-+
+     |7|8|9|E|    |A|S|D|F|
+     +-+-+-+-+    +-+-+-+-+
+     |A|0|B|F|    |Z|X|C|V|
+     +-+-+-+-+    +-+-+-+-+
+  Note: the input mapping can be changed by editing the source code in chip8.h, However I plan to make it configurable via editing a JSON file
+- Audio works. By default, uses a 440Hz sine wave as the audio to be outputted (beep.wav in assets folder). Can be changed by swapping the beep.wav audio file with another of the same name
+- Runs all games I have tested (some require quirks to be configured differently)
 - Can change the colour scheme of the display
 
 ## Other notes:
@@ -13,11 +25,9 @@
 
 ## To-do:
 - Improve user friendliness (add an easier way to swap ROMS and alter settings rather than directly changing source code)
-- Clean up debug output. Add optional flag to disable it alltogether
 - Maybe add a GUI to see memory contents etc
-- Iron out some opcodes. Currently the emualator doesnt check if stack size is exceeded. This doesnt really matter for 99% of roms but would be good to add
 
-## References used:
+## References used for gathering the CHIP-8 specification (these are the main ones):
 - https://en.wikipedia.org/wiki/CHIP-8 For general information on how everything is structured, as well as opcode specifications
 - http://devernay.free.fr/hacks/chip8/C8TECH10.HTM - For opcode specifications
 - https://tobiasvl.github.io/blog/write-a-chip-8-emulator/ - For information regarding quirks/ambiguous instructions as well as typical keyboard-to-input mappings
