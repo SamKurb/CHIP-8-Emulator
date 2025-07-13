@@ -21,7 +21,14 @@ This is an emulator/interpreter for the CHIP-8. It is written in C++, and uses t
 - Audio works. By default, uses a 440Hz sine wave as the audio to be outputted (beep.wav in assets folder). Can be changed by swapping the beep.wav audio file with another of the same name
 - Runs all games I have tested (some require quirks to be configured differently)
 - Can change the colour scheme of the display
+- Has an integrated debugging mode. Can pause emulation and step through the program frame by frame or instruction by instruction. Current controls for this are: <br>
+Activate debug mode: 6 <br>
+Enter step mode (step through frame by frame): 7 <br>
+Step frame: space bar <br>
+Enter manual mode (step through instruction by instruction): 8 <br>
+Step instruction: I <br>
 
+Will add more features and make key mapping configurable in the future!
 ## Other notes:
 - There is *alot* of static casting going on in the code, because I have narrowing conversions disabled on my compiler. Most arithmetic and logic operations promote to int, so doing something like Unsigned & Unsigned will create a (signed) int temporary and require the result to be casted back to unsigned
 
