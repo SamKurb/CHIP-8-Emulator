@@ -19,19 +19,19 @@ public:
 
         if (SDL_Init(SDL_INIT_AUDIO) < 0)
         {
-            // << "SDL audio Failed to initialise. SDL_Error: " << SDL_GetError() << '\n';
+            std::cout << "SDL audio Failed to initialise. SDL_Error: " << SDL_GetError() << '\n';
             success = false;
         }
 
         if (Mix_OpenAudio(m_soundFrequency, m_sampleFormat, m_numHardwareChannels, m_sampleSize) < 0)
         {
-            // << "SDL_mixer could not initialize. SDL_mixer Error: " << Mix_GetError() << '\n';
+            std::cout << "SDL_mixer could not initialize. SDL_mixer Error: " << Mix_GetError() << '\n';
             success = false;
         }
 
         if (!success)
         {
-            // << "AudioPlayer failed to initialise properly.\n";
+            std::cout << "AudioPlayer failed to initialise properly.\n";
             std::exit(1);
         }
 
