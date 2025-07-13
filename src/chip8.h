@@ -64,30 +64,6 @@ public:
     // For debugging, prints contents of screen buffer to stdout
     void printScreenBuffer();
 
-    static inline constexpr std::array<SDL_Scancode, 16> keyMap{
-                           // Corresponds to...
-        SDL_SCANCODE_X,    // 0 
-        SDL_SCANCODE_1,    // 1 
-        SDL_SCANCODE_2,    // 2 
-        SDL_SCANCODE_3,    // 3
-        SDL_SCANCODE_Q,    // 4
-        SDL_SCANCODE_W,    // 5
-        SDL_SCANCODE_E,    // 6
-        SDL_SCANCODE_A,    // 7
-        SDL_SCANCODE_S,    // 8
-        SDL_SCANCODE_D,    // 9
-        SDL_SCANCODE_Z,    // A
-        SDL_SCANCODE_C,    // B
-        SDL_SCANCODE_4,    // C
-        SDL_SCANCODE_R,    // D
-        SDL_SCANCODE_F,    // E
-        SDL_SCANCODE_V,    // F
-                           // On CHIP-8 hex keypad
-    };
-
-    static_assert(std::size(keyMap) == 16);
-
-
 private:
     // Given opcode with X, i.e 0x3XNN, extracts only the X nibble
     uint16_t extractX(uint16_t opcode) const { return Utility::toU16((opcode & 0x0F00) >> 8); }

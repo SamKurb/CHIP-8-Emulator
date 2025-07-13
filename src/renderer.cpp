@@ -39,6 +39,9 @@ Renderer::Renderer(int width, int height, bool gridOn,
             }
         }
     }
+    if (TTF_Init() == -1) {
+        std::cerr << "SDL_ttf could not initialize! TTF_Error: " << TTF_GetError() << std::endl;
+    }
 
 	if (!success)
 	{

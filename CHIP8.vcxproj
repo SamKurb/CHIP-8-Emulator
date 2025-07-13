@@ -150,9 +150,11 @@
     <ClCompile Include="src\renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\statemanager.h" />
     <ClInclude Include="src\chip8.h" />
     <ClInclude Include="src\audioplayer.h" />
     <ClInclude Include="src\colour.h" />
+    <ClInclude Include="src\inputhandler.h" />
     <ClInclude Include="src\random.h" />
     <ClInclude Include="src\renderer.h" />
     <ClInclude Include="src\settings.h" />
@@ -188,6 +190,9 @@
   </ItemGroup>
   <ItemGroup>
     <Media Include="assets\beep.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <Font Include="assets\fonts\anonymous.ttf" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -7,6 +7,8 @@
 #include "chip8.h"
 #include "settings.h"
 #include "audioplayer.h"
+#include "inputhandler.h"
+#include "statemanager.h"
 
 namespace ROMS
 {
@@ -50,12 +52,56 @@ namespace ROMS
     const std::string puzzle15{ "roms/15puzzle.ch8" };
 }
 
+void executeInstructionsForFrame(Chip8& chip)
+{
+    for (int i = 0; i < ChipConfig::instrPerFrame; ++i)
+    {
+        chip.performFDECycle();
+
+        const Chip8::QuirkFlags& isQuirkEnabled{ chip.getEnabledQuirks() };
+        if (isQuirkEnabled.displayWait && chip.executedDXYN())
+        {
+            chip.resetDXYNFlag();
+            break;
+        }
+    }
+}
+
+void drawDebugTextBasedOnMode(const StateManager::DebugMode mode, Renderer& renderer)
+{
+    const int xPos{ 10 };
+    const int yPos{ 10 };
+
+    if (mode == StateManager::DebugMode::step)
+    {
+        renderer.drawText("STEP MODE ON", xPos, yPos);
+    }
+    else if (mode == StateManager::DebugMode::manual)
+    {
+        renderer.drawText("MANUAL MODE ON", xPos, yPos);
+    }
+}
+
+void updateDebugModeBasedOnInput(StateManager& stateManager, const InputHandler& inputHandler)
+{
+    if (stateManager.getCurrentDebugMode() != StateManager::DebugMode::step && inputHandler.isSystemKeyPressed(InputHandler::K_ACTIVATE_STEP))
+    {
+        stateManager.changeDebugModeTo(StateManager::DebugMode::step);
+    }
+
+    if (stateManager.getCurrentDebugMode() != StateManager::DebugMode::manual && inputHandler.isSystemKeyPressed(InputHandler::K_ACTIVATE_MANUAL))
+    {
+        stateManager.changeDebugModeTo(StateManager::DebugMode::manual);
+    }
+}
+
 struct FrameInfo
 {
     Uint32 startTimeMs{};
     Uint32 endTimeMs{};
     Uint32 timeElapsedMs{};
 };
+
 
 int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
 {
@@ -78,85 +124,98 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
         false,  // display wait quirk
     };
 
-    Chip8 chip{ baseChip8Quirks };
-
-
-    Renderer renderer {
+    Renderer renderer{
         DisplayConfig::resolutionWidth,
-        DisplayConfig::resolutionHeight, 
+        DisplayConfig::resolutionHeight,
         !DisplayConfig::displayGrid,
-        DisplayConfig::offColour, 
-        DisplayConfig::onColour
+        DisplayConfig::onColour,
+        DisplayConfig::offColour
     };
 
-    chip.loadFile(ROMS::allInOneTest);
-
-    
-    SDL_Event event{};
+    Chip8 chip{ baseChip8Quirks };
+    chip.loadFile(ROMS::tetris);
 
     bool userHasQuit{ false };
     
     FrameInfo frameInfo{};
-
     // For a target fps of 60 this will be 16ms (rounded down because it is an int), so we will actually be rendering roughly 62-63 frames rather than 60.
     const int targetFrameDelayMs{ 1000 / DisplayConfig::targetFPS };
 
     AudioPlayer audio{ "assets/beep.wav" };
 
-    const Chip8::QuirkFlags isQuirkEnabled{ chip.getEnabledQuirks() };
+    InputHandler inputHandler{};
+    StateManager stateManager{};
 
     while (!userHasQuit)
     {
         frameInfo.startTimeMs = SDL_GetTicks();
+        inputHandler.resetSystemKeysState();
+        inputHandler.readChipAndSystemInputs(chip);
 
-        if (chip.getSoundTimer() == 0)
-        {
-            audio.stopSound();
-        }
+        userHasQuit = inputHandler.isSystemKeyPressed(InputHandler::K_QUIT);
         
-        while (SDL_PollEvent(&event) != 0)
+        // State switching
+        const bool activateDebugPressed{ inputHandler.isSystemKeyPressed(InputHandler::K_ACTIVATE_DEBUG) };
+        const bool deactivateDebugPressed{ inputHandler.isSystemKeyPressed(InputHandler::K_DEACTIVATE_DEBUG) };
+        const StateManager::State currentState{ stateManager.getCurrentState() };
+        
+        if (activateDebugPressed && currentState == StateManager::State::running)
         {
-            if (event.type == SDL_QUIT)
-            {
-                userHasQuit = true;
-            }
-            else if (event.type == SDL_KEYDOWN)
-            {
-                if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE)
-                {
-                    userHasQuit = true;  
-                }
-
-                for (std::size_t i{ 0 }; i < 16; ++i)
-                {
-                    if (event.key.keysym.scancode == chip.keyMap[i])
-                    {
-                        chip.setKeyDown(i);
-                    }
-                }
-            }
-            else if (event.type == SDL_KEYUP)
-            {
-                for (std::size_t i{ 0 }; i < 16; ++i)
-                {
-                    if (event.key.keysym.scancode == chip.keyMap[i])
-                    {
-                        chip.setKeyUp(i);
-                    }
-                }
-            }
+            stateManager.changeMainStateTo(StateManager::debug);
+        }
+        else if (deactivateDebugPressed && currentState == StateManager::State::debug)
+        {
+            stateManager.changeMainStateTo(StateManager::running);
         }
 
+        
         chip.decrementTimers();
 
-        for (int i = 0; i < ChipConfig::instrPerFrame; ++i)
+        if (stateManager.getCurrentState() == StateManager::State::running)
         {
-            chip.performFDECycle();
+            executeInstructionsForFrame(chip);
+        }
+        else if (stateManager.getCurrentState() == StateManager::State::debug)
+        {
+            // Debug mode - Allows user to pause the program and step through it instruction by instruction or frame by frame. Inputs are still processed during this, so that the 
+            // User can input things while debugging. Need to hold down the buttons while stepping for that input to be processed
 
-            if (isQuirkEnabled.displayWait && chip.executedDXYN())
+            FrameInfo debugFrameInfo{};
+
+            while (stateManager.getCurrentState() == StateManager::State::debug)
             {
-                chip.resetDXYNFlag();
-                break;
+                inputHandler.resetSystemKeysState();
+                inputHandler.readChipAndSystemInputs(chip);
+
+                renderer.drawToScreen(chip.getScreenBuffer());
+                
+
+                const StateManager::DebugMode currentDebugMode{ stateManager.getCurrentDebugMode() };
+                drawDebugTextBasedOnMode(currentDebugMode, renderer);
+
+                renderer.render();
+
+                updateDebugModeBasedOnInput(stateManager, inputHandler);
+
+                // Cant use the "currentDebugMode" variable for readability here because the actual debug mode may change in these if statements, which wouldnt be reflected through the variable unless it were changed to a
+                if (stateManager.getCurrentDebugMode() == StateManager::step && inputHandler.isSystemKeyPressed(InputHandler::K_NEXT_FRAME))
+                {
+                    executeInstructionsForFrame(chip);
+                    break;
+                }
+                 
+                if (stateManager.getCurrentDebugMode() == StateManager::manual)
+                {
+                    if (inputHandler.isSystemKeyPressed(InputHandler::K_NEXT_INSTRUCTION))
+                    {
+                        chip.performFDECycle();
+                    }
+                }
+
+                if (inputHandler.isSystemKeyPressed(InputHandler::K_DEACTIVATE_DEBUG))
+                {
+                    stateManager.changeMainStateTo(StateManager::State::running);
+                }
             }
         }
 
@@ -164,8 +223,15 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
         {
             audio.startSound();
         }
+        else if (chip.getSoundTimer() == 0)
+        {
+            audio.stopSound();
+        }
 
+        //bool debug{ false };
+        
         renderer.drawToScreen(chip.getScreenBuffer());
+
         renderer.render();
             
         chip.setPrevFrameInputs();

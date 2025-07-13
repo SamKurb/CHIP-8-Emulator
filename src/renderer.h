@@ -2,9 +2,10 @@
 #define RENDERER_H
 
 #include <SDL.h>
-#include <SDL_events.h>
+
 #include <iostream>
 #include <cassert>
+#include <SDL_ttf.h>
 
 #include "utility.h"
 #include "settings.h"
@@ -62,12 +63,48 @@ public:
     }
 
 
-    void render() { SDL_RenderPresent(m_renderer); }
+    void render()
+    { 
+        SDL_RenderPresent(m_renderer); 
+        //clearDisplay();
+    }
 
     void drawGrid(const int pixelWidth, const int pixelHeight, int horizontalPixelAmount, int verticalPixelAmount);
 
-private:
+    void drawText(std::string_view text, int xPos, int yPos)
+    {
+        // Font by: Mark Simonsom. Name: "Anonymous". Source: https://www.fontsquirrel.com/fonts/list/classification/monospaced
+        TTF_Font* font = TTF_OpenFont("assets/fonts/anonymous.ttf", 24);
 
+        if (!font) 
+        {
+            std::cerr << "Font error: " << TTF_GetError() << std::endl;
+            std::exit(1);
+        }
+
+        // as TTF_RenderText_Solid could only be used on
+        // SDL_Surface then you have to create the surface first
+
+        SDL_Color textColour = Colour::colours[Colour::darkGreen];
+
+        SDL_Surface* textSurface{ TTF_RenderText_Solid(font, text.data(), {0,0xff,0})};
+
+        SDL_Texture* textTexture = SDL_CreateTextureFromSurface(m_renderer, textSurface);
+
+        // For some reason this function makes use of out parameters. Passing in a pointer to our
+        // width and height will alter their values to represent the "intended" size of the text. Why is this library so esoteric? 
+        int textWidth{};
+        int textHeight{};
+        TTF_SizeText(font, text.data(), &textWidth, &textHeight);
+
+        SDL_Rect textRect{ xPos, yPos, textWidth, textHeight }; 
+
+        SDL_RenderCopy(m_renderer, textTexture, nullptr, &textRect);
+        SDL_FreeSurface(textSurface);
+        SDL_DestroyTexture(textTexture);
+    }
+
+private:
     const int m_width{};
     const int m_height{};
     const int pixelSize{};

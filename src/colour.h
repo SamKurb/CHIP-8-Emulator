@@ -5,6 +5,8 @@
 #include <array>
 #include <iterator> // For std::size
 
+#include <SDL_pixels.h>
+
 namespace Colour
 {
     struct RGBValues
@@ -12,13 +14,18 @@ namespace Colour
         uint8_t r{};
         uint8_t g{};
         uint8_t b{};
+
+        operator SDL_Color() const 
+        {
+            return SDL_Color{ r, g, b, 255 };
+        }
     };
 
     // More colours to be added
     enum Type
     {
-        black,
         white,
+        black,
         darkGreen,
         lightGreen,
         amber,
@@ -27,8 +34,8 @@ namespace Colour
     };
 
     constexpr inline std::array colours{
-        RGBValues { 0xFF, 0xFF, 0xFF }, // Black
-        RGBValues { 0x00, 0x00, 0x00 }, // White
+        RGBValues { 0xFF, 0xFF, 0xFF }, // White
+        RGBValues { 0x00, 0x00, 0x00 }, // Black
         RGBValues { 0x0F, 0x38, 0x0F }, // Dark green
         RGBValues { 0x9B, 0xBC, 0x0F }, // Light green
         RGBValues { 0xFF, 0xBF, 0x00 }, // Amber

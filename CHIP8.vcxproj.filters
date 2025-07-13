@@ -22,6 +22,9 @@
     <Filter Include="assets">
       <UniqueIdentifier>{a1018896-36a1-4c3c-a10c-f98f4aa2d1c5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="assets\fonts">
+      <UniqueIdentifier>{229a6446-7d27-4098-850a-8c25037e5bd7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\chip8.cpp">
@@ -54,6 +57,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\colour.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\inputhandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\statemanager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -139,5 +148,10 @@
     <Media Include="assets\beep.wav">
       <Filter>assets</Filter>
     </Media>
+  </ItemGroup>
+  <ItemGroup>
+    <Font Include="assets\fonts\anonymous.ttf">
+      <Filter>assets\fonts</Filter>
+    </Font>
   </ItemGroup>
 </Project>
