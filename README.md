@@ -25,8 +25,10 @@ This is an emulator/interpreter for the CHIP-8. It is written in C++, and uses t
 Activate debug mode: 6 <br>
 Enter step mode (step through frame by frame): 7 <br>
 Step frame: space bar <br>
-Enter manual mode (step through instruction by instruction WORK IN PROGRESS): 8 <br>
+Enter manual mode (step through instruction by instruction): 8 <br>
 Step instruction: I <br>
+
+Note: Manual mode is a work in progress. I will add functionality to manually decrement timers, output a frame etc  <br>
 
 Will add more features and make key mapping configurable in the future!
 ## Other notes:
