@@ -25,7 +25,7 @@ This is an emulator/interpreter for the CHIP-8. It is written in C++, and uses t
 Activate debug mode: 6 <br>
 Enter step mode (step through frame by frame): 7 <br>
 Step frame: space bar <br>
-Enter manual mode (step through instruction by instruction): 8 <br>
+Enter manual mode (step through instruction by instruction WORK IN PROGRESS): 8 <br>
 Step instruction: I <br>
 
 Will add more features and make key mapping configurable in the future!
@@ -35,6 +35,8 @@ Will add more features and make key mapping configurable in the future!
 ## To-do:
 - Improve user friendliness (add an easier way to swap ROMS and alter settings rather than directly changing source code)
 - Maybe add a GUI to see memory contents etc
+- Add more features to debug mode
+- Refactor some codee
 
 ## References used for gathering the CHIP-8 specification (these are the main ones):
 - https://en.wikipedia.org/wiki/CHIP-8 For general information on how everything is structured, as well as opcode specifications
