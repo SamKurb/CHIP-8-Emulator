@@ -71,38 +71,7 @@ public:
 
     void drawGrid(const int pixelWidth, const int pixelHeight, int horizontalPixelAmount, int verticalPixelAmount);
 
-    void drawText(std::string_view text, int xPos, int yPos)
-    {
-        // Font by: Mark Simonsom. Name: "Anonymous". Source: https://www.fontsquirrel.com/fonts/list/classification/monospaced
-        TTF_Font* font = TTF_OpenFont("assets/fonts/anonymous.ttf", 24);
-
-        if (!font) 
-        {
-            std::cerr << "Font error: " << TTF_GetError() << std::endl;
-            std::exit(1);
-        }
-
-        // as TTF_RenderText_Solid could only be used on
-        // SDL_Surface then you have to create the surface first
-
-        SDL_Color textColour = Colour::colours[Colour::darkGreen];
-
-        SDL_Surface* textSurface{ TTF_RenderText_Solid(font, text.data(), {0,0xff,0})};
-
-        SDL_Texture* textTexture = SDL_CreateTextureFromSurface(m_renderer, textSurface);
-
-        // For some reason this function makes use of out parameters. Passing in a pointer to our
-        // width and height will alter their values to represent the "intended" size of the text. Why is this library so esoteric? 
-        int textWidth{};
-        int textHeight{};
-        TTF_SizeText(font, text.data(), &textWidth, &textHeight);
-
-        SDL_Rect textRect{ xPos, yPos, textWidth, textHeight }; 
-
-        SDL_RenderCopy(m_renderer, textTexture, nullptr, &textRect);
-        SDL_FreeSurface(textSurface);
-        SDL_DestroyTexture(textTexture);
-    }
+    void drawTextAt(const std::string_view text, const int xPos, const int yPos);
 
 private:
     const int m_width{};
@@ -118,24 +87,22 @@ private:
     const Colour::RGBValues m_offPixelColour{};
     const Colour::RGBValues m_onPixelColour{};
 
-    void clearDisplay()
+    void clearDisplay() const
     {
         clearDisplay(m_offPixelColour);
     }
 
-    void clearDisplay(Colour::RGBValues colour)
+    void clearDisplay(const Colour::RGBValues colour) const
     {
         SDL_SetRenderDrawColor(m_renderer, colour.r, colour.b, colour.g, 0xFF);
         SDL_RenderClear(m_renderer);
     }
 
-    void renderPixel(const Pixel& p)
+    void renderPixel(const Pixel& p) const
     {
         SDL_SetRenderDrawColor(m_renderer, p.colour.r, p.colour.g, p.colour.b, 0xFF);
         SDL_RenderFillRect(m_renderer, &p.rect);
     }
-
-    
 };
 
 #endif

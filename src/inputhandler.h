@@ -9,7 +9,27 @@
 class InputHandler
 {
 public:
-
+    enum ChipKeyInputs
+    {
+        K_0,
+        K_1,
+        K_2,
+        K_3,
+        K_4,
+        K_5,
+        K_6,
+        K_7,
+        K_8,
+        K_9,
+        K_A,
+        K_B,
+        K_C,
+        K_D,
+        K_E,
+        K_F,
+        numChipKeys,
+    };
+   
     enum SystemKeyInputs
     {
         K_QUIT,
@@ -49,26 +69,7 @@ public:
     }
 
 private:
-    enum ChipKeyInputs
-    {
-        K_0,
-        K_1,
-        K_2,
-        K_3,
-        K_4,
-        K_5,
-        K_6,
-        K_7,
-        K_8,
-        K_9,
-        K_A,
-        K_B,
-        K_C,
-        K_D,
-        K_E,
-        K_F,
-        numChipKeys,
-    };
+    
 
     static inline constexpr std::array chipKeyMap {
                            // Corresponds to...
@@ -110,9 +111,6 @@ private:
 
     static_assert(std::size(systemKeyMap) == numSystemKeys);
 
-    std::array<bool, numSystemKeys> m_isSystemKeyPressed{};
-
-
     void checkForChipInput(const SDL_Event event, Chip8& chip)
     {
         if (event.type == SDL_KEYDOWN)
@@ -150,7 +148,7 @@ private:
         }
     }
 
-
+    std::array<bool, numSystemKeys> m_isSystemKeyPressed{};
 };
 
 #endif

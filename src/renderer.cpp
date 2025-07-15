@@ -50,6 +50,15 @@ Renderer::Renderer(int width, int height, bool gridOn,
 	}
 }
 
+Renderer::~Renderer()
+{
+
+    SDL_DestroyWindow(m_window);
+    m_window = nullptr;
+
+    SDL_Quit();
+}
+
 void Renderer::drawGrid(const int pixelWidth, const int pixelHeight, int horizontalPixelAmount, int verticalPixelAmount)
 {
     // Draw vertical lines
@@ -67,11 +76,37 @@ void Renderer::drawGrid(const int pixelWidth, const int pixelHeight, int horizon
     }
 }
 
-Renderer::~Renderer()
+void Renderer::drawTextAt(const std::string_view text, const int xPos, const int yPos)
 {
+    // Font by: Mark Simonsom. Name: "Anonymous". Source: https://www.fontsquirrel.com/fonts/list/classification/monospaced
+    TTF_Font* font = TTF_OpenFont("assets/fonts/anonymous.ttf", 24);
 
-    SDL_DestroyWindow(m_window);
-    m_window = nullptr;
+    if (!font)
+    {
+        std::cerr << "Font error: " << TTF_GetError() << std::endl;
+        std::exit(1);
+    }
 
-    SDL_Quit();
+    // as TTF_RenderText_Solid could only be used on
+    // SDL_Surface then you have to create the surface first
+
+    SDL_Color textColour = Colour::colours[Colour::darkGreen];
+
+    SDL_Surface* textSurface{ TTF_RenderText_Solid(font, text.data(), {0,0xff,0}) };
+
+    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(m_renderer, textSurface);
+
+    // For some reason this function makes use of out parameters. Passing in a pointer to our
+    // width and height will alter their values to represent the "intended" size of the text. Why is this library so esoteric? 
+    int textWidth{};
+    int textHeight{};
+    TTF_SizeText(font, text.data(), &textWidth, &textHeight);
+
+    SDL_Rect textRect{ xPos, yPos, textWidth, textHeight };
+
+    SDL_RenderCopy(m_renderer, textTexture, nullptr, &textRect);
+    SDL_FreeSurface(textSurface);
+    SDL_DestroyTexture(textTexture);
 }
+
+

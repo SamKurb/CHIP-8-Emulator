@@ -5,7 +5,7 @@
 #include <cstddef>
 #include "colour.h"
 
-// This header contains namespaces related to the different configurable settings of the emulator.
+// This header contains namespaces related to the different configurable settings of the emulator, temporary until JSON parsing is implemented
 namespace ChipConfig
 {
     // Do not change

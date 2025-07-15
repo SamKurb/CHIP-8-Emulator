@@ -164,7 +164,7 @@ void Chip8::decodeAndExecute(const uint16_t opcode)
 
     default:
         handleInvalidOpcode(opcode);
-         break;
+        break;
     }
 }
 
@@ -214,7 +214,6 @@ void Chip8::op00EE()
 
 void Chip8::op1NNN(const uint16_t opcode)
 {
-
     const uint16_t address{ extractNNN(opcode) };
     m_pc = address;
 }
@@ -237,7 +236,6 @@ void Chip8::op3XNN(const uint16_t opcode)
 {
     const uint16_t regNum{ extractX(opcode) };
     const uint8_t valueToCompare{ Utility::toU8(extractNN(opcode)) };
-
 
     if (m_registers[regNum] == valueToCompare)
     {
@@ -288,7 +286,6 @@ void Chip8::op8XY0(const uint16_t opcode)
     const uint16_t regY{ extractY(opcode) };
 
     m_registers[regX] = m_registers[regY];
-
 }
 
 /*
@@ -297,7 +294,7 @@ The next 3 instructions (8XY1, 8XY2, 8XY3), which are the AND, OR and XOR opcode
 and all have a quirk version that alters behaviour in the same way
 
 --With the quirk *disabled*:
-Register VF is left untouched the operation
+Register VF is left untouched through the operation
 
 --With the quirk *enabled*:
 Register VF is always set to 0 at the end of the instruction
@@ -425,7 +422,6 @@ it would store the result of the shift which is not intended.
 
 void Chip8::op8XYE(const uint16_t opcode)
 {
-
     const uint16_t regX{ extractX(opcode) };
 
     if (!m_isQuirkEnabled.shift)
@@ -534,7 +530,6 @@ void Chip8::opDXYN(const uint16_t opcode)
     uint16_t spriteHeight{ Utility::toU16(extractN(opcode)) };
 
     uint16_t currAddress{ m_indexReg };
-
 
     bool pixelTurnedOff{ false };
 

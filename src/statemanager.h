@@ -1,6 +1,8 @@
 #ifndef STATEMANAGER_H
 #define STATEMANAGER_H
 
+// Header-only class because it is relatively simple. Used to keep track of current emulator state as well as any changes to it
+
 class StateManager
 {
 public:
@@ -35,7 +37,7 @@ public:
 private:
 	State m_currentState{ running };
 
-	// Only relevant if debug mode is one
+	// Only relevant if debug mode is on
 	DebugMode m_currentDebugMode{ step };
 };
 

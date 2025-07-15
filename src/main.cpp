@@ -10,6 +10,7 @@
 #include "inputhandler.h"
 #include "statemanager.h"
 
+// Temporary namespace to make it easier for me to swap roms 
 namespace ROMS
 {
 	const std::string brix{ "roms/brix.ch8" };
@@ -74,11 +75,11 @@ void drawDebugTextBasedOnMode(const StateManager::DebugMode mode, Renderer& rend
 
     if (mode == StateManager::DebugMode::step)
     {
-        renderer.drawText("STEP MODE ON", xPos, yPos);
+        renderer.drawTextAt("STEP MODE ON", xPos, yPos);
     }
     else if (mode == StateManager::DebugMode::manual)
     {
-        renderer.drawText("MANUAL MODE ON", xPos, yPos);
+        renderer.drawTextAt("MANUAL MODE ON", xPos, yPos);
     }
 }
 
@@ -138,7 +139,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
     bool userHasQuit{ false };
     
     FrameInfo frameInfo{};
-    // For a target fps of 60 this will be 16ms (rounded down because it is an int), so we will actually be rendering roughly 62-63 frames rather than 60.
+    // For a target fps of 60 this will be 16ms (rounded down because it is an int), so we will actually be rendering roughly 62-63 frames rather than 60
     const int targetFrameDelayMs{ 1000 / DisplayConfig::targetFPS };
 
     AudioPlayer audio{ "assets/beep.wav" };
@@ -197,7 +198,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
 
                 updateDebugModeBasedOnInput(stateManager, inputHandler);
 
-                // Cant use the "currentDebugMode" variable for readability here because the actual debug mode may change in these if statements, which wouldnt be reflected through the variable unless it were changed to a
+                // Cant use the "currentDebugMode" variable for readability here because the actual debug mode may change in these if statements, which wouldnt be reflected through the (non-reference) variable
                 if (stateManager.getCurrentDebugMode() == StateManager::step && inputHandler.isSystemKeyPressed(InputHandler::K_NEXT_FRAME))
                 {
                     executeInstructionsForFrame(chip);
