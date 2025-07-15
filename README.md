@@ -42,3 +42,5 @@ Will add more features and make key mapping configurable in the future!
 - https://en.wikipedia.org/wiki/CHIP-8 For general information on how everything is structured, as well as opcode specifications
 - http://devernay.free.fr/hacks/chip8/C8TECH10.HTM - For opcode specifications
 - https://tobiasvl.github.io/blog/write-a-chip-8-emulator/ - For information regarding quirks/ambiguous instructions as well as typical keyboard-to-input mappings
+
+- Random.h file from [https://www.learncpp.com/](https://www.learncpp.com/cpp-tutorial/global-random-numbers-random-h/) (highly recommend this resource! its great)
