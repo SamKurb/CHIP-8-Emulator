@@ -1,3 +1,0 @@
-D:/cpp/CHIP8/build/CMakeFiles/chip8.dir
-D:/cpp/CHIP8/build/CMakeFiles/ALL_BUILD.dir
-D:/cpp/CHIP8/build/CMakeFiles/ZERO_CHECK.dir
