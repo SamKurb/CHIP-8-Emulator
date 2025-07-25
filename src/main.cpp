@@ -1,14 +1,20 @@
 #include <iostream>
-
 #include <iomanip>
+
+// SDL2 wrapper classes
 #include "renderer.h"
-#include "utility.h"
-#include "random.h"
-#include "chip8.h"
-#include "settings.h"
 #include "audioplayer.h"
 #include "inputhandler.h"
+
+// Convenience namespaces
+#include "utility.h"
+#include "settings.h"
+#include "random.h"
+
+// Chip-related classes
 #include "statemanager.h"
+#include "chip8.h"
+
 
 // Temporary namespace to make it easier for me to swap roms 
 namespace ROMS
@@ -60,6 +66,7 @@ void executeInstructionsForFrame(Chip8& chip)
         chip.performFDECycle();
 
         const Chip8::QuirkFlags& isQuirkEnabled{ chip.getEnabledQuirks() };
+
         if (isQuirkEnabled.displayWait && chip.executedDXYN())
         {
             chip.resetDXYNFlag();
@@ -112,7 +119,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
         false,  // wrap around screen quirk
         false,  // shift quirk
         false,  // jump quirk
-        true,   // display wait quirk
+        false,   // display wait quirk
     };
 
     // FOR TESTING WITH testQuirks ROM
@@ -134,7 +141,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
     };
 
     Chip8 chip{ baseChip8Quirks };
-    chip.loadFile(ROMS::tetris);
+    chip.loadFile(ROMS::brix);
 
     bool userHasQuit{ false };
     

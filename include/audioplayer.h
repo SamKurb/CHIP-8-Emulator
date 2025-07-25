@@ -80,7 +80,7 @@ private:
     static constexpr int m_soundFrequency{ 44100 };
     static constexpr Uint32 m_sampleFormat{ MIX_DEFAULT_FORMAT };
     static constexpr int m_numHardwareChannels{ 2 };
-    static constexpr int m_sampleSize{ 512 }; // 2 KiB
+    static constexpr int m_sampleSize{ 512 }; // lower number = lower sound delay, but less quality
 
     const std::string m_soundFileLocation{};
 

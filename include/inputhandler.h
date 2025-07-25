@@ -4,7 +4,7 @@
 #include <SDL_events.h>
 #include <array>
 
-#include "chip8.h"
+class Chip8;
 
 class InputHandler
 {
@@ -47,30 +47,13 @@ public:
         numSystemKeys,
     };
 
-    void readChipAndSystemInputs(Chip8& chip) 
-    {
-        SDL_Event event{};
+    void readChipAndSystemInputs(Chip8& chip);
 
-        while (SDL_PollEvent(&event) != 0)
-        {            
-            checkForChipInput(event, chip);
-            checkForSystemInput(event);
-        }
-    }
+    bool isSystemKeyPressed(const SystemKeyInputs key) const { return m_isSystemKeyPressed[key]; }
 
-    bool isSystemKeyPressed(SystemKeyInputs key) const
-    {
-        return m_isSystemKeyPressed[key];
-    }
-
-    void resetSystemKeysState()
-    {
-        std::fill(m_isSystemKeyPressed.begin(), m_isSystemKeyPressed.end(), false);
-    }
+    void resetSystemKeysState() { std::fill(m_isSystemKeyPressed.begin(), m_isSystemKeyPressed.end(), false); }
 
 private:
-    
-
     static inline constexpr std::array chipKeyMap {
                            // Corresponds to...
         SDL_SCANCODE_X,    // 0 
@@ -94,7 +77,7 @@ private:
 
     static_assert(std::size(chipKeyMap) == numChipKeys);
 
-    static inline constexpr std::array systemKeyMap{
+    static inline constexpr std::array systemKeyMap {
                               // Corresponds to...
         SDL_SCANCODE_ESCAPE,  // Quit emulator
 
@@ -109,44 +92,10 @@ private:
         SDL_SCANCODE_0        // Deactivate debug mode
     };
 
-    static_assert(std::size(systemKeyMap) == numSystemKeys);
+    static_assert(std::size(systemKeyMap) == InputHandler::numSystemKeys);
 
-    void checkForChipInput(const SDL_Event event, Chip8& chip)
-    {
-        if (event.type == SDL_KEYDOWN)
-        {
-            for (std::size_t i{ 0 }; i < numChipKeys; ++i)
-            {
-                if (event.key.keysym.scancode == chipKeyMap[i])
-                { 
-                    chip.setKeyDown(i);
-                }
-            }
-        }
-        else if (event.type == SDL_KEYUP)
-        {
-            for (std::size_t i{ 0 }; i < numChipKeys; ++i)
-            {
-                if (event.key.keysym.scancode == chipKeyMap[i])
-                {
-                    chip.setKeyUp(i);
-                }
-            }
-        }
-    }
-
-    void checkForSystemInput(const SDL_Event event)
-    {
-        if (event.type != SDL_KEYDOWN) { return; }
-
-        for (std::size_t i{ 0 }; i < numSystemKeys; ++i)
-        {
-            if (event.key.keysym.scancode == systemKeyMap[i])
-            {
-                m_isSystemKeyPressed[i] = true;
-            }
-        }
-    }
+    void checkForChipInput(const SDL_Event event, Chip8& chip);
+    void checkForSystemInput(const SDL_Event event);
 
     std::array<bool, numSystemKeys> m_isSystemKeyPressed{};
 };

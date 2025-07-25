@@ -26,7 +26,6 @@ Renderer::Renderer(int width, int height, bool gridOn,
         }
         else
         {
-            m_screenSurface = SDL_GetWindowSurface(m_window);
             m_renderer = SDL_CreateRenderer(m_window, -1, SDL_RENDERER_ACCELERATED);
             if (m_renderer == nullptr)
             {

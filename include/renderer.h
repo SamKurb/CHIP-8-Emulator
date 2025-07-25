@@ -81,7 +81,6 @@ private:
     bool m_gridOn{};
 
     SDL_Window* m_window{};
-    SDL_Surface* m_screenSurface{};
     SDL_Renderer* m_renderer{};
 
     const Colour::RGBValues m_offPixelColour{};

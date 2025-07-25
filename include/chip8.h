@@ -15,7 +15,6 @@
 #include "random.h"
 #include "settings.h"
 
-
 class Chip8
 {
 public:
@@ -47,7 +46,7 @@ public:
     const bool executedDXYN() const { return m_executedDXYNFlag; }
     void resetDXYNFlag() { m_executedDXYNFlag = false; }
 
-    const QuirkFlags getEnabledQuirks() const { return m_isQuirkEnabled; }
+    const QuirkFlags& getEnabledQuirks() const { return m_isQuirkEnabled; }
 
     void loadFile(const std::string name);
 
