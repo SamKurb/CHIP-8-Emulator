@@ -1,5 +1,6 @@
 #include "inputhandler.h"
 #include "chip8.h"
+#include "imgui_impl_sdl2.h"
 
 void InputHandler::readChipAndSystemInputs(Chip8& chip)
 {
@@ -7,6 +8,7 @@ void InputHandler::readChipAndSystemInputs(Chip8& chip)
 
     while (SDL_PollEvent(&event) != 0)
     {
+        ImGui_ImplSDL2_ProcessEvent(&event);
         checkForChipInput(event, chip);
         checkForSystemInput(event);
     }

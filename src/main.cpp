@@ -15,6 +15,11 @@
 #include "statemanager.h"
 #include "chip8.h"
 
+// IMGUI
+#include <SDL_opengl.h >
+#include "imgui.h"
+#include "imgui_impl_sdlrenderer2.h"
+#include "imgui_impl_sdl2.h"
 
 // Temporary namespace to make it easier for me to swap roms 
 namespace ROMS
@@ -154,12 +159,26 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
     InputHandler inputHandler{};
     StateManager stateManager{};
 
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
+
+    ImGui_ImplSDL2_InitForSDLRenderer(renderer.getWindow(), renderer.getRenderer());
+    ImGui_ImplSDLRenderer2_Init(renderer.getRenderer());
+
+    //ImVec4 clearColor = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
     while (!userHasQuit)
     {
         frameInfo.startTimeMs = SDL_GetTicks();
         inputHandler.resetSystemKeysState();
         inputHandler.readChipAndSystemInputs(chip);
-
+         
         userHasQuit = inputHandler.isSystemKeyPressed(InputHandler::K_QUIT);
         
         // State switching
@@ -237,10 +256,10 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
         }
 
         //bool debug{ false };
-        
-        renderer.drawToScreen(chip.getScreenBuffer());
 
-        renderer.render();
+
+        renderer.drawToScreen(chip.getScreenBuffer());
+        renderer.render();          
             
         chip.setPrevFrameInputs();
 

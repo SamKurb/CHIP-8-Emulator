@@ -73,6 +73,9 @@ public:
 
     void drawTextAt(const std::string_view text, const int xPos, const int yPos);
 
+    SDL_Window* getWindow() { return m_window; }
+    SDL_Renderer* getRenderer() { return m_renderer; }
+
 private:
     const int m_width{};
     const int m_height{};
