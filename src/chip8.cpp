@@ -1,4 +1,4 @@
-#include "CHIP8.h"
+#include "chip8.h"
 
 void handleInvalidOpcode(const uint16_t opcode)
 {

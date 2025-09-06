@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(SOURCES
     src/main.cpp
-    src/Chip8.cpp
+    src/chip8.cpp
     src/inputhandler.cpp
     src/renderer.cpp
 

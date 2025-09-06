@@ -16,7 +16,6 @@
 #include "chip8.h"
 
 // IMGUI
-#include <SDL_opengl.h >
 #include "imgui.h"
 #include "imgui_impl_sdlrenderer2.h"
 #include "imgui_impl_sdl2.h"
