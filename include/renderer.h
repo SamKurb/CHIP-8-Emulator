@@ -6,6 +6,7 @@
 #include <iostream>
 #include <cassert>
 #include <SDL_ttf.h>
+#include <memory>
 
 #include "utility.h"
 #include "settings.h"
@@ -57,7 +58,7 @@ public:
 
         if (m_gridOn)
         {
-            SDL_SetRenderDrawColor(m_renderer, 0x00, 0x00, 0x00, 0xFF);
+            SDL_SetRenderDrawColor(m_renderer.get(), 0x00, 0x00, 0x00, 0xFF);
             drawGrid(pixelWidth, pixelHeight, C, R);
         }
     }
@@ -65,7 +66,7 @@ public:
 
     void render()
     { 
-        SDL_RenderPresent(m_renderer); 
+        SDL_RenderPresent(m_renderer.get()); 
         //clearDisplay();
     }
 
@@ -73,8 +74,8 @@ public:
 
     void drawTextAt(const std::string_view text, const int xPos, const int yPos);
 
-    SDL_Window* getWindow() { return m_window; }
-    SDL_Renderer* getRenderer() { return m_renderer; }
+    SDL_Window* getWindow() { return m_window.get(); }
+    SDL_Renderer* getRenderer() { return m_renderer.get(); }
 
 private:
     const int m_width{};
@@ -83,8 +84,11 @@ private:
 
     bool m_gridOn{};
 
-    SDL_Window* m_window{};
-    SDL_Renderer* m_renderer{};
+    //SDL_Window* m_window{};
+    //SDL_Renderer* m_renderer{};
+
+    std::unique_ptr<SDL_Window, decltype(&SDL_DestroyWindow)> m_window { nullptr, SDL_DestroyWindow };
+    std::unique_ptr<SDL_Renderer, decltype(&SDL_DestroyRenderer)> m_renderer{ nullptr, SDL_DestroyRenderer };
 
     const Colour::RGBValues m_offPixelColour{};
     const Colour::RGBValues m_onPixelColour{};
@@ -96,14 +100,16 @@ private:
 
     void clearDisplay(const Colour::RGBValues colour) const
     {
-        SDL_SetRenderDrawColor(m_renderer, colour.r, colour.b, colour.g, 0xFF);
-        SDL_RenderClear(m_renderer);
+        SDL_Renderer* renderer{ m_renderer.get() };
+        SDL_SetRenderDrawColor(renderer, colour.r, colour.b, colour.g, 0xFF);
+        SDL_RenderClear(renderer);
     }
 
     void renderPixel(const Pixel& p) const
     {
-        SDL_SetRenderDrawColor(m_renderer, p.colour.r, p.colour.g, p.colour.b, 0xFF);
-        SDL_RenderFillRect(m_renderer, &p.rect);
+        SDL_Renderer* renderer{ m_renderer.get() };
+        SDL_SetRenderDrawColor(renderer, p.colour.r, p.colour.g, p.colour.b, 0xFF);
+        SDL_RenderFillRect(renderer, &p.rect);
     }
 };
 

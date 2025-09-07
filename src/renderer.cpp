@@ -13,28 +13,34 @@ Renderer::Renderer(int width, int height, bool gridOn,
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
-        std::cout << "SDL Failed to initialise. SDL_Error: " << SDL_GetError() << '\n';
+        std::cerr << "SDL Failed to initialise. SDL_Error: " << SDL_GetError() << std::endl;
         success = false;
     }
     else
     {
-        m_window = SDL_CreateWindow("CHIP-8 Emulator", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-            m_width, m_height, SDL_WINDOW_SHOWN);
+        m_window.reset(
+            SDL_CreateWindow("CHIP-8 Emulator", 
+                SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                m_width, m_height, 
+                SDL_WINDOW_SHOWN)
+        );
+
         if (m_window == nullptr)
         {
-            std::cout << "Failed to create window. SDL_Error: " << SDL_GetError() << '\n';
+            std::cerr << "Failed to create window. SDL_Error: " << SDL_GetError() << std::endl;
         }
         else
         {
-            m_renderer = SDL_CreateRenderer(m_window, -1, SDL_RENDERER_ACCELERATED);
+            m_renderer.reset( SDL_CreateRenderer(m_window.get(), -1, SDL_RENDERER_ACCELERATED));
+
             if (m_renderer == nullptr)
             {
-                std::cout << "Failed to create renderer. SDL_Error: " << SDL_GetError() << '\n';
+                std::cerr << "Failed to create renderer. SDL_Error: " << SDL_GetError() << std::endl;
                 success = false;
             }
             else
             {
-                SDL_SetRenderDrawColor(m_renderer, 0x00, 0x00, 0x00, 0xFF);
+                SDL_SetRenderDrawColor(m_renderer.get(), 0x00, 0x00, 0x00, 0xFF);
             }
         }
     }
@@ -44,39 +50,38 @@ Renderer::Renderer(int width, int height, bool gridOn,
 
 	if (!success)
 	{
-        std::cout << "Renderer failed to initialise properly.\n";
+        std::cerr << "Renderer failed to initialise properly." << std::endl;
         std::exit(1);
 	}
 }
 
 Renderer::~Renderer()
 {
-
-    SDL_DestroyWindow(m_window);
-    m_window = nullptr;
-
     SDL_Quit();
 }
 
 void Renderer::drawGrid(const int pixelWidth, const int pixelHeight, int horizontalPixelAmount, int verticalPixelAmount)
 {
+    SDL_Renderer* renderer{ m_renderer.get() };
     // Draw vertical lines
     for (int i{ 0 }; i < horizontalPixelAmount ; ++i)
     {
         int xCoord{ i * pixelWidth };
-        SDL_RenderDrawLine(m_renderer, xCoord, 0, xCoord, m_height);
+        SDL_RenderDrawLine(renderer, xCoord, 0, xCoord, m_height);
     }
 
     // Draw horizontal lines
     for (int i{ 0 }; i < verticalPixelAmount; ++i)
     {
         int yCoord{ i * pixelHeight };
-        SDL_RenderDrawLine(m_renderer, 0, yCoord, m_width, yCoord);
+        SDL_RenderDrawLine(renderer, 0, yCoord, m_width, yCoord);
     }
 }
 
 void Renderer::drawTextAt(const std::string_view text, const int xPos, const int yPos)
 {
+    SDL_Renderer* renderer{ m_renderer.get() };
+
     // Font by: Mark Simonsom. Name: "Anonymous". Source: https://www.fontsquirrel.com/fonts/list/classification/monospaced
     TTF_Font* font = TTF_OpenFont("assets/fonts/anonymous.ttf", 24);
 
@@ -93,7 +98,7 @@ void Renderer::drawTextAt(const std::string_view text, const int xPos, const int
 
     SDL_Surface* textSurface{ TTF_RenderText_Solid(font, text.data(), {0,0xff,0}) };
 
-    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(m_renderer, textSurface);
+    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
 
     // For some reason this function makes use of out parameters. Passing in a pointer to our
     // width and height will alter their values to represent the "intended" size of the text. Why is this library so esoteric? 
@@ -103,7 +108,7 @@ void Renderer::drawTextAt(const std::string_view text, const int xPos, const int
 
     SDL_Rect textRect{ xPos, yPos, textWidth, textHeight };
 
-    SDL_RenderCopy(m_renderer, textTexture, nullptr, &textRect);
+    SDL_RenderCopy(renderer, textTexture, nullptr, &textRect);
     SDL_FreeSurface(textSurface);
     SDL_DestroyTexture(textTexture);
 }
