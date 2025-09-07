@@ -166,7 +166,7 @@ void Chip8::decodeAndExecute(const uint16_t opcode)
         break;
     }
 
-    m_instructionsExecuted += 1;
+    m_runtimeMetaData.numInstructionsExecuted += 1;
 }
 
 void Chip8::decrementTimers()
@@ -707,6 +707,8 @@ void Chip8::loadFonts(const uint16_t startLocation)
 {
     assert(startLocation + 80 < 0x1FF);
 
+    m_runtimeMetaData.fontStartAddress = startLocation;
+
     uint16_t currLocation{ startLocation };
 
     for (auto const fontInfo : m_fonts)
@@ -714,6 +716,8 @@ void Chip8::loadFonts(const uint16_t startLocation)
         writeToMemory(currLocation, fontInfo);
         ++currLocation;
     }
+
+    m_runtimeMetaData.fontEndAddress = currLocation - 1;
 }
 
 void Chip8::loadFile(const std::string name)
@@ -729,11 +733,15 @@ void Chip8::loadFile(const std::string name)
     std::uint8_t nextByte{};
     std::uint16_t currAddress{ m_pc };
 
+    m_runtimeMetaData.programStartAddress = m_pc;
+
     while (ROM.read(reinterpret_cast<char*>(&nextByte), sizeof(nextByte)))
     {
         writeToMemory(currAddress, nextByte);
         ++currAddress;
     }
+    
+    m_runtimeMetaData.programEndAddress = currAddress - 1;
 
     std::cout << "Done loading\n";
 }

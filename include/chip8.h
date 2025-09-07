@@ -28,11 +28,22 @@ public:
         bool displayWait{};
     };
 
+    struct RuntimeMetaData
+    {
+        uint64_t numInstructionsExecuted{};
+
+        uint16_t fontStartAddress{};
+        uint16_t fontEndAddress{};
+
+        uint16_t programStartAddress{};
+        uint16_t programEndAddress{};
+    };
+
 
     Chip8(QuirkFlags quirks)
-        : m_fontsLocation{ ChipConfig::fontsLocation}
-		, m_isQuirkEnabled{ quirks }
-        , m_instructionsExecuted{ 0 }
+        : m_fontsLocation{ ChipConfig::fontsLocation }
+        , m_isQuirkEnabled{ quirks }
+        , m_runtimeMetaData{}
     {
         loadFonts(m_fontsLocation);
     }
@@ -49,7 +60,13 @@ public:
 
     const QuirkFlags& getEnabledQuirks() const { return m_isQuirkEnabled; }
 
-	const uint64_t getNumInstructionsExecuted() const { return m_instructionsExecuted; }
+
+	const uint64_t getNumInstructionsExecuted() const { return m_runtimeMetaData.numInstructionsExecuted; }
+    const uint16_t getFontStartAddress() const { return m_runtimeMetaData.fontStartAddress; }
+    const uint16_t getFontEndAddress() const { return m_runtimeMetaData.fontEndAddress; }
+
+    const uint16_t getProgramStartAddress() const { return m_runtimeMetaData.programStartAddress; }
+    const uint16_t getProgramEndAddress() const { return m_runtimeMetaData.programEndAddress; }
 
     const std::array<uint8_t, 4096> getMemoryContents() const { return m_memory; }
 
@@ -242,7 +259,8 @@ private:
 	// Quirk configurations (We alter the functionality of certain opcodes based on whether or not a quirk is enabled)
     QuirkFlags m_isQuirkEnabled{};
 
-    uint64_t m_instructionsExecuted{ 0 };
+    RuntimeMetaData m_runtimeMetaData{};
+
 };
 
 

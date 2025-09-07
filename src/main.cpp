@@ -280,7 +280,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
             chip.getNumInstructionsExecuted() - numInstructionsBeforeFrame
 		);
 
-        imguiRenderer.drawMemoryViewerWindow(chip.getMemoryContents(), chip.getPCAddress());
+        imguiRenderer.drawMemoryViewerWindow(chip);
 
         ImGui::Render();
         ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer.getRenderer());
