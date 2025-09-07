@@ -32,6 +32,7 @@ public:
     Chip8(QuirkFlags quirks)
         : m_fontsLocation{ ChipConfig::fontsLocation}
 		, m_isQuirkEnabled{ quirks }
+        , m_instructionsExecuted{ 0 }
     {
         loadFonts(m_fontsLocation);
     }
@@ -47,6 +48,12 @@ public:
     void resetDXYNFlag() { m_executedDXYNFlag = false; }
 
     const QuirkFlags& getEnabledQuirks() const { return m_isQuirkEnabled; }
+
+	const uint64_t getNumInstructionsExecuted() const { return m_instructionsExecuted; }
+
+    const std::array<uint8_t, 4096> getMemoryContents() const { return m_memory; }
+
+	const uint16_t getPCAddress() const { return m_pc; }
 
     void loadFile(const std::string name);
 
@@ -234,6 +241,8 @@ private:
 
 	// Quirk configurations (We alter the functionality of certain opcodes based on whether or not a quirk is enabled)
     QuirkFlags m_isQuirkEnabled{};
+
+    uint64_t m_instructionsExecuted{ 0 };
 };
 
 

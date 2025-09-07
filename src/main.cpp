@@ -20,6 +20,8 @@
 #include "imgui_impl_sdlrenderer2.h"
 #include "imgui_impl_sdl2.h"
 
+#include "imguirenderer.h"
+
 // Temporary namespace to make it easier for me to swap roms 
 namespace ROMS
 {
@@ -145,7 +147,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
     };
 
     Chip8 chip{ baseChip8Quirks };
-    chip.loadFile(ROMS::brix);
+    chip.loadFile(ROMS::tetris);
 
     bool userHasQuit{ false };
     
@@ -158,23 +160,16 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
     InputHandler inputHandler{};
     StateManager stateManager{};
 
-
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-
-
-    ImGui_ImplSDL2_InitForSDLRenderer(renderer.getWindow(), renderer.getRenderer());
-    ImGui_ImplSDLRenderer2_Init(renderer.getRenderer());
-
     //ImVec4 clearColor = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
+	ImguiRenderer imguiRenderer{ renderer.getWindow(), renderer.getRenderer() };
 
     while (!userHasQuit)
     {
+		uint64_t numInstructionsBeforeFrame{ chip.getNumInstructionsExecuted() };
+
         frameInfo.startTimeMs = SDL_GetTicks();
+
         inputHandler.resetSystemKeysState();
         inputHandler.readChipAndSystemInputs(chip);
          
@@ -256,10 +251,6 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
 
         //bool debug{ false };
 
-
-        renderer.drawToScreen(chip.getScreenBuffer());
-        renderer.render();          
-            
         chip.setPrevFrameInputs();
 
         frameInfo.endTimeMs = SDL_GetTicks();
@@ -268,8 +259,34 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
         // Frames may process faster than the target frametime, so we delay to make sure that we only move on to the next frame when enough time has passed
         if (frameInfo.timeElapsedMs < targetFrameDelayMs)
         {
-            SDL_Delay(targetFrameDelayMs - frameInfo.timeElapsedMs);
+			Uint32 timeToWaitMs{ targetFrameDelayMs - frameInfo.timeElapsedMs };
+            SDL_Delay(timeToWaitMs);
+
+            frameInfo.timeElapsedMs += timeToWaitMs;
         }
+
+        renderer.drawToScreen(chip.getScreenBuffer());
+
+        ImGui_ImplSDL2_NewFrame();
+        ImGui_ImplSDLRenderer2_NewFrame();
+        ImGui::NewFrame();
+
+		float fps = (frameInfo.timeElapsedMs > 0) ? (1000.0f / frameInfo.timeElapsedMs) : 0.0f;
+        imguiRenderer.drawGeneralInfoWindow (
+            fps,
+            chip.getSoundTimer(),
+            stateManager.getCurrentState(),
+            chip.getNumInstructionsExecuted(),
+            chip.getNumInstructionsExecuted() - numInstructionsBeforeFrame
+		);
+
+        imguiRenderer.drawMemoryViewerWindow(chip.getMemoryContents(), chip.getPCAddress());
+
+        ImGui::Render();
+        ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer.getRenderer());
+
+
+        renderer.render();
     }
 
     return 0;

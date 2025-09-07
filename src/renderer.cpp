@@ -8,6 +8,7 @@ Renderer::Renderer(int width, int height, bool gridOn,
     , m_gridOn{gridOn}
     , m_onPixelColour{onPixelColour}
     , m_offPixelColour{offPixelColour}
+    , m_windowTitle{ "CHIP-8 Emulator" }
 {
     bool success{ true };
 
@@ -19,7 +20,7 @@ Renderer::Renderer(int width, int height, bool gridOn,
     else
     {
         m_window.reset(
-            SDL_CreateWindow("CHIP-8 Emulator", 
+            SDL_CreateWindow(m_windowTitle.data(),
                 SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                 m_width, m_height, 
                 SDL_WINDOW_SHOWN)

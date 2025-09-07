@@ -16,12 +16,14 @@ set(SOURCES
     external/imgui/imgui_widgets.cpp
     external/imgui/imgui_tables.cpp
 
+    external/imgui/imgui_demo.cpp
+
     external/imgui/backends/imgui_impl_sdl2.cpp
     external/imgui/backends/imgui_impl_sdlrenderer2.cpp
     
 )
 
-add_executable(${PROJECT_NAME} ${SOURCES})
+add_executable(${PROJECT_NAME} ${SOURCES} "src/imguirenderer.cpp" "include/imguirenderer.h")
 
 find_package(OpenGL REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE OpenGL::GL)

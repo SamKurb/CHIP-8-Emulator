@@ -80,7 +80,9 @@ public:
 private:
     const int m_width{};
     const int m_height{};
-    const int pixelSize{};
+    const int m_pixelSize{};
+
+	const std::string m_windowTitle{ "CHIP-8 Emulator" };
 
     bool m_gridOn{};
 

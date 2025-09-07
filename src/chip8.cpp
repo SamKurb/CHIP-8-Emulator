@@ -22,7 +22,6 @@ void Chip8::decodeAndExecute(const uint16_t opcode)
 {
     switch (opcode & 0xF000)
     {
-
     case 0x1000:
         op1NNN(opcode);
         break;
@@ -166,6 +165,8 @@ void Chip8::decodeAndExecute(const uint16_t opcode)
         handleInvalidOpcode(opcode);
         break;
     }
+
+    m_instructionsExecuted += 1;
 }
 
 void Chip8::decrementTimers()
