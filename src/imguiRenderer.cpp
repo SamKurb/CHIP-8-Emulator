@@ -34,6 +34,32 @@ void ImguiRenderer::printRowStartAddress(const std::size_t rowStartAddress, cons
     }
 }
 
+void ImguiRenderer::printMemoryRowAsASCII(const std::array<uint8_t, 4096>& memoryContents, const std::size_t rowStartPos, const int numBytesToPrint) const
+{
+    for (std::size_t addressOffset{ 0 }; addressOffset < numBytesToPrint; ++addressOffset)
+    {
+        std::size_t currentAddress{ rowStartPos + addressOffset };
+        const uint8_t memContentsAtCurrLocation{ memoryContents[currentAddress] };
+
+        const uint8_t validAsciiStart{ 33 };
+        const uint8_t validAsciiEnd{ 126 };
+
+        const char placeHolderForInvalidChar{ '.' };
+        
+        ImGui::SameLine();
+
+        if (memContentsAtCurrLocation >= validAsciiStart && memContentsAtCurrLocation <= validAsciiEnd)
+        {
+            
+            ImGui::Text("%c", memContentsAtCurrLocation);
+        }
+        else
+        {
+            ImGui::Text("%c", placeHolderForInvalidChar);
+        }
+    }
+}
+
 void ImguiRenderer::printMemoryRow(const std::array<uint8_t, 4096>& memoryContents, const std::size_t rowStartPos,  const int numBytesToPrint, 
     const Chip8& chip) const
 {
@@ -78,27 +104,7 @@ void ImguiRenderer::printMemoryRow(const std::array<uint8_t, 4096>& memoryConten
     ImGui::SameLine();
 	ImGui::Text("   ");
 
-    for (std::size_t addressOffset{ 0 }; addressOffset < numBytesToPrint; ++addressOffset)
-    {
-        ImGui::SameLine();
-        std::size_t currentAddress{ rowStartPos + addressOffset };
-        const uint8_t memContentsAtCurrLocation{ memoryContents[currentAddress] };
-
-		const uint8_t validAsciiStart{ 33 };
-		const uint8_t validAsciiEnd{ 126 };
-
-		const char placeHolderForInvalidChar{ '.' };
-
-        if (memContentsAtCurrLocation >= validAsciiStart && memContentsAtCurrLocation <= validAsciiEnd)
-        {
-            ImGui::Text("%c", memContentsAtCurrLocation);
-        }
-        else
-        {
-            ImGui::Text("%c", placeHolderForInvalidChar);
-        }
-
-    }
+    printMemoryRowAsASCII(memoryContents, rowStartPos, numBytesToPrint);
 }
 
 
