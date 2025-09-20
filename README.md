@@ -1,3 +1,5 @@
+# WORK IN PROGRESS: Will add building instructions soon
+
 # Overview
 This is an emulator/interpreter for the CHIP-8. It is written in C++, and uses the SDL2 library for both graphics, input handling and audio output
 
