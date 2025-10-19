@@ -15,7 +15,7 @@ void InputHandler::readChipAndSystemInputs(Chip8& chip)
 }
 
 
-void InputHandler::checkForChipInput(const SDL_Event event, Chip8& chip)
+void InputHandler::checkForChipInput(const SDL_Event& event, Chip8& chip)
 {
     if (event.type == SDL_KEYDOWN)
     {

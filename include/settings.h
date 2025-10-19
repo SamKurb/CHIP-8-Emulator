@@ -30,13 +30,13 @@ namespace DisplayConfig
     constexpr bool displayGrid{ true };
 
     // Make sure that the resolution parameters selected are multiples of the CHIP8's 64x32 original resolution, so that everything is rendered properly
-    constexpr int resolutionWidth{ 1280 };
-    constexpr int resolutionHeight{ 640 };
+    constexpr int resolutionWidth{ 2560 };
+    constexpr int resolutionHeight{ 1280 };
 
     static_assert((resolutionWidth% ChipConfig::screenWidth) == 0, "Chosen resolution width is not divisible by Chip8 screen width (in pixel count)");
     static_assert((resolutionHeight% ChipConfig::screenHeight) == 0, "Chosen resolution height is not divisible by Chip8 screen height (in pixel count)");
 
-    constexpr Colour::RGBValues offColour{ Colour::colours[Colour::black] };
-    constexpr Colour::RGBValues onColour{ Colour::colours[Colour::white] };
+    constexpr Colour::RGBA offColour{ Colour::colours[Colour::black] };
+    constexpr Colour::RGBA onColour{ Colour::colours[Colour::white] };
 }
 #endif

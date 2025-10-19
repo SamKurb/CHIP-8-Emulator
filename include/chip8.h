@@ -69,6 +69,7 @@ public:
     const uint16_t getProgramEndAddress() const { return m_runtimeMetaData.programEndAddress; }
 
     const std::array<uint8_t, 4096> getMemoryContents() const { return m_memory; }
+    const std::array<uint8_t, 16> getRegisterContents() const { return m_registers; }
 
 	const uint16_t getPCAddress() const { return m_pc; }
 
@@ -97,7 +98,7 @@ private:
     // Given opcode with an N segment, i.e 0xDXYN, extracts only the N nibble
     uint16_t extractN(uint16_t opcode) const { return Utility::toU16(opcode & 0x000F); }
 
-    // Given opcode with an NN segment, i.e 0x3XNN, extracts only the N byte
+    // Given opcode with an NN segment, i.e 0x3XNN, extracts only the N nibble
     uint16_t extractNN(uint16_t opcode) const { return Utility::toU16(opcode & 0x00FF); }
 
     // Given opcode with an NNN segment, i.e 0x1NNN, extracts only the NNN segment
@@ -182,7 +183,7 @@ private:
 
         if (location >= std::size(m_memory))
         {
-            std::cout << "Attempted to access OOB memory\n";
+            std::cout << "Attempted to access OOB memory\n" << std::endl;
             std::exit(1);
         }
 
@@ -196,7 +197,7 @@ private:
 
         if (location > std::size(m_memory))
         {
-            std::cout << "Attempted to write to OOB memory\n";
+            std::cout << "Attempted to write to OOB memory\n" << std::endl;
             std::exit(1);
         }
 

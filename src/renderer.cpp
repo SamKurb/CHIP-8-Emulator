@@ -1,14 +1,11 @@
 #include "renderer.h"
+#include "displaysettings.h"
 
-
-Renderer::Renderer(int width, int height, bool gridOn,
-    Colour::RGBValues onPixelColour, Colour::RGBValues offPixelColour)
-    : m_width{width}
-    , m_height{height}
-    , m_gridOn{gridOn}
-    , m_onPixelColour{onPixelColour}
-    , m_offPixelColour{offPixelColour}
-    , m_windowTitle{ "CHIP-8 Emulator" }
+Renderer::Renderer(std::shared_ptr<DisplaySettings> displaySettings)
+    : m_defaultDPI { 120.0f }
+    , m_displaySettings{ std::move(displaySettings) }
+    , m_width { m_displaySettings -> userDesiredWidth }
+    , m_height { m_displaySettings -> userDesiredHeight }
 {
     bool success{ true };
 
@@ -23,7 +20,7 @@ Renderer::Renderer(int width, int height, bool gridOn,
             SDL_CreateWindow(m_windowTitle.data(),
                 SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                 m_width, m_height, 
-                SDL_WINDOW_SHOWN)
+                SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI)
         );
 
         if (m_window == nullptr)
@@ -45,8 +42,18 @@ Renderer::Renderer(int width, int height, bool gridOn,
             }
         }
     }
-    if (TTF_Init() == -1) {
+    if (TTF_Init() == -1)
+    {
         std::cerr << "SDL_ttf could not initialize! TTF_Error: " << TTF_GetError() << std::endl;
+        success = false;
+    }
+
+    m_defaultFont.reset(TTF_OpenFont("assets/fonts/anonymous.ttf", 24));
+
+    if (!m_defaultFont)
+    {
+        std::cerr << "Font error: " << TTF_GetError() << std::endl;
+        success = false;
     }
 
 	if (!success)
@@ -54,6 +61,8 @@ Renderer::Renderer(int width, int height, bool gridOn,
         std::cerr << "Renderer failed to initialise properly." << std::endl;
         std::exit(1);
 	}
+
+    m_displayScaleFactor = calculateDisplayDPIScaleFactor() * calculateDisplayScaleFactorFromWindowSize();
 }
 
 Renderer::~Renderer()
@@ -61,17 +70,20 @@ Renderer::~Renderer()
     SDL_Quit();
 }
 
+void Renderer::clearDisplay() const
+{
+    clearDisplay(m_displaySettings -> offPixelColour);
+}
+
 void Renderer::drawGrid(const int pixelWidth, const int pixelHeight, int horizontalPixelAmount, int verticalPixelAmount)
 {
     SDL_Renderer* renderer{ m_renderer.get() };
-    // Draw vertical lines
     for (int i{ 0 }; i < horizontalPixelAmount ; ++i)
     {
         int xCoord{ i * pixelWidth };
         SDL_RenderDrawLine(renderer, xCoord, 0, xCoord, m_height);
     }
 
-    // Draw horizontal lines
     for (int i{ 0 }; i < verticalPixelAmount; ++i)
     {
         int yCoord{ i * pixelHeight };
@@ -79,25 +91,19 @@ void Renderer::drawGrid(const int pixelWidth, const int pixelHeight, int horizon
     }
 }
 
+void Renderer::toggleFullScreen()
+{
+    const bool isFullScreenEnabled{};
+}
+
 void Renderer::drawTextAt(const std::string_view text, const int xPos, const int yPos)
 {
     SDL_Renderer* renderer{ m_renderer.get() };
 
-    // Font by: Mark Simonsom. Name: "Anonymous". Source: https://www.fontsquirrel.com/fonts/list/classification/monospaced
-    TTF_Font* font = TTF_OpenFont("assets/fonts/anonymous.ttf", 24);
-
-    if (!font)
-    {
-        std::cerr << "Font error: " << TTF_GetError() << std::endl;
-        std::exit(1);
-    }
-
     // as TTF_RenderText_Solid could only be used on
     // SDL_Surface then you have to create the surface first
 
-    SDL_Color textColour = Colour::colours[Colour::darkGreen];
-
-    SDL_Surface* textSurface{ TTF_RenderText_Solid(font, text.data(), {0,0xff,0}) };
+    SDL_Surface* textSurface{ TTF_RenderText_Solid(m_defaultFont.get(), text.data(), {0,0xFF,0}) };
 
     SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
 
@@ -105,7 +111,7 @@ void Renderer::drawTextAt(const std::string_view text, const int xPos, const int
     // width and height will alter their values to represent the "intended" size of the text. Why is this library so esoteric? 
     int textWidth{};
     int textHeight{};
-    TTF_SizeText(font, text.data(), &textWidth, &textHeight);
+    TTF_SizeText(m_defaultFont.get(), text.data(), &textWidth, &textHeight);
 
     SDL_Rect textRect{ xPos, yPos, textWidth, textHeight };
 

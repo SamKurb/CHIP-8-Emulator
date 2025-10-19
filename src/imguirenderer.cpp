@@ -3,6 +3,8 @@
 #include "imguirenderer.h"
 #include "settings.h"
 #include "chip8.h"
+#include "renderer.h"
+#include "displaysettings.h"
 
 void ImguiRenderer::drawGeneralInfoWindow(const float fps, const uint8_t soundTimer, const StateManager::State currentState, const uint64_t numInstructionsExecuted, const uint64_t numInstructionsExecutedThisFrame) const
 {
@@ -12,25 +14,24 @@ void ImguiRenderer::drawGeneralInfoWindow(const float fps, const uint8_t soundTi
 
     ImGui::Text("Sound timer: %d", soundTimer);
     ImGui::Text("Current state: %s", (currentState == StateManager::State::running) ? "Running" : "Debug");
-    ImGui::Text("Instructions Executed: %d", numInstructionsExecuted);
-    ImGui::Text("IPF: %d", numInstructionsExecutedThisFrame);
+    ImGui::Text("Instructions Executed: %ld", numInstructionsExecuted);
+    ImGui::Text("IPF: %ld", numInstructionsExecutedThisFrame);
     ImGui::End();
 }
 
 void ImguiRenderer::printRowStartAddress(const std::size_t rowStartAddress, const uint16_t programStartAddress, const uint16_t programEndAddress, const uint16_t fontStartAddress, uint16_t fontEndAddress) const
 {
-    
     if (rowStartAddress >= fontStartAddress && rowStartAddress <= fontEndAddress)
     {
-		ImGui::TextColored(blue, "0x%04X | ", rowStartAddress);
+		ImGui::TextColored(blue, "0x%04lX | ", rowStartAddress);
     }
     else if(rowStartAddress >= programStartAddress && rowStartAddress <= programEndAddress)
     {
-        ImGui::TextColored(green, "0x%04X | ", rowStartAddress);
+        ImGui::TextColored(green, "0x%04lX | ", rowStartAddress);
     }
     else
     {
-        ImGui::Text("0x%04X | ", rowStartAddress);
+        ImGui::Text("0x%04lX | ", rowStartAddress);
     }
 }
 
@@ -101,16 +102,13 @@ void ImguiRenderer::printMemoryRow(const std::array<uint8_t, 4096>& memoryConten
     }
 }
 
-
-
 void ImguiRenderer::drawMemoryViewerWindow(const Chip8& chip) const
 {
-    const int bytesPerRow{ 16 };
+    const int bytesPerRow{ 16};
 
     const std::array<uint8_t, 4096> memoryContents{ chip.getMemoryContents() };
     const uint16_t currentPCAddress{ chip.getPCAddress() };
 	
-
     ImGui::Begin("Memory Viewer");
 
     ImGui::SeparatorText("Legend");
@@ -130,4 +128,33 @@ void ImguiRenderer::drawMemoryViewerWindow(const Chip8& chip) const
     ImGui::End();
 }
 
-    
+void ImguiRenderer::drawRegisterViewerWindow(const Chip8& chip) const
+{
+    const std::array<uint8_t, 16> registerContents{ chip.getRegisterContents() };
+
+    ImGui::Begin("Register Viewer");
+
+    for(unsigned int i{ 0 } ; i < registerContents.size() ; ++i)
+    {
+        ImGui::Text("V%X", i);
+
+        const uint8_t contentsAtRegister{ registerContents[i] };
+
+        ImGui::SameLine();
+        ImGui::Text(" ... %02X ", contentsAtRegister);
+    }
+
+    ImGui::End();
+}
+
+void ImguiRenderer::drawDisplaySettingsWindowAndApplyChanges() const
+{
+    ImGui::Begin("Settings Menu");
+
+    if (ImGui::Button("Display Grid Toggle"))
+    {
+        m_displaySettings -> gridOn = !(m_displaySettings -> gridOn);
+    }
+
+    ImGui::End();
+}

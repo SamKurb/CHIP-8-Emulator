@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 
-
 namespace Utility
 {
     template<typename T>

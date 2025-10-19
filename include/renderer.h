@@ -8,9 +8,13 @@
 #include <SDL_ttf.h>
 #include <memory>
 
+#include <algorithm>
+
 #include "utility.h"
 #include "settings.h"
 #include "colour.h"
+
+#include "displaysettings.h"
 
 class Renderer
 {
@@ -19,12 +23,10 @@ public:
     struct Pixel
     {
         SDL_Rect rect{};
-        Colour::RGBValues colour{};
+        Colour::RGBA colour{};
     };
 
-
-    Renderer(int width, int height, bool gridOn,
-        Colour::RGBValues onPixelColour, Colour::RGBValues offPixelColour);
+    Renderer(const std::shared_ptr<DisplaySettings> displaySettings);
     ~Renderer();
 
     template<typename T, std::size_t R, std::size_t C>
@@ -41,7 +43,7 @@ public:
             for (std::size_t x{ 0 }; x < C; ++x)
             {
                 uint8_t pixelOn{ screenBuffer[y][x] };
-                Colour::RGBValues pixelColour{ pixelOn ? m_onPixelColour : m_offPixelColour};
+                Colour::RGBA pixelColour{ pixelOn ? m_displaySettings -> onPixelColour : m_displaySettings -> offPixelColour};
 
                 int xCoordOnScreen{ Utility::toInt(x * pixelWidth)  };
                 int yCoordOnScreen{ Utility::toInt(y * pixelHeight) };
@@ -50,19 +52,17 @@ public:
                 assert(yCoordOnScreen <= m_height && yCoordOnScreen >= 0);
 
                 Pixel pixel{ { xCoordOnScreen, yCoordOnScreen, pixelWidth, pixelHeight }
-                              , pixelColour };
+                            , pixelColour };
 
                 renderPixel(pixel);
             }
         }
-
-        if (m_gridOn)
+        if (m_displaySettings -> gridOn)
         {
             SDL_SetRenderDrawColor(m_renderer.get(), 0x00, 0x00, 0x00, 0xFF);
             drawGrid(pixelWidth, pixelHeight, C, R);
         }
     }
-
 
     void render()
     { 
@@ -77,14 +77,21 @@ public:
     SDL_Window* getWindow() { return m_window.get(); }
     SDL_Renderer* getRenderer() { return m_renderer.get(); }
 
+    float getDisplayScaleFactor() { return m_displayScaleFactor; }
+
 private:
+    const float m_defaultDPI{ 72.0f };
+    float m_displayScaleFactor{ 0 };
+
+    std::shared_ptr<DisplaySettings> m_displaySettings{};
+
     const int m_width{};
     const int m_height{};
     const int m_pixelSize{};
 
-	const std::string m_windowTitle{ "CHIP-8 Emulator" };
+    std::unique_ptr<TTF_Font, decltype(&TTF_CloseFont)> m_defaultFont{ nullptr, TTF_CloseFont };
 
-    bool m_gridOn{};
+	const std::string m_windowTitle{ "CHIP-8 Emulator" };
 
     //SDL_Window* m_window{};
     //SDL_Renderer* m_renderer{};
@@ -92,26 +99,57 @@ private:
     std::unique_ptr<SDL_Window, decltype(&SDL_DestroyWindow)> m_window { nullptr, SDL_DestroyWindow };
     std::unique_ptr<SDL_Renderer, decltype(&SDL_DestroyRenderer)> m_renderer{ nullptr, SDL_DestroyRenderer };
 
-    const Colour::RGBValues m_offPixelColour{};
-    const Colour::RGBValues m_onPixelColour{};
 
-    void clearDisplay() const
-    {
-        clearDisplay(m_offPixelColour);
-    }
+    void clearDisplay() const;
 
-    void clearDisplay(const Colour::RGBValues colour) const
+    void clearDisplay(const Colour::RGBA colour) const
     {
         SDL_Renderer* renderer{ m_renderer.get() };
-        SDL_SetRenderDrawColor(renderer, colour.r, colour.b, colour.g, 0xFF);
+        SDL_SetRenderDrawColor(renderer, colour.red, colour.green, colour.blue, colour.alpha);
         SDL_RenderClear(renderer);
     }
 
-    void renderPixel(const Pixel& p) const
+    void renderPixel(const Pixel& pixel) const
     {
         SDL_Renderer* renderer{ m_renderer.get() };
-        SDL_SetRenderDrawColor(renderer, p.colour.r, p.colour.g, p.colour.b, 0xFF);
-        SDL_RenderFillRect(renderer, &p.rect);
+        SDL_SetRenderDrawColor(renderer, pixel.colour.red, pixel.colour.green, pixel.colour.blue, pixel.colour.alpha);
+        SDL_RenderFillRect(renderer, &pixel.rect);
+    }
+
+    float calculateDisplayDPIScaleFactor()
+    {
+        float diagonalDPI{};
+        float horizontalDPI{};
+        float verticalDPI{};
+
+        if (SDL_GetDisplayDPI(0, &diagonalDPI, &horizontalDPI, &verticalDPI))
+        {
+            std::cerr << "SDL failed to fetch display DPI properly. SDL_Error: " << SDL_GetError() << std::endl;
+            std::exit(1);
+        }
+
+        float dpiScaleFactor { diagonalDPI / m_defaultDPI };
+        return dpiScaleFactor;
+    }
+
+    void toggleFullScreen();
+
+    float calculateDisplayScaleFactorFromWindowSize()
+    {
+        const int referenceWidth{ 1920 };
+        const int referenceHeight{ 1080 };
+
+        int windowWidth{};
+        int windowHeight{};
+        
+        SDL_GetWindowSize(m_window.get(), &windowWidth, &windowHeight); 
+
+        const float widthScaleFactor{ static_cast<float>(windowWidth) / referenceWidth };
+        const float heightScaleFactor{ static_cast<float>(windowHeight) / referenceHeight };
+        
+        const float displayScaleFactor{ std::min(widthScaleFactor, heightScaleFactor) };
+
+        return displayScaleFactor;
     }
 };
 

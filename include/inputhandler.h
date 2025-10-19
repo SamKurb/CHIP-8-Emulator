@@ -94,7 +94,7 @@ private:
 
     static_assert(std::size(systemKeyMap) == InputHandler::numSystemKeys);
 
-    void checkForChipInput(const SDL_Event event, Chip8& chip);
+    void checkForChipInput(const SDL_Event& event, Chip8& chip);
     void checkForSystemInput(const SDL_Event event);
 
     std::array<bool, numSystemKeys> m_isSystemKeyPressed{};

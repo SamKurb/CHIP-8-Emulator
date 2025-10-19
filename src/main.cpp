@@ -1,10 +1,10 @@
-#include <iostream>
-#include <iomanip>
-
 // SDL2 wrapper classes
 #include "renderer.h"
 #include "audioplayer.h"
 #include "inputhandler.h"
+
+// Display Settings struct
+#include "displaysettings.h"
 
 // Convenience namespaces
 #include "utility.h"
@@ -83,8 +83,8 @@ void executeInstructionsForFrame(Chip8& chip)
 
 void drawDebugTextBasedOnMode(const StateManager::DebugMode mode, Renderer& renderer)
 {
-    const int xPos{ 10 };
-    const int yPos{ 10 };
+    constexpr int xPos{ 10 };
+    constexpr int yPos{ 10 };
 
     if (mode == StateManager::DebugMode::step)
     {
@@ -125,7 +125,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
         false,  // wrap around screen quirk
         false,  // shift quirk
         false,  // jump quirk
-        false,   // display wait quirk
+        false,  // display wait quirk
     };
 
     // FOR TESTING WITH testQuirks ROM
@@ -138,12 +138,10 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
         false,  // display wait quirk
     };
 
+    std::shared_ptr<DisplaySettings> displaySettings{ std::make_unique<DisplaySettings>() };
+
     Renderer renderer{
-        DisplayConfig::resolutionWidth,
-        DisplayConfig::resolutionHeight,
-        !DisplayConfig::displayGrid,
-        DisplayConfig::onColour,
-        DisplayConfig::offColour
+        displaySettings
     };
 
     Chip8 chip{ baseChip8Quirks };
@@ -161,8 +159,8 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
     StateManager stateManager{};
 
     //ImVec4 clearColor = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-
-	ImguiRenderer imguiRenderer{ renderer.getWindow(), renderer.getRenderer() };
+	float windowScaleFactor{ renderer.getDisplayScaleFactor() };
+    ImguiRenderer imguiRenderer{ renderer.getWindow(), renderer.getRenderer(), displaySettings, windowScaleFactor };
 
     while (!userHasQuit)
     {
@@ -281,6 +279,9 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
 		);
 
         imguiRenderer.drawMemoryViewerWindow(chip);
+        imguiRenderer.drawRegisterViewerWindow(chip);
+
+        imguiRenderer.drawDisplaySettingsWindowAndApplyChanges();
 
         ImGui::Render();
         ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer.getRenderer());
