@@ -20,7 +20,8 @@ set(SOURCES
 
     external/imgui/backends/imgui_impl_sdl2.cpp
     external/imgui/backends/imgui_impl_sdlrenderer2.cpp
-    
+        src/audioplayer.cpp
+
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES} "src/imguirenderer.cpp" "include/imguirenderer.h")

@@ -169,6 +169,37 @@ void Chip8::decodeAndExecute(const uint16_t opcode)
     m_runtimeMetaData.numInstructionsExecuted += 1;
 }
 
+bool Chip8::wasKeyReleasedThisFrame()
+{
+    for (std::size_t i{ 0 }; i < std::size(m_keyDownThisFrame); ++i)
+    {
+        const bool keyUpThisFrame{ !m_keyDownThisFrame[i] };
+        const bool keyDownLastFrame{ m_keyDownLastFrame[i] };
+
+        if (keyDownLastFrame && keyUpThisFrame)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+uint8_t Chip8::findKeyReleasedThisFrame()
+{
+    for (std::size_t i{ 0 }; i < std::size(m_keyDownThisFrame); ++i)
+    {
+        const bool keyUpThisFrame{ !m_keyDownThisFrame[i] };
+        const bool keyDownLastFrame{ m_keyDownLastFrame[i] };
+
+        if (keyDownLastFrame && keyUpThisFrame)
+        {
+            return Utility::toU8(i);
+        }
+    }
+    assert(false && "Chip8::findKeyReleasedThisFrame called in context where a key was not released");
+    return 0x10;
+}
+
 void Chip8::decrementTimers()
 {
     if (m_soundTimer > 0)

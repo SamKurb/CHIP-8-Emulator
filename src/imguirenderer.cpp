@@ -6,6 +6,33 @@
 #include "renderer.h"
 #include "displaysettings.h"
 
+ImguiRenderer::ImguiRenderer(SDL_Window* window, SDL_Renderer* renderer, std::shared_ptr<DisplaySettings> displaySettings, const float displayScaleFactor)
+: m_displaySettings{ std::move(displaySettings) }
+, m_dpiScaleFactor{ displayScaleFactor }
+{
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+
+    ImGui::StyleColorsDark();
+
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
+    //ImGui::GetStyle().ScaleAllSizes(displayScaleFactor);
+    io.FontGlobalScale = displayScaleFactor;
+
+    ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
+    ImGui_ImplSDLRenderer2_Init(renderer);
+}
+
+ImguiRenderer::~ImguiRenderer()
+{
+    ImGui_ImplSDLRenderer2_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
+}
+
 void ImguiRenderer::drawGeneralInfoWindow(const float fps, const uint8_t soundTimer, const StateManager::State currentState, const uint64_t numInstructionsExecuted, const uint64_t numInstructionsExecutedThisFrame) const
 {
     ImGui::Begin("Emulator Info");

@@ -18,36 +18,10 @@ struct DisplaySettings;
 class ImguiRenderer
 {
 public:
-	ImguiRenderer(SDL_Window* window, SDL_Renderer* renderer, std::shared_ptr<DisplaySettings> displaySettings, const float displayScaleFactor)
-	: m_displaySettings{ std::move(displaySettings) }
-	, m_dpiScaleFactor{ displayScaleFactor }
-	{
-        IMGUI_CHECKVERSION();
-        ImGui::CreateContext();
-
-        ImGui::StyleColorsDark();
-
-        ImGuiIO& io = ImGui::GetIO();
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-        
-        //ImGui::GetStyle().ScaleAllSizes(displayScaleFactor);
-        io.FontGlobalScale = displayScaleFactor;
-
-        ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
-        ImGui_ImplSDLRenderer2_Init(renderer);
-	}
-
-    ~ImguiRenderer()
-    {
-        ImGui_ImplSDLRenderer2_Shutdown();
-        ImGui_ImplSDL2_Shutdown();
-        ImGui::DestroyContext();
-	}
+	ImguiRenderer(SDL_Window* window, SDL_Renderer* renderer, std::shared_ptr<DisplaySettings> displaySettings, const float displayScaleFactor);
+    ~ImguiRenderer();
 
     void drawGeneralInfoWindow(const float fps, const uint8_t soundTimer, const StateManager::State currentState, const uint64_t numInstructionsExecuted, const uint64_t numInstructionsExecutedThisFrame) const;
-    
-    void print4BitHex(const uint16_t valueToPrint, const ImVec4 colour = ImguiRenderer::defaultTextColour) const;
 
     void printRowStartAddress(const std::size_t rowStartAddress, const uint16_t programStartAddress, const uint16_t programEndAddress, const uint16_t fontStartAddress, const uint16_t fontEndAddress) const;
 

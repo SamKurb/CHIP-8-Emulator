@@ -107,37 +107,10 @@ private:
     uint16_t fetchOpcode();
     void decodeAndExecute(uint16_t opcode);
 
-    bool wasKeyReleasedThisFrame()
-    {
-        for (std::size_t i{ 0 }; i < std::size(m_keyDownThisFrame); ++i)
-        {
-            const bool keyUpThisFrame{ !m_keyDownThisFrame[i] };
-            const bool keyDownLastFrame{ m_keyDownLastFrame[i] };
-
-            if (keyDownLastFrame && keyUpThisFrame)
-            {
-                return true;
-            }
-        }  
-        return false;
-    }
+    bool wasKeyReleasedThisFrame();
 
     // Returns the *first* key it finds that was pressed down last frame and released this frame
-    uint8_t findKeyReleasedThisFrame()
-    {
-        for (std::size_t i{ 0 }; i < std::size(m_keyDownThisFrame); ++i)
-        {
-            const bool keyUpThisFrame{ !m_keyDownThisFrame[i] };
-            const bool keyDownLastFrame{ m_keyDownLastFrame[i] };
-
-            if (keyDownLastFrame && keyUpThisFrame)
-            {
-                return Utility::toU8(i);
-            }
-        }
-        assert(false && "Chip8::findKeyReleasedThisFrame called in context where a key was not released");
-        return 0x10;
-    }
+    uint8_t findKeyReleasedThisFrame();
 
     // Opcodes
     void op00E0();

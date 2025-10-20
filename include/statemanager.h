@@ -17,9 +17,8 @@ public:
 	{
 		step,
 		manual,
-		numDebugMode,
+		numDebugModes,
 	};
-
 
 	void changeMainStateTo(const State nextState)
 	{
