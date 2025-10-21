@@ -38,6 +38,8 @@ public:
 
     void drawGameDisplayWindow(const SDL_Texture* gameFrameTexture) const;
 
+    void drawGameDisplayWindow(SDL_Texture* gameFrame) const;
+
 private:
     int m_windowWidth{};
     int m_windowHeight{};

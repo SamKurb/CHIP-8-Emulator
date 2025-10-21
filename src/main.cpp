@@ -201,7 +201,6 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
 
             updateDebugModeBasedOnInput(stateManager, inputHandler);
 
-            std::cout << inputHandler.isSystemKeyPressed(InputHandler::K_NEXT_FRAME) << std::endl;
             if (stateManager.getCurrentDebugMode() == StateManager::step && inputHandler.isSystemKeyPressed(InputHandler::K_NEXT_FRAME))
             {
                 executeInstructionsForFrame(chip);
@@ -246,7 +245,9 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
             frameInfo.timeElapsedMs += timeToWaitMs;
         }
 
-        renderer.drawToScreen(chip.getScreenBuffer());
+        renderer.clearDisplay();
+
+        renderer.drawChipScreenBufferToFrame(chip.getScreenBuffer());
 
         if (stateManager.getCurrentState() == StateManager::State::debug)
         {
@@ -271,6 +272,12 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
         imguiRenderer.drawRegisterViewerWindow(chip);
 
         imguiRenderer.drawDisplaySettingsWindowAndApplyChanges();
+
+        if (displaySettings -> renderGameToImGuiWindow)
+        {
+            SDL_Texture* currGameFrame { renderer.getCurrentGameFrame() };
+            imguiRenderer.drawGameDisplayWindow(currGameFrame);
+        }
 
         ImGui::Render();
         ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer.getRenderer());

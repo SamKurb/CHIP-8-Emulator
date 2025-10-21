@@ -195,5 +195,26 @@ void ImguiRenderer::drawDisplaySettingsWindowAndApplyChanges() const
         m_displaySettings -> gridOn = !(m_displaySettings -> gridOn);
     }
 
+    if (ImGui::Button("Toggle Rendering Game Display to GUI Window"))
+    {
+        m_displaySettings -> renderGameToImGuiWindow = !(m_displaySettings -> renderGameToImGuiWindow);
+    }
+
+    ImGui::End();
+}
+
+
+void ImguiRenderer::drawGameDisplayWindow(SDL_Texture* gameFrame) const
+{
+    ImGui::Begin("Game Display Window");
+
+    int gameFrameTextureWidth{};
+    int gameFrameTextureHeight{};
+
+    SDL_QueryTexture(gameFrame, nullptr, nullptr,
+        &gameFrameTextureWidth, &gameFrameTextureHeight);
+
+    ImGui::Image((ImTextureID)gameFrame, ImVec2(gameFrameTextureWidth, gameFrameTextureHeight));
+
     ImGui::End();
 }

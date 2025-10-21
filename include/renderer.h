@@ -33,10 +33,26 @@ public:
     using Array2D = std::array<std::array<T, C>, R>;
 
     template<typename T, std::size_t R, std::size_t C>
-    void drawToScreen(const Array2D<T, R, C>& screenBuffer)
+    void drawChipScreenBufferToFrame(const Array2D<T, R, C>& screenBuffer)
     {
-        const int pixelWidth{ Utility::toInt(m_width / C)};
-        const int pixelHeight{ Utility::toInt(m_height / R) };
+        int gameFrameWidth{};
+        int gameFrameHeight{};
+
+        if (m_displaySettings -> renderGameToImGuiWindow)
+        {
+            SDL_SetRenderTarget(m_renderer.get(), m_currentGameFrame.get());
+
+            SDL_QueryTexture(m_currentGameFrame.get(), nullptr, nullptr,
+                &gameFrameWidth, &gameFrameHeight);
+        }
+        else
+        {
+            gameFrameWidth = m_width;
+            gameFrameHeight = m_height;
+        }
+
+        const int pixelWidth{ Utility::toInt(gameFrameWidth / C)};
+        const int pixelHeight{ Utility::toInt(gameFrameHeight / R) };
 
         for (std::size_t y{ 0 }; y < R; ++y)
         {
@@ -62,12 +78,16 @@ public:
             SDL_SetRenderDrawColor(m_renderer.get(), 0x00, 0x00, 0x00, 0xFF);
             drawGrid(pixelWidth, pixelHeight, C, R);
         }
+
+        if (m_displaySettings -> renderGameToImGuiWindow)
+        {
+            SDL_SetRenderTarget(m_renderer.get(), nullptr);
+        }
     }
 
     void render()
     {
         SDL_RenderPresent(m_renderer.get());
-        //clearDisplay();
     }
 
     void drawGrid(const int pixelWidth, const int pixelHeight, int horizontalPixelAmount, int verticalPixelAmount);
@@ -79,15 +99,27 @@ public:
 
     float getDisplayScaleFactor() { return m_displayScaleFactor; }
 
+    SDL_Texture* getCurrentGameFrame() { return m_currentGameFrame.get(); };
+
+    void clearDisplay() const;
+
+    void clearDisplay(const Colour::RGBA colour) const
+    {
+        SDL_Renderer* renderer{ m_renderer.get() };
+        SDL_SetRenderDrawColor(renderer, colour.red, colour.green, colour.blue, colour.alpha);
+        SDL_RenderClear(renderer);
+    }
+
 private:
     const float m_defaultDPI{ 72.0f };
     float m_displayScaleFactor{ 0 };
 
     std::shared_ptr<DisplaySettings> m_displaySettings{};
 
-    const int m_width{};
-    const int m_height{};
-    const int m_pixelSize{};
+    int m_width{};
+    int m_height{};
+
+    std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> m_currentGameFrame { nullptr, SDL_DestroyTexture };
 
     std::unique_ptr<TTF_Font, decltype(&TTF_CloseFont)> m_defaultFont{ nullptr, TTF_CloseFont };
 
@@ -100,20 +132,21 @@ private:
     std::unique_ptr<SDL_Renderer, decltype(&SDL_DestroyRenderer)> m_renderer{ nullptr, SDL_DestroyRenderer };
 
 
-    void clearDisplay() const;
-
-    void clearDisplay(const Colour::RGBA colour) const
-    {
-        SDL_Renderer* renderer{ m_renderer.get() };
-        SDL_SetRenderDrawColor(renderer, colour.red, colour.green, colour.blue, colour.alpha);
-        SDL_RenderClear(renderer);
-    }
-
     void renderPixel(const Pixel& pixel) const
     {
+        if (m_displaySettings->renderGameToImGuiWindow)
+        {
+            SDL_SetRenderTarget(m_renderer.get(), m_currentGameFrame.get());
+        }
+
         SDL_Renderer* renderer{ m_renderer.get() };
         SDL_SetRenderDrawColor(renderer, pixel.colour.red, pixel.colour.green, pixel.colour.blue, pixel.colour.alpha);
         SDL_RenderFillRect(renderer, &pixel.rect);
+
+        if (m_displaySettings->renderGameToImGuiWindow)
+        {
+            SDL_SetRenderTarget(m_renderer.get(), nullptr);
+        }
     }
 
     float calculateDisplayDPIScaleFactor()

@@ -17,10 +17,12 @@ Renderer::Renderer(std::shared_ptr<DisplaySettings> displaySettings)
     else
     {
         m_window.reset(
-            SDL_CreateWindow(m_windowTitle.data(),
+            SDL_CreateWindow(
+                m_windowTitle.data(),
                 SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                m_width, m_height, 
-                SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI)
+                m_width, m_height,
+                SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
+            )
         );
 
         if (m_window == nullptr)
@@ -41,6 +43,25 @@ Renderer::Renderer(std::shared_ptr<DisplaySettings> displaySettings)
                 SDL_SetRenderDrawColor(m_renderer.get(), 0x00, 0x00, 0x00, 0xFF);
             }
 
+            const int placeHolderWidth{ 1280 };
+            const int placeHolderHeight{ 640 };
+
+
+            m_currentGameFrame.reset(
+                SDL_CreateTexture(
+                    m_renderer.get(),
+                    SDL_PIXELFORMAT_ARGB8888,
+                    SDL_TEXTUREACCESS_TARGET,
+                    placeHolderWidth,
+                    placeHolderHeight
+                )
+            );
+
+            if (m_currentGameFrame == nullptr)
+            {
+                std::cerr << "Failed to create texture currentGameFrame. SDL_Error: " << SDL_GetError() << std::endl;
+                success = false;
+            }
         }
     }
     if (TTF_Init() == -1)
@@ -78,6 +99,11 @@ void Renderer::clearDisplay() const
 
 void Renderer::drawGrid(const int pixelWidth, const int pixelHeight, int horizontalPixelAmount, int verticalPixelAmount)
 {
+    if (m_displaySettings->renderGameToImGuiWindow)
+    {
+        SDL_SetRenderTarget(m_renderer.get(), m_currentGameFrame.get());
+    }
+
     SDL_Renderer* renderer{ m_renderer.get() };
     for (int i{ 0 }; i < horizontalPixelAmount ; ++i)
     {
@@ -90,6 +116,11 @@ void Renderer::drawGrid(const int pixelWidth, const int pixelHeight, int horizon
         int yCoord{ i * pixelHeight };
         SDL_RenderDrawLine(renderer, 0, yCoord, m_width, yCoord);
     }
+
+    if (m_displaySettings->renderGameToImGuiWindow)
+    {
+        SDL_SetRenderTarget(m_renderer.get(), nullptr);
+    }
 }
 
 void Renderer::toggleFullScreen()
@@ -99,6 +130,11 @@ void Renderer::toggleFullScreen()
 
 void Renderer::drawTextAt(const std::string_view text, const int xPos, const int yPos)
 {
+    if (m_displaySettings->renderGameToImGuiWindow)
+    {
+        SDL_SetRenderTarget(m_renderer.get(), m_currentGameFrame.get());
+    }
+
     SDL_Renderer* renderer{ m_renderer.get() };
 
     // as TTF_RenderText_Solid could only be used on
@@ -108,8 +144,6 @@ void Renderer::drawTextAt(const std::string_view text, const int xPos, const int
 
     SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
 
-    // For some reason this function makes use of out parameters. Passing in a pointer to our
-    // width and height will alter their values to represent the "intended" size of the text. Why is this library so esoteric? 
     int textWidth{};
     int textHeight{};
     TTF_SizeText(m_defaultFont.get(), text.data(), &textWidth, &textHeight);
@@ -119,6 +153,11 @@ void Renderer::drawTextAt(const std::string_view text, const int xPos, const int
     SDL_RenderCopy(renderer, textTexture, nullptr, &textRect);
     SDL_FreeSurface(textSurface);
     SDL_DestroyTexture(textTexture);
+
+    if (m_displaySettings->renderGameToImGuiWindow)
+    {
+        SDL_SetRenderTarget(m_renderer.get(), nullptr);
+    }
 }
 
 
