@@ -187,7 +187,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
             stateManager.changeMainStateTo(StateManager::running);
         }
 
-        
+
         chip.decrementTimers();
 
         if (stateManager.getCurrentState() == StateManager::State::running)
@@ -199,42 +199,25 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
             // Debug mode - Allows user to pause the program and step through it instruction by instruction or frame by frame. Inputs are still processed during this, so that the 
             // User can input things while debugging. Need to hold down the buttons while stepping for that input to be processed
 
-            FrameInfo debugFrameInfo{};
+            updateDebugModeBasedOnInput(stateManager, inputHandler);
 
-            while (stateManager.getCurrentState() == StateManager::State::debug)
+            std::cout << inputHandler.isSystemKeyPressed(InputHandler::K_NEXT_FRAME) << std::endl;
+            if (stateManager.getCurrentDebugMode() == StateManager::step && inputHandler.isSystemKeyPressed(InputHandler::K_NEXT_FRAME))
             {
-                inputHandler.resetSystemKeysState();
-                inputHandler.readChipAndSystemInputs(chip);
+                executeInstructionsForFrame(chip);
+            }
 
-                renderer.drawToScreen(chip.getScreenBuffer());
-                
-
-                const StateManager::DebugMode currentDebugMode{ stateManager.getCurrentDebugMode() };
-                drawDebugTextBasedOnMode(currentDebugMode, renderer);
-
-                renderer.render();
-
-                updateDebugModeBasedOnInput(stateManager, inputHandler);
-
-                // Cant use the "currentDebugMode" variable for readability here because the actual debug mode may change in these if statements, which wouldnt be reflected through the (non-reference) variable
-                if (stateManager.getCurrentDebugMode() == StateManager::step && inputHandler.isSystemKeyPressed(InputHandler::K_NEXT_FRAME))
+            if (stateManager.getCurrentDebugMode() == StateManager::manual)
+            {
+                if (inputHandler.isSystemKeyPressed(InputHandler::K_NEXT_INSTRUCTION))
                 {
-                    executeInstructionsForFrame(chip);
-                    break;
+                    chip.performFDECycle();
                 }
-                 
-                if (stateManager.getCurrentDebugMode() == StateManager::manual)
-                {
-                    if (inputHandler.isSystemKeyPressed(InputHandler::K_NEXT_INSTRUCTION))
-                    {
-                        chip.performFDECycle();
-                    }
-                }
+            }
 
-                if (inputHandler.isSystemKeyPressed(InputHandler::K_DEACTIVATE_DEBUG))
-                {
-                    stateManager.changeMainStateTo(StateManager::State::running);
-                }
+            if (inputHandler.isSystemKeyPressed(InputHandler::K_DEACTIVATE_DEBUG))
+            {
+                stateManager.changeMainStateTo(StateManager::State::running);
             }
         }
 
@@ -264,6 +247,12 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
         }
 
         renderer.drawToScreen(chip.getScreenBuffer());
+
+        if (stateManager.getCurrentState() == StateManager::State::debug)
+        {
+            const StateManager::DebugMode currentDebugMode{ stateManager.getCurrentDebugMode() };
+            drawDebugTextBasedOnMode(currentDebugMode, renderer);
+        }
 
         ImGui_ImplSDL2_NewFrame();
         ImGui_ImplSDLRenderer2_NewFrame();

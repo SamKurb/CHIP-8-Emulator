@@ -28,13 +28,19 @@ public:
     void printMemoryRow(const std::array<uint8_t, 4096>& memoryContents, const std::size_t rowStartPos, const int numBytesToPrint,
         const Chip8& chip) const;
 
+    void printASCIIRepresentationOfMemoryRow(const std::array<uint8_t, 4096>& memoryContents, const std::size_t rowStartPos, const int numBytesToPrint) const;
+
     void drawMemoryViewerWindow(const Chip8& chip) const;
 
     void drawRegisterViewerWindow(const Chip8& chip) const;
 
     void drawDisplaySettingsWindowAndApplyChanges() const;
 
+    void drawGameDisplayWindow(const SDL_Texture* gameFrameTexture) const;
+
 private:
+    int m_windowWidth{};
+    int m_windowHeight{};
     const float m_dpiScaleFactor{ 0 };
 
 	std::shared_ptr<DisplaySettings> m_displaySettings{};

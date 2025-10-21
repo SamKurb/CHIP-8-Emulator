@@ -65,8 +65,8 @@ public:
     }
 
     void render()
-    { 
-        SDL_RenderPresent(m_renderer.get()); 
+    {
+        SDL_RenderPresent(m_renderer.get());
         //clearDisplay();
     }
 

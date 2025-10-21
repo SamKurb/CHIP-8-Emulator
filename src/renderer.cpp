@@ -40,6 +40,7 @@ Renderer::Renderer(std::shared_ptr<DisplaySettings> displaySettings)
             {
                 SDL_SetRenderDrawColor(m_renderer.get(), 0x00, 0x00, 0x00, 0xFF);
             }
+
         }
     }
     if (TTF_Init() == -1)

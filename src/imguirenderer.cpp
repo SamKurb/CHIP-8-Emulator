@@ -7,7 +7,9 @@
 #include "displaysettings.h"
 
 ImguiRenderer::ImguiRenderer(SDL_Window* window, SDL_Renderer* renderer, std::shared_ptr<DisplaySettings> displaySettings, const float displayScaleFactor)
-: m_displaySettings{ std::move(displaySettings) }
+: m_windowWidth(displaySettings->userDesiredWidth)
+, m_windowHeight(displaySettings->userDesiredHeight)
+, m_displaySettings{ std::move(displaySettings) }
 , m_dpiScaleFactor{ displayScaleFactor }
 {
     IMGUI_CHECKVERSION();
@@ -35,6 +37,9 @@ ImguiRenderer::~ImguiRenderer()
 
 void ImguiRenderer::drawGeneralInfoWindow(const float fps, const uint8_t soundTimer, const StateManager::State currentState, const uint64_t numInstructionsExecuted, const uint64_t numInstructionsExecutedThisFrame) const
 {
+    constexpr int numLinesInWindow { 6 };
+    const float fontHeight { ImGui::GetFontSize() };
+
     ImGui::Begin("Emulator Info");
 
     ImGui::Text("FPS: %.1f", fps);
@@ -62,8 +67,33 @@ void ImguiRenderer::printRowStartAddress(const std::size_t rowStartAddress, cons
     }
 }
 
-void ImguiRenderer::printMemoryRow(const std::array<uint8_t, 4096>& memoryContents, const std::size_t rowStartPos,  const int numBytesToPrint, 
-    const Chip8& chip) const
+void ImguiRenderer::printASCIIRepresentationOfMemoryRow(const std::array<uint8_t, 4096> &memoryContents, const std::size_t rowStartPos, const int numBytesToPrint) const
+{
+    for (std::size_t addressOffset{ 0 }; addressOffset < numBytesToPrint; ++addressOffset)
+    {
+        ImGui::SameLine();
+        std::size_t currentAddress{ rowStartPos + addressOffset };
+        const uint8_t memContentsAtCurrLocation{ memoryContents[currentAddress] };
+
+        const uint8_t validAsciiStart{ 33 };
+        const uint8_t validAsciiEnd{ 126 };
+
+        const char placeHolderForInvalidChar{ '.' };
+
+        if (memContentsAtCurrLocation >= validAsciiStart && memContentsAtCurrLocation <= validAsciiEnd)
+        {
+            ImGui::Text("%c", memContentsAtCurrLocation);
+        }
+        else
+        {
+            ImGui::Text("%c", placeHolderForInvalidChar);
+        }
+
+    }
+}
+
+void ImguiRenderer::printMemoryRow(const std::array<uint8_t, 4096>& memoryContents, const std::size_t rowStartPos,
+                                   const int numBytesToPrint, const Chip8& chip) const
 {
 	const uint16_t currentPCAddress{ chip.getPCAddress() };
 	const uint16_t programStartAddress{ chip.getProgramStartAddress() };
@@ -78,17 +108,19 @@ void ImguiRenderer::printMemoryRow(const std::array<uint8_t, 4096>& memoryConten
     for (std::size_t addressOffset{ 0 }; addressOffset < numBytesToPrint; ++addressOffset)
     {
         ImGui::SameLine();
-        std::size_t currentAddress{ rowStartPos + addressOffset };
-        const uint8_t memContentsAtCurrLocation{ memoryContents[currentAddress] };
+        std::size_t currAddress{ rowStartPos + addressOffset };
+        const uint8_t memContentsAtCurrLocation{ memoryContents[currAddress] };
 
+        const bool currAddressInFontRange { currAddress >= fontStartAddress && currAddress <= fontEndAddress };
+        const bool currAddressInProgramRange { currAddress >= programStartAddress && currAddress <= programEndAddress };
 
-        if (currentAddress >= fontStartAddress && currentAddress <= fontEndAddress)
+        if (currAddressInFontRange)
         {
             ImGui::TextColored(blue, "%02X", memContentsAtCurrLocation);
         }
-        else if (currentAddress >= programStartAddress && currentAddress <= programEndAddress)
+        else if (currAddressInProgramRange)
         {
-            if (currentAddress == currentPCAddress || currentAddress == currentPCAddress + 1)
+            if (currAddress == currentPCAddress || currAddress == currentPCAddress + 1)
             {
                 ImGui::TextColored(red, "%02X", memContentsAtCurrLocation);
             }
@@ -106,27 +138,7 @@ void ImguiRenderer::printMemoryRow(const std::array<uint8_t, 4096>& memoryConten
     ImGui::SameLine();
 	ImGui::Text("   ");
 
-    for (std::size_t addressOffset{ 0 }; addressOffset < numBytesToPrint; ++addressOffset)
-    {
-        ImGui::SameLine();
-        std::size_t currentAddress{ rowStartPos + addressOffset };
-        const uint8_t memContentsAtCurrLocation{ memoryContents[currentAddress] };
-
-		const uint8_t validAsciiStart{ 33 };
-		const uint8_t validAsciiEnd{ 126 };
-
-		const char placeHolderForInvalidChar{ '.' };
-
-        if (memContentsAtCurrLocation >= validAsciiStart && memContentsAtCurrLocation <= validAsciiEnd)
-        {
-            ImGui::Text("%c", memContentsAtCurrLocation);
-        }
-        else
-        {
-            ImGui::Text("%c", placeHolderForInvalidChar);
-        }
-
-    }
+    printASCIIRepresentationOfMemoryRow(memoryContents, rowStartPos, numBytesToPrint);
 }
 
 void ImguiRenderer::drawMemoryViewerWindow(const Chip8& chip) const
