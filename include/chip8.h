@@ -39,8 +39,12 @@ public:
         uint16_t programEndAddress{};
     };
 
+    Chip8()
+    : Chip8(baseChip8Quirks)
+    {
+    }
 
-    Chip8(QuirkFlags quirks)
+    Chip8(const QuirkFlags& quirks)
         : m_fontsLocation{ ChipConfig::fontsLocation }
         , m_isQuirkEnabled{ quirks }
         , m_runtimeMetaData{}
@@ -240,6 +244,24 @@ private:
 
     RuntimeMetaData m_runtimeMetaData{};
 
+    static constexpr QuirkFlags baseChip8Quirks {
+        true,   // reset register VF on bitwise AND/OR/XOR operation
+        true,   // index register quirk
+        false,  // wrap around screen quirk
+        false,  // shift quirk
+        false,  // jump quirk
+        false,  // display wait quirk
+    };
+
+    // FOR TESTING WITH testQuirks ROM
+    static constexpr QuirkFlags superChipQuirks{
+        false,  // reset register VF on bitwise AND/OR/XOR operation
+        false,  // index register quirk
+        false,  // wrap around screen quirk
+        true,   // shift quirk
+        true,   // jump quirk
+        false,  // display wait quirk
+    };
 };
 
 

@@ -6,6 +6,9 @@
 #include "renderer.h"
 #include "displaysettings.h"
 
+#include "ImGuiFileDialog.h"
+#include "../external/imgui_file_dialog/ImGuiFileDialog.h"
+
 ImguiRenderer::ImguiRenderer(SDL_Window* window, SDL_Renderer* renderer, std::shared_ptr<DisplaySettings> displaySettings, const float displayScaleFactor)
 : m_windowWidth(displaySettings->userDesiredWidth)
 , m_windowHeight(displaySettings->userDesiredHeight)
@@ -255,7 +258,7 @@ void ImguiRenderer::drawDisplaySettingsWindowAndApplyChanges() const
     {
         m_displaySettings -> renderGameToImGuiWindow = !(m_displaySettings -> renderGameToImGuiWindow);
     }
-    
+
     ImGui::End();
 }
 
@@ -305,5 +308,31 @@ void ImguiRenderer::drawStackDisplayWindow(const std::vector<uint16_t>& stackCon
         ImGui::Text(" %2lu: %i ", i, 0);
     }
 
+    ImGui::End();
+}
+
+void ImguiRenderer::drawROMSelectWindow(Chip8& chip)
+{
+    ImGui::Begin("ROM Select");
+    if (ImGui::Button("Select ROM"))
+    {
+        IGFD::FileDialogConfig config;config.path = ".";
+        ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".ch8", config);
+    }
+
+    if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey"))
+    {
+        if (ImGuiFileDialog::Instance()->IsOk())
+        {
+            std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+            std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+
+            chip = Chip8{};
+
+            chip.loadFile(filePathName);
+        }
+
+        ImGuiFileDialog::Instance()->Close();
+    }
     ImGui::End();
 }

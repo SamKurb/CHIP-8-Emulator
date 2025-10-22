@@ -22,9 +22,6 @@
 
 #include "imguirenderer.h"
 
-#include "ImGuiFileDialog.h"
-#include "../external/imgui_file_dialog/ImGuiFileDialog.h"
-
 // Temporary namespace to make it easier for me to swap roms 
 namespace ROMS
 {
@@ -122,32 +119,13 @@ struct FrameInfo
 
 int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
 {
-    constexpr Chip8::QuirkFlags baseChip8Quirks {
-        true,   // reset register VF on bitwise AND/OR/XOR operation
-        true,   // index register quirk
-        false,  // wrap around screen quirk
-        false,  // shift quirk
-        false,  // jump quirk
-        false,  // display wait quirk
-    };
-
-    // FOR TESTING WITH testQuirks ROM
-    constexpr Chip8::QuirkFlags superChipQuirks{
-        false,  // reset register VF on bitwise AND/OR/XOR operation
-        false,  // index register quirk
-        false,  // wrap around screen quirk
-        true,   // shift quirk
-        true,   // jump quirk
-        false,  // display wait quirk
-    };
-
     std::shared_ptr<DisplaySettings> displaySettings{ std::make_unique<DisplaySettings>() };
 
     Renderer renderer{
         displaySettings
     };
 
-    Chip8 chip{ baseChip8Quirks };
+    Chip8 chip{};
     chip.loadFile(ROMS::pong);
 
     bool userHasQuit{ false };
@@ -283,6 +261,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
         }
 
         imguiRenderer.drawStackDisplayWindow(chip.getStackContents());
+        imguiRenderer.drawROMSelectWindow(chip);
 
         ImGui::Render();
         ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer.getRenderer());

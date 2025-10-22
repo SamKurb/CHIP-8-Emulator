@@ -43,6 +43,8 @@ public:
 
     void drawStackDisplayWindow(const std::vector<uint16_t>& stackContents) const;
 
+    void drawROMSelectWindow(Chip8& chip);
+
 private:
     int m_windowWidth{};
     int m_windowHeight{};
