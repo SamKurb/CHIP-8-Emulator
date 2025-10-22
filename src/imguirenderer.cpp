@@ -170,9 +170,13 @@ void ImguiRenderer::drawMemoryViewerWindow(const Chip8& chip) const
 void ImguiRenderer::drawRegisterViewerWindow(const Chip8& chip) const
 {
     const std::array<uint8_t, 16> registerContents{ chip.getRegisterContents() };
+    constexpr int numColums{ 4 };
+    constexpr int maxRegistersPerColumn{ registerContents.size() / numColums };
 
     ImGui::Begin("Register Viewer");
+    ImGui::Columns(numColums);
 
+    int numRegistersPlacedInCurrentColumn{ 0 };
     for(unsigned int i{ 0 } ; i < registerContents.size() ; ++i)
     {
         ImGui::Text("V%X", i);
@@ -181,7 +185,59 @@ void ImguiRenderer::drawRegisterViewerWindow(const Chip8& chip) const
 
         ImGui::SameLine();
         ImGui::Text(" ... %02X ", contentsAtRegister);
+        ++numRegistersPlacedInCurrentColumn;
+        ImGui::Dummy(ImVec2(0, 5.0f));
+
+        if (numRegistersPlacedInCurrentColumn >= maxRegistersPerColumn)
+        {
+            ImGui::NextColumn();
+            numRegistersPlacedInCurrentColumn = 0;
+        }
     }
+    ImGui::Separator();
+
+    constexpr int numOtherRegisters { 4 };
+    std::array<uint16_t, numOtherRegisters> otherRegisterContents {
+        chip.getPCAddress(),
+        chip.getIndexRegisterContents(),
+        chip.getDelayTimer(),
+        chip.getSoundTimer()
+    };
+
+    constexpr std::array<std::string_view, numOtherRegisters> otherRegisterNames {
+        "PC",
+        "IR",
+        "Delay",
+        "Sound"
+    };
+
+    ImGui::Columns(numOtherRegisters);
+    float columnWidth { ImGui::GetColumnWidth(-1) };
+    const ImVec2 windowDimensions { ImGui::GetWindowSize() };
+    float windowWidth{ windowDimensions.x };
+
+    for (std::size_t i{ 0 } ; i < numOtherRegisters ; ++i)
+    {
+        const std::string_view currRegName{ otherRegisterNames[i] };
+
+        ImVec2 textDimensions { ImGui::CalcTextSize(currRegName.data()) };
+        float textWidth{ textDimensions.x };
+        ImGui::SetCursorPosX((columnWidth * i) + ((columnWidth - textWidth) / 2.0f));
+
+        ImGui::Text("%s\n", currRegName.data());
+
+        const uint16_t currRegContents{ otherRegisterContents[i] };
+
+        ImGui::SetCursorPosX((columnWidth * i) + ((columnWidth - textWidth) / 2.0f));
+        ImGui::Text("0x%02X\n", currRegContents);
+
+        ImGui::SetCursorPosX((columnWidth * i) + ((columnWidth - textWidth) / 2.0f));
+        ImGui::Text("%i", currRegContents);
+
+        ImGui::NextColumn();
+    }
+
+    ImGui::Separator();
 
     ImGui::End();
 }
@@ -195,11 +251,11 @@ void ImguiRenderer::drawDisplaySettingsWindowAndApplyChanges() const
         m_displaySettings -> gridOn = !(m_displaySettings -> gridOn);
     }
 
-    if (ImGui::Button("Toggle Rendering Game Display to GUI Window"))
+    if (ImGui::Button("Toggle Rendering Game \nDisplay to GUI Window"))
     {
         m_displaySettings -> renderGameToImGuiWindow = !(m_displaySettings -> renderGameToImGuiWindow);
     }
-
+    
     ImGui::End();
 }
 
@@ -215,6 +271,39 @@ void ImguiRenderer::drawGameDisplayWindow(SDL_Texture* gameFrame) const
         &gameFrameTextureWidth, &gameFrameTextureHeight);
 
     ImGui::Image((ImTextureID)gameFrame, ImVec2(gameFrameTextureWidth, gameFrameTextureHeight));
+
+    ImGui::End();
+}
+
+void ImguiRenderer::drawStackDisplayWindow(const std::vector<uint16_t>& stackContents) const
+{
+    ImGui::Begin("Stack Viewer");
+    ImGui::Columns(2);
+
+    ImGui::Text("Depth");
+    for (int i { 0 } ; i < stackContents.capacity() ; ++i)
+    {
+        ImGui::Text("%2d", i);
+    }
+
+    ImGui::NextColumn();
+
+    ImGui::Text("Contents");
+    for (std::size_t i{ 0 } ; i < stackContents.size() ; ++i)
+    {
+        ImGui::Text(" %2lu: %i ", i, stackContents[i]);
+
+        if (i == stackContents.size() - 1)
+        {
+            ImGui::SameLine();
+            ImGui::Text("<-- SP");
+        }
+    }
+
+    for (std::size_t i{ stackContents.size() } ; i < 16 ; ++i)
+    {
+        ImGui::Text(" %2lu: %i ", i, 0);
+    }
 
     ImGui::End();
 }

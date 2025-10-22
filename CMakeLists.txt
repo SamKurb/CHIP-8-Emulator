@@ -22,6 +22,8 @@ set(SOURCES
     external/imgui/backends/imgui_impl_sdlrenderer2.cpp
         src/audioplayer.cpp
 
+    external/imgui_file_dialog/ImGuiFileDialog.cpp
+
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES} "src/imguirenderer.cpp" "include/imguirenderer.h")
@@ -40,11 +42,13 @@ target_link_libraries(${PROJECT_NAME} PRIVATE SDL2_mixer::SDL2_mixer)
 
 target_include_directories(${PROJECT_NAME} PUBLIC 
     "${CMAKE_CURRENT_SOURCE_DIR}/include/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/external/imgui_file_dialog/"
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/"
     "${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends/"
+
 )
 
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD

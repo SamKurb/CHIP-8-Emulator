@@ -12,14 +12,32 @@ namespace Colour
 {
     struct RGBA
     {
-        uint8_t red{0xFF};
-        uint8_t green{0xFF};
-        uint8_t blue{0xFF};
-        uint8_t alpha{0xFF};
+        float red{0xFF};
+        float green{0xFF};
+        float blue{0xFF};
+        float alpha{0xFF};
+
+        constexpr RGBA() = default;
+
+        constexpr RGBA(float red, float green, float blue)
+        {
+            this->red = red;
+            this->green = green;
+            this->blue = blue;
+            this->alpha = 0xFF;
+        }
+
+        RGBA(const ImVec4& colour)
+        : red{ (colour.x * 255.0f) }
+        , green{ (colour.y * 255.0f) }
+        , blue{ (colour.z * 255.0f) }
+        , alpha{ (colour.w * 255.0f) }
+        {}
 
         operator SDL_Color() const 
         {
-            return SDL_Color{ red, green, blue, 0xFF };
+            return SDL_Color{ static_cast<uint8_t>(red), static_cast<uint8_t>(green),
+                static_cast<uint8_t>(blue), static_cast<uint8_t>(0xFF) };
         }
 
         operator ImVec4() const

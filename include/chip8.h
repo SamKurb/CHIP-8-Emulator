@@ -45,6 +45,7 @@ public:
         , m_isQuirkEnabled{ quirks }
         , m_runtimeMetaData{}
     {
+        m_stack.reserve(16);
         loadFonts(m_fontsLocation);
     }
 
@@ -72,6 +73,10 @@ public:
     const std::array<uint8_t, 16> getRegisterContents() const { return m_registers; }
 
 	const uint16_t getPCAddress() const { return m_pc; }
+    const uint16_t getIndexRegisterContents() const { return m_indexReg; }
+    const uint8_t getDelayTimer() const { return m_delayTimer; }
+
+    const std::vector<uint16_t>& getStackContents() const { return m_stack; }
 
     void loadFile(const std::string name);
 
@@ -201,10 +206,10 @@ private:
     std::array<bool, 16> m_keyDownThisFrame{};
     std::array<bool, 16> m_keyDownLastFrame{};
 
-    const uint16_t m_width{ ChipConfig::screenWidth };
-    const uint16_t m_height{ ChipConfig::screenHeight };
+    uint16_t m_width{ ChipConfig::screenWidth };
+    uint16_t m_height{ ChipConfig::screenHeight };
 
-    const std::array<uint8_t, 80> m_fonts {
+    std::array<uint8_t, 80> m_fonts {
                                          // Corresponds to sprite for...
         0xF0, 0x90, 0x90, 0x90, 0xF0,    // 0
         0x20, 0x60, 0x20, 0x20, 0x70,    // 1
@@ -225,7 +230,7 @@ private:
     
     };
 
-    const uint16_t m_fontsLocation{ ChipConfig::fontsLocation };
+    uint16_t m_fontsLocation{ ChipConfig::fontsLocation };
     
     // Used for implementing the display wait quirk. Assumption is that whenever execution of instructions is interrupted to draw a frame, this flag is reset back to false.
     bool m_executedDXYNFlag{ false };

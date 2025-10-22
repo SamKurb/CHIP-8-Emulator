@@ -753,6 +753,7 @@ void Chip8::loadFonts(const uint16_t startLocation)
 
 void Chip8::loadFile(const std::string name)
 {
+   // std::fill(m_memory.begin() + m_runtimeMetaData.programStartAddress, m_memory.end(), 0);
     std::cout << "Loading ROM: " << name << '\n';
     std::ifstream ROM{ name, std::ios::binary };
 

@@ -22,6 +22,9 @@
 
 #include "imguirenderer.h"
 
+#include "ImGuiFileDialog.h"
+#include "../external/imgui_file_dialog/ImGuiFileDialog.h"
+
 // Temporary namespace to make it easier for me to swap roms 
 namespace ROMS
 {
@@ -145,7 +148,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
     };
 
     Chip8 chip{ baseChip8Quirks };
-    chip.loadFile(ROMS::tetris);
+    chip.loadFile(ROMS::pong);
 
     bool userHasQuit{ false };
     
@@ -278,6 +281,8 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
             SDL_Texture* currGameFrame { renderer.getCurrentGameFrame() };
             imguiRenderer.drawGameDisplayWindow(currGameFrame);
         }
+
+        imguiRenderer.drawStackDisplayWindow(chip.getStackContents());
 
         ImGui::Render();
         ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer.getRenderer());

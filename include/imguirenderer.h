@@ -10,6 +10,7 @@
 #include "imgui_impl_sdl2.h"
 
 #include "statemanager.h"
+#include <vector>
 
 class Chip8;
 class Renderer;
@@ -39,6 +40,8 @@ public:
     void drawGameDisplayWindow(const SDL_Texture* gameFrameTexture) const;
 
     void drawGameDisplayWindow(SDL_Texture* gameFrame) const;
+
+    void drawStackDisplayWindow(const std::vector<uint16_t>& stackContents) const;
 
 private:
     int m_windowWidth{};

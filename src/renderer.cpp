@@ -21,7 +21,7 @@ Renderer::Renderer(std::shared_ptr<DisplaySettings> displaySettings)
                 m_windowTitle.data(),
                 SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                 m_width, m_height,
-                SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
+                SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_FULLSCREEN_DESKTOP
             )
         );
 
