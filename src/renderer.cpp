@@ -98,6 +98,8 @@ void Renderer::clearDisplay() const
 
 void Renderer::drawGrid(const int pixelWidth, const int pixelHeight, int horizontalPixelAmount, int verticalPixelAmount)
 {
+    Colour::RGBA gridColour{ m_displaySettings -> gridColour };
+    SDL_SetRenderDrawColor(m_renderer.get(), gridColour.red, gridColour.green, gridColour.blue, gridColour.alpha);
     if (m_displaySettings->renderGameToImGuiWindow)
     {
         SDL_SetRenderTarget(m_renderer.get(), m_currentGameFrame.get());
@@ -158,5 +160,6 @@ void Renderer::drawTextAt(const std::string_view text, const int xPos, const int
         SDL_SetRenderTarget(m_renderer.get(), nullptr);
     }
 }
+
 
 

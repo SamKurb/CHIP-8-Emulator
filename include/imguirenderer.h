@@ -50,6 +50,7 @@ public:
                              ImguiRenderer &imguiRenderer, Chip8 &chip, StateManager &stateManager,
                              const FrameInfo &frameInfo);
 
+	void displayHelpMarker(const std::string_view helpInfo) const;
 
 private:
     int m_windowWidth{};

@@ -231,7 +231,6 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
         frameInfo.fps = (frameInfo.timeElapsedMs > 0) ? (1000.0f / frameInfo.timeElapsedMs) : 0.0f;
 
         renderer.clearDisplay();
-
         renderer.drawChipScreenBufferToFrame(chip.getScreenBuffer());
 
         if (stateManager.getCurrentState() == StateManager::State::debug)

@@ -297,10 +297,18 @@ void ImguiRenderer::drawDisplaySettingsWindowAndApplyChanges() const
         m_displaySettings -> onPixelColour = bufferedOnPixelColour;
     }
 
+    ImGui::Text("Grid Colour: ");
+    ImGui::SameLine();
+    static ImVec4 bufferedGridColour { m_displaySettings -> gridColour };
+    if (ImGui::ColorEdit4("Grid Colour", (float*) &(bufferedGridColour), ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel))
+    {
+        m_displaySettings -> gridColour = bufferedGridColour;
+    }
+
     ImGui::End();
 }
 
-void displayHelpMarker(const std::string_view helpInfo)
+void ImguiRenderer::displayHelpMarker(const std::string_view helpInfo) const
 {
     ImGui::TextDisabled("(?)");
     if (ImGui::BeginItemTooltip())
@@ -364,7 +372,7 @@ void ImguiRenderer::drawGameDisplayWindow(SDL_Texture* gameFrame) const
     SDL_QueryTexture(gameFrame, nullptr, nullptr,
         &gameFrameTextureWidth, &gameFrameTextureHeight);
 
-    ImGui::Image((ImTextureID)gameFrame, ImVec2(gameFrameTextureWidth, gameFrameTextureHeight));
+    ImGui::Image(gameFrame, ImVec2(gameFrameTextureWidth, gameFrameTextureHeight));
 
     ImGui::End();
 }

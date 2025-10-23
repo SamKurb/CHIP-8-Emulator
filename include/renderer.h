@@ -75,7 +75,6 @@ public:
         }
         if (m_displaySettings -> gridOn)
         {
-            SDL_SetRenderDrawColor(m_renderer.get(), 0x00, 0x00, 0x00, 0xFF);
             drawGrid(pixelWidth, pixelHeight, C, R);
         }
 
