@@ -1,12 +1,15 @@
 #include <array>
-
+#define IMGUI_DEFINE_MATH_OPERATORS
 #include "imguirenderer.h"
 #include "settings.h"
 #include "chip8.h"
 #include "renderer.h"
 #include "displaysettings.h"
 
+#include "frameinfo.h"
+
 #include "ImGuiFileDialog.h"
+#include "imgui_internal.h"
 #include "../external/imgui_file_dialog/ImGuiFileDialog.h"
 
 ImguiRenderer::ImguiRenderer(SDL_Window* window, SDL_Renderer* renderer, std::shared_ptr<DisplaySettings> displaySettings, const float displayScaleFactor)
@@ -38,19 +41,36 @@ ImguiRenderer::~ImguiRenderer()
     ImGui::DestroyContext();
 }
 
-void ImguiRenderer::drawGeneralInfoWindow(const float fps, const uint8_t soundTimer, const StateManager::State currentState, const uint64_t numInstructionsExecuted, const uint64_t numInstructionsExecutedThisFrame) const
+void ImguiRenderer::drawGeneralInfoWindow(
+    const FrameInfo& frameInfo, const uint8_t soundTimer, const StateManager& stateManager,
+    const uint64_t numInstructionsExecuted
+) const
 {
     constexpr int numLinesInWindow { 6 };
     const float fontHeight { ImGui::GetFontSize() };
 
     ImGui::Begin("Emulator Info");
 
-    ImGui::Text("FPS: %.1f", fps);
+    ImGui::Text("FPS: %.1f", frameInfo.fps);
+    ImGui::Text("Frame Time: %.1dms", frameInfo.timeElapsedMs);
 
     ImGui::Text("Sound timer: %d", soundTimer);
+
+    StateManager::State currentState { stateManager.getCurrentState() };
+
     ImGui::Text("Current state: %s", (currentState == StateManager::State::running) ? "Running" : "Debug");
+
+
+    if (currentState == StateManager::State::debug)
+    {
+        ImGui::SameLine();
+
+        StateManager::DebugMode currentDebugMode { stateManager.getCurrentDebugMode() };
+        ImGui::Text(" - %s", (currentDebugMode == StateManager::DebugMode::manual ? "Manual" : "Step"));
+    }
+
     ImGui::Text("Instructions Executed: %ld", numInstructionsExecuted);
-    ImGui::Text("IPF: %ld", numInstructionsExecutedThisFrame);
+    ImGui::Text("IPF: %ld", frameInfo.numInstructionsExecuted);
     ImGui::End();
 }
 
@@ -259,9 +279,80 @@ void ImguiRenderer::drawDisplaySettingsWindowAndApplyChanges() const
         m_displaySettings -> renderGameToImGuiWindow = !(m_displaySettings -> renderGameToImGuiWindow);
     }
 
+    ImGui::Text("Off Pixel Colour: ");
+
+    // Unfortunately ColorEdit4 only takes a float array as input, so this is the only easy way to do this
+    static ImVec4 bufferedOffPixelColour { m_displaySettings -> offPixelColour };
+    ImGui::SameLine();
+    if (ImGui::ColorEdit4("Off Pixel", (float*) &(bufferedOffPixelColour), ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel))
+    {
+        m_displaySettings -> offPixelColour = bufferedOffPixelColour;
+    }
+
+    ImGui::Text("On Pixel Colour: ");
+    ImGui::SameLine();
+    static ImVec4 bufferedOnPixelColour { m_displaySettings -> onPixelColour };
+    if (ImGui::ColorEdit4("On Pixel", (float*) &(bufferedOnPixelColour), ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel))
+    {
+        m_displaySettings -> onPixelColour = bufferedOnPixelColour;
+    }
+
     ImGui::End();
 }
 
+void displayHelpMarker(const std::string_view helpInfo)
+{
+    ImGui::TextDisabled("(?)");
+    if (ImGui::BeginItemTooltip())
+    {
+        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+        ImGui::TextUnformatted(helpInfo.data());
+        ImGui::PopTextWrapPos();
+        ImGui::EndTooltip();
+    }
+}
+
+void ImguiRenderer::drawChipSettingsWindow(Chip8::QuirkFlags& chipQuirkFlags) const
+{
+    ImGui::Begin("Chip Settings");
+
+    ImGui::Text("Quirk Flags");
+    ImGui::Separator();
+
+    ImGui::Checkbox("reset VF flag", &chipQuirkFlags.resetVF);
+    ImGui::SameLine();
+    displayHelpMarker("To be added");
+
+
+    ImGui::Checkbox("index register flag", &chipQuirkFlags.index);
+    ImGui::SameLine();
+    displayHelpMarker("To be added");
+
+
+    ImGui::Checkbox("pixel wrap screen flag", &chipQuirkFlags.wrapScreen);
+    ImGui::SameLine();
+    displayHelpMarker("To be added");
+
+
+    ImGui::Checkbox("shift flag", &chipQuirkFlags.shift);
+    ImGui::SameLine();
+    displayHelpMarker("To be added");
+
+
+    ImGui::Checkbox("jmp instruction flag", &chipQuirkFlags.jump);
+    ImGui::SameLine();
+    displayHelpMarker("To be added");
+
+
+    ImGui::Checkbox("display wait flag", &chipQuirkFlags.displayWait);
+    ImGui::SameLine();
+    displayHelpMarker("To be added");
+
+
+    ImGui::Separator();
+
+    ImGui::End();
+}
 
 void ImguiRenderer::drawGameDisplayWindow(SDL_Texture* gameFrame) const
 {
@@ -286,26 +377,22 @@ void ImguiRenderer::drawStackDisplayWindow(const std::vector<uint16_t>& stackCon
     ImGui::Text("Depth");
     for (int i { 0 } ; i < stackContents.capacity() ; ++i)
     {
-        ImGui::Text("%2d", i);
+        ImGui::Text("%2d ... ", i);
     }
 
     ImGui::NextColumn();
 
     ImGui::Text("Contents");
-    for (std::size_t i{ 0 } ; i < stackContents.size() ; ++i)
+    for (std::size_t i{ 0 } ; i < stackContents.capacity() ; ++i)
     {
-        ImGui::Text(" %2lu: %i ", i, stackContents[i]);
+        const uint16_t stackItem = { Utility::toU16((i < stackContents.size()) ? stackContents[i] : 0) };
+        ImGui::Text("%i  0x%04X", stackItem, stackItem);
 
         if (i == stackContents.size() - 1)
         {
             ImGui::SameLine();
             ImGui::Text("<-- SP");
         }
-    }
-
-    for (std::size_t i{ stackContents.size() } ; i < 16 ; ++i)
-    {
-        ImGui::Text(" %2lu: %i ", i, 0);
     }
 
     ImGui::End();
@@ -328,11 +415,46 @@ void ImguiRenderer::drawROMSelectWindow(Chip8& chip)
             std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
 
             chip = Chip8{};
-
             chip.loadFile(filePathName);
         }
 
         ImGuiFileDialog::Instance()->Close();
     }
     ImGui::End();
+}
+
+void ImguiRenderer::drawAllImguiWindows(
+    std::shared_ptr<DisplaySettings> displaySettings,
+    Renderer& renderer, ImguiRenderer& imguiRenderer,
+    Chip8& chip, StateManager& stateManager,
+    const FrameInfo& frameInfo)
+{
+    ImGui_ImplSDL2_NewFrame();
+    ImGui_ImplSDLRenderer2_NewFrame();
+    ImGui::NewFrame();
+
+    imguiRenderer.drawGeneralInfoWindow (
+        frameInfo,
+        chip.getSoundTimer(),
+        stateManager,
+        chip.getNumInstructionsExecuted()
+    );
+
+    imguiRenderer.drawMemoryViewerWindow(chip);
+    imguiRenderer.drawRegisterViewerWindow(chip);
+    imguiRenderer.drawStackDisplayWindow(chip.getStackContents());
+
+    imguiRenderer.drawDisplaySettingsWindowAndApplyChanges();
+    imguiRenderer.drawROMSelectWindow(chip);
+
+    imguiRenderer.drawChipSettingsWindow(chip.getEnabledQuirks());
+
+    if (displaySettings -> renderGameToImGuiWindow)
+    {
+        SDL_Texture* currGameFrame { renderer.getCurrentGameFrame() };
+        imguiRenderer.drawGameDisplayWindow(currGameFrame);
+    }
+
+    ImGui::Render();
+    ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer.getRenderer());
 }

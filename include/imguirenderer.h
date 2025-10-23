@@ -11,9 +11,10 @@
 
 #include "statemanager.h"
 #include <vector>
+#include "chip8.h"
 
-class Chip8;
 class Renderer;
+class FrameInfo;
 struct DisplaySettings;
 
 class ImguiRenderer
@@ -22,7 +23,7 @@ public:
 	ImguiRenderer(SDL_Window* window, SDL_Renderer* renderer, std::shared_ptr<DisplaySettings> displaySettings, const float displayScaleFactor);
     ~ImguiRenderer();
 
-    void drawGeneralInfoWindow(const float fps, const uint8_t soundTimer, const StateManager::State currentState, const uint64_t numInstructionsExecuted, const uint64_t numInstructionsExecutedThisFrame) const;
+    void drawGeneralInfoWindow(const FrameInfo &frameInfo, uint8_t soundTimer, const StateManager& currentState, uint64_t numInstructionsExecuted) const;
 
     void printRowStartAddress(const std::size_t rowStartAddress, const uint16_t programStartAddress, const uint16_t programEndAddress, const uint16_t fontStartAddress, const uint16_t fontEndAddress) const;
 
@@ -37,13 +38,18 @@ public:
 
     void drawDisplaySettingsWindowAndApplyChanges() const;
 
-    void drawGameDisplayWindow(const SDL_Texture* gameFrameTexture) const;
+	void drawChipSettingsWindow(Chip8::QuirkFlags& chipQuirkFlags) const;
 
     void drawGameDisplayWindow(SDL_Texture* gameFrame) const;
 
     void drawStackDisplayWindow(const std::vector<uint16_t>& stackContents) const;
 
     void drawROMSelectWindow(Chip8& chip);
+
+    void drawAllImguiWindows(std::shared_ptr<DisplaySettings> displaySettings, Renderer &renderer,
+                             ImguiRenderer &imguiRenderer, Chip8 &chip, StateManager &stateManager,
+                             const FrameInfo &frameInfo);
+
 
 private:
     int m_windowWidth{};

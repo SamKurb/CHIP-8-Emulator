@@ -43,9 +43,8 @@ Renderer::Renderer(std::shared_ptr<DisplaySettings> displaySettings)
                 SDL_SetRenderDrawColor(m_renderer.get(), 0x00, 0x00, 0x00, 0xFF);
             }
 
-            const int placeHolderWidth{ 1280 };
-            const int placeHolderHeight{ 640 };
-
+            const int placeHolderWidth{ 1920 };
+            const int placeHolderHeight{ 960 };
 
             m_currentGameFrame.reset(
                 SDL_CreateTexture(

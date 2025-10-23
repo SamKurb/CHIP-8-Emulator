@@ -19,12 +19,12 @@ namespace Colour
 
         constexpr RGBA() = default;
 
-        constexpr RGBA(float red, float green, float blue)
+        constexpr RGBA(float r, float g, float b)
+        : red{ r }
+        , green{ g }
+        , blue{ b }
+        , alpha{ 0xFF }
         {
-            this->red = red;
-            this->green = green;
-            this->blue = blue;
-            this->alpha = 0xFF;
         }
 
         RGBA(const ImVec4& colour)

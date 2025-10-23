@@ -23,6 +23,7 @@ set(SOURCES
         src/audioplayer.cpp
 
     external/imgui_file_dialog/ImGuiFileDialog.cpp
+        include/frameinfo.h
 
 )
 

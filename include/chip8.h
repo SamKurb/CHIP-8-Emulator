@@ -46,8 +46,8 @@ public:
 
     Chip8(const QuirkFlags& quirks)
         : m_fontsLocation{ ChipConfig::fontsLocation }
-        , m_isQuirkEnabled{ quirks }
-        , m_runtimeMetaData{}
+    , m_isQuirkEnabled{ quirks }
+    , m_runtimeMetaData{}
     {
         m_stack.reserve(16);
         loadFonts(m_fontsLocation);
@@ -58,15 +58,16 @@ public:
 
     const Array2DU8<ChipConfig::screenHeight, ChipConfig::screenWidth>& getScreenBuffer() const { return m_screen; }
 
+    const uint8_t getDelayTimer() const { return m_delayTimer; }
     const uint8_t getSoundTimer() const { return m_soundTimer; }
 
     const bool executedDXYN() const { return m_executedDXYNFlag; }
     void resetDXYNFlag() { m_executedDXYNFlag = false; }
 
-    const QuirkFlags& getEnabledQuirks() const { return m_isQuirkEnabled; }
+    QuirkFlags& getEnabledQuirks() { return m_isQuirkEnabled; }
 
 
-	const uint64_t getNumInstructionsExecuted() const { return m_runtimeMetaData.numInstructionsExecuted; }
+    const uint64_t getNumInstructionsExecuted() const { return m_runtimeMetaData.numInstructionsExecuted; }
     const uint16_t getFontStartAddress() const { return m_runtimeMetaData.fontStartAddress; }
     const uint16_t getFontEndAddress() const { return m_runtimeMetaData.fontEndAddress; }
 
@@ -76,9 +77,8 @@ public:
     const std::array<uint8_t, 4096> getMemoryContents() const { return m_memory; }
     const std::array<uint8_t, 16> getRegisterContents() const { return m_registers; }
 
-	const uint16_t getPCAddress() const { return m_pc; }
+    const uint16_t getPCAddress() const { return m_pc; }
     const uint16_t getIndexRegisterContents() const { return m_indexReg; }
-    const uint8_t getDelayTimer() const { return m_delayTimer; }
 
     const std::vector<uint16_t>& getStackContents() const { return m_stack; }
 
@@ -201,6 +201,8 @@ private:
     uint16_t m_indexReg{ 0 };
     uint8_t m_delayTimer{ 0 };
     uint8_t m_soundTimer{ 0 };
+
+    static constexpr uint8_t s_timerDecrementsPerSecond { 60 };
 
     std::vector<uint16_t> m_stack{};
 

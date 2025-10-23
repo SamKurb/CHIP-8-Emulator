@@ -22,6 +22,8 @@
 
 #include "imguirenderer.h"
 
+#include "frameinfo.h"
+
 // Temporary namespace to make it easier for me to swap roms 
 namespace ROMS
 {
@@ -109,14 +111,6 @@ void updateDebugModeBasedOnInput(StateManager& stateManager, const InputHandler&
     }
 }
 
-struct FrameInfo
-{
-    Uint32 startTimeMs{};
-    Uint32 endTimeMs{};
-    Uint32 timeElapsedMs{};
-};
-
-
 int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
 {
     std::shared_ptr<DisplaySettings> displaySettings{ std::make_unique<DisplaySettings>() };
@@ -145,7 +139,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
 
     while (!userHasQuit)
     {
-		uint64_t numInstructionsBeforeFrame{ chip.getNumInstructionsExecuted() };
+		uint64_t totalInstructionsExecutedBeforeFrame{ chip.getNumInstructionsExecuted() };
 
         frameInfo.startTimeMs = SDL_GetTicks();
 
@@ -167,7 +161,6 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
         {
             stateManager.changeMainStateTo(StateManager::running);
         }
-
 
         chip.decrementTimers();
 
@@ -216,8 +209,17 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
 
         frameInfo.endTimeMs = SDL_GetTicks();
         frameInfo.timeElapsedMs = frameInfo.endTimeMs - frameInfo.startTimeMs;
+        const uint64_t totalInstructionsExecutedAfterFrame{ chip.getNumInstructionsExecuted() };
 
-        // Frames may process faster than the target frametime, so we delay to make sure that we only move on to the next frame when enough time has passed
+        const uint64_t numInstructionsExecutedThisFrame{
+            totalInstructionsExecutedAfterFrame - totalInstructionsExecutedBeforeFrame
+        };
+
+        frameInfo.numInstructionsExecuted = numInstructionsExecutedThisFrame;
+        /*
+        Frames may process faster than the target frametime, so we delay to make
+        sure that we only move on to the next frame when enough time has passed
+        */
         if (frameInfo.timeElapsedMs < targetFrameDelayMs)
         {
 			Uint32 timeToWaitMs{ targetFrameDelayMs - frameInfo.timeElapsedMs };
@@ -225,6 +227,8 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
 
             frameInfo.timeElapsedMs += timeToWaitMs;
         }
+
+        frameInfo.fps = (frameInfo.timeElapsedMs > 0) ? (1000.0f / frameInfo.timeElapsedMs) : 0.0f;
 
         renderer.clearDisplay();
 
@@ -236,37 +240,10 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
             drawDebugTextBasedOnMode(currentDebugMode, renderer);
         }
 
-        ImGui_ImplSDL2_NewFrame();
-        ImGui_ImplSDLRenderer2_NewFrame();
-        ImGui::NewFrame();
-
-		float fps = (frameInfo.timeElapsedMs > 0) ? (1000.0f / frameInfo.timeElapsedMs) : 0.0f;
-        imguiRenderer.drawGeneralInfoWindow (
-            fps,
-            chip.getSoundTimer(),
-            stateManager.getCurrentState(),
-            chip.getNumInstructionsExecuted(),
-            chip.getNumInstructionsExecuted() - numInstructionsBeforeFrame
-		);
-
-        imguiRenderer.drawMemoryViewerWindow(chip);
-        imguiRenderer.drawRegisterViewerWindow(chip);
-
-        imguiRenderer.drawDisplaySettingsWindowAndApplyChanges();
-
-        if (displaySettings -> renderGameToImGuiWindow)
-        {
-            SDL_Texture* currGameFrame { renderer.getCurrentGameFrame() };
-            imguiRenderer.drawGameDisplayWindow(currGameFrame);
-        }
-
-        imguiRenderer.drawStackDisplayWindow(chip.getStackContents());
-        imguiRenderer.drawROMSelectWindow(chip);
-
-        ImGui::Render();
-        ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer.getRenderer());
-
-
+        imguiRenderer.drawAllImguiWindows(
+            displaySettings, renderer, imguiRenderer,
+            chip, stateManager,
+            frameInfo);
         renderer.render();
     }
 
