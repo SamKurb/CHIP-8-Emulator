@@ -6,8 +6,8 @@
 
 struct DisplaySettings
 {
-    int userDesiredWidth{2560};
-    int userDesiredHeight{1280};
+    int mainWindowWidth{1920};
+    int mainWindowHeight{1080};
     int gameDisplayTextureWidth{ 1920 };
     int gameDisplayTextureHeight{ 960 };
     bool gridOn{ true };

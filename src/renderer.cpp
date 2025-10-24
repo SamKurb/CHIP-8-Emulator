@@ -4,8 +4,6 @@
 Renderer::Renderer(std::shared_ptr<DisplaySettings> displaySettings)
     : m_defaultDPI { 120.0f }
     , m_displaySettings{ std::move(displaySettings) }
-    , m_width { m_displaySettings -> userDesiredWidth }
-    , m_height { m_displaySettings -> userDesiredHeight }
 {
     bool success{ true };
 
@@ -16,11 +14,13 @@ Renderer::Renderer(std::shared_ptr<DisplaySettings> displaySettings)
     }
     else
     {
+        const int defaultWindowWidth{ 1920 };
+        const int defaultWindowHeight{ 1200 };
         m_window.reset(
             SDL_CreateWindow(
                 m_windowTitle.data(),
                 SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                m_width, m_height,
+                defaultWindowWidth,defaultWindowHeight,
                 SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_FULLSCREEN_DESKTOP
             )
         );
@@ -28,10 +28,33 @@ Renderer::Renderer(std::shared_ptr<DisplaySettings> displaySettings)
         if (m_window == nullptr)
         {
             std::cerr << "Failed to create window. SDL_Error: " << SDL_GetError() << std::endl;
+            std::exit(1);
         }
         else
         {
             m_renderer.reset( SDL_CreateRenderer(m_window.get(), -1, SDL_RENDERER_ACCELERATED));
+
+            int actualWindowWidthPixels{};
+            int actualWindowHeightPixels{};
+
+            SDL_GetRendererOutputSize(m_renderer.get(), &actualWindowWidthPixels, &actualWindowHeightPixels);
+
+            std::cout << actualWindowWidthPixels << " x " << actualWindowHeightPixels << std::endl;
+
+            int logicalWindowWidthPixels{};
+            int logicalWindowHeightPixels{};
+
+            SDL_GetWindowSize(m_window.get(), &logicalWindowWidthPixels, &logicalWindowHeightPixels);
+
+            std::cout << logicalWindowWidthPixels << " x " << logicalWindowHeightPixels << std::endl;
+
+            m_displaySettings -> mainWindowWidth = actualWindowWidthPixels;
+            m_displaySettings -> mainWindowHeight = actualWindowHeightPixels;
+
+            SDL_DisplayMode displayMode{};
+            SDL_GetDisplayMode(0, 0, &displayMode);
+
+            std::cout << displayMode.w << "x" << displayMode.h << " @" << displayMode.refresh_rate << std::endl;
 
             if (m_renderer == nullptr)
             {
@@ -42,6 +65,9 @@ Renderer::Renderer(std::shared_ptr<DisplaySettings> displaySettings)
             {
                 SDL_SetRenderDrawColor(m_renderer.get(), 0x00, 0x00, 0x00, 0xFF);
             }
+
+            // int actualWidthPixels{};
+            // int actualHeightPixels{};
 
             const int placeHolderWidth{ 1920 };
             const int placeHolderHeight{ 960 };
@@ -100,22 +126,28 @@ void Renderer::drawGrid(const int pixelWidth, const int pixelHeight, int horizon
 {
     Colour::RGBA gridColour{ m_displaySettings -> gridColour };
     SDL_SetRenderDrawColor(m_renderer.get(), gridColour.red, gridColour.green, gridColour.blue, gridColour.alpha);
+
+    int frameWidth{ m_displaySettings -> mainWindowWidth };
+    int frameHeight{ m_displaySettings -> mainWindowHeight };
+
     if (m_displaySettings->renderGameToImGuiWindow)
     {
         SDL_SetRenderTarget(m_renderer.get(), m_currentGameFrame.get());
+        frameWidth = m_displaySettings -> gameDisplayTextureWidth;
+        frameHeight = m_displaySettings -> gameDisplayTextureHeight;
     }
 
     SDL_Renderer* renderer{ m_renderer.get() };
     for (int i{ 0 }; i < horizontalPixelAmount ; ++i)
     {
         int xCoord{ i * pixelWidth };
-        SDL_RenderDrawLine(renderer, xCoord, 0, xCoord, m_height);
+        SDL_RenderDrawLine(renderer, xCoord, 0, xCoord, frameHeight);
     }
 
     for (int i{ 0 }; i < verticalPixelAmount; ++i)
     {
         int yCoord{ i * pixelHeight };
-        SDL_RenderDrawLine(renderer, 0, yCoord, m_width, yCoord);
+        SDL_RenderDrawLine(renderer, 0, yCoord, frameWidth, yCoord);
     }
 
     if (m_displaySettings->renderGameToImGuiWindow)

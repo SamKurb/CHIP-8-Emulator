@@ -47,8 +47,8 @@ public:
         }
         else
         {
-            gameFrameWidth = m_width;
-            gameFrameHeight = m_height;
+            gameFrameWidth = m_displaySettings -> mainWindowWidth;
+            gameFrameHeight = m_displaySettings -> mainWindowHeight;
         }
 
         const int pixelWidth{ Utility::toInt(gameFrameWidth / C)};
@@ -64,8 +64,8 @@ public:
                 int xCoordOnScreen{ Utility::toInt(x * pixelWidth)  };
                 int yCoordOnScreen{ Utility::toInt(y * pixelHeight) };
 
-                assert(xCoordOnScreen <= m_width && xCoordOnScreen >= 0);
-                assert(yCoordOnScreen <= m_height && yCoordOnScreen >= 0);
+                assert(xCoordOnScreen <= m_displaySettings -> mainWindowWidth && xCoordOnScreen >= 0);
+                assert(yCoordOnScreen <= m_displaySettings -> mainWindowHeight && yCoordOnScreen >= 0);
 
                 Pixel pixel{ { xCoordOnScreen, yCoordOnScreen, pixelWidth, pixelHeight }
                             , pixelColour };
@@ -114,9 +114,6 @@ private:
     float m_displayScaleFactor{ 0 };
 
     std::shared_ptr<DisplaySettings> m_displaySettings{};
-
-    int m_width{};
-    int m_height{};
 
     std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> m_currentGameFrame { nullptr, SDL_DestroyTexture };
 

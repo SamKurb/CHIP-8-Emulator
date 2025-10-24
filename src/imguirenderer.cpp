@@ -13,8 +13,8 @@
 #include "../external/imgui_file_dialog/ImGuiFileDialog.h"
 
 ImguiRenderer::ImguiRenderer(SDL_Window* window, SDL_Renderer* renderer, std::shared_ptr<DisplaySettings> displaySettings, const float displayScaleFactor)
-: m_windowWidth(displaySettings->userDesiredWidth)
-, m_windowHeight(displaySettings->userDesiredHeight)
+: m_windowWidth(displaySettings->mainWindowWidth)
+, m_windowHeight(displaySettings->mainWindowHeight)
 , m_displaySettings{ std::move(displaySettings) }
 , m_dpiScaleFactor{ displayScaleFactor }
 {
