@@ -13,7 +13,6 @@
 
 #include "utility.h"
 #include "random.h"
-#include "settings.h"
 
 class Chip8
 {
@@ -39,24 +38,32 @@ public:
         uint16_t programEndAddress{};
     };
 
+    struct InitialConfig
+    {
+        // Do not change
+        static constexpr int maxStackDepth{ 16 };
+        static constexpr int numPixelsHorizontally{ 64 };
+        static constexpr int numPixelsVertically{ 32 };
+        static constexpr std::size_t bitsOfMemory{ 4096 };
+        static constexpr uint8_t timerStartVal{ 0 };
+
+        // Can change if you know what you are doing. Current values adhere to CHIP-8 spec/conventions
+        static constexpr uint16_t programStartAddress{ 0x200 };
+        static constexpr uint16_t fontsStartLocation{ 0x50 };
+    };
+
     Chip8()
     : Chip8(baseChip8Quirks)
     {
     }
 
-    Chip8(const QuirkFlags& quirks)
-        : m_fontsLocation{ ChipConfig::fontsLocation }
-    , m_isQuirkEnabled{ quirks }
-    , m_runtimeMetaData{}
-    {
-        m_stack.reserve(16);
-        loadFonts(m_fontsLocation);
-    }
+    Chip8(const QuirkFlags& quirks);
 
     template <std::size_t r, std::size_t c>
     using Array2DU8 = std::array<std::array<uint8_t, c>, r>;
 
-    const Array2DU8<ChipConfig::screenHeight, ChipConfig::screenWidth>& getScreenBuffer() const { return m_screen; }
+    const Array2DU8<InitialConfig::numPixelsVertically, InitialConfig::numPixelsHorizontally>& getScreenBuffer() const
+    { return m_screen; }
 
     const uint8_t getDelayTimer() const { return m_delayTimer; }
     const uint8_t getSoundTimer() const { return m_soundTimer; }
@@ -73,6 +80,8 @@ public:
 
     const uint16_t getProgramStartAddress() const { return m_runtimeMetaData.programStartAddress; }
     const uint16_t getProgramEndAddress() const { return m_runtimeMetaData.programEndAddress; }
+
+    int getTargetNumInstPerSecond() const { return m_targetNumInstrPerSecond; }
 
     const std::array<uint8_t, 4096> getMemoryContents() const { return m_memory; }
     const std::array<uint8_t, 16> getRegisterContents() const { return m_registers; }
@@ -199,23 +208,26 @@ private:
     std::array<uint8_t, 4096> m_memory{};
 
     std::array<uint8_t, 16> m_registers{};
-    uint16_t m_pc{ ChipConfig::startAddress };
+    uint16_t m_pc{ InitialConfig::programStartAddress };
     uint16_t m_indexReg{ 0 };
     uint8_t m_delayTimer{ 0 };
     uint8_t m_soundTimer{ 0 };
 
     static constexpr uint8_t s_timerDecrementsPerSecond { 60 };
 
+    // At 720 IPS, it will be as if the chip8 is doing 12 instructions per frame @ 60 FPS, which is the standard
+    int m_targetNumInstrPerSecond{ 720 };
+
     std::vector<uint16_t> m_stack{};
 
-    Array2DU8 <ChipConfig::screenHeight, ChipConfig::screenWidth> m_screen{};
+    Array2DU8 <InitialConfig::numPixelsVertically, InitialConfig::numPixelsHorizontally> m_screen{};
 
     // Need to keep track of inputs from both current and last frame so that we can detect when a key was released
     std::array<bool, 16> m_keyDownThisFrame{};
     std::array<bool, 16> m_keyDownLastFrame{};
 
-    uint16_t m_width{ ChipConfig::screenWidth };
-    uint16_t m_height{ ChipConfig::screenHeight };
+    uint16_t m_width{ InitialConfig::numPixelsHorizontally };
+    uint16_t m_height{ InitialConfig::numPixelsVertically };
 
     std::array<uint8_t, 80> m_fonts {
                                          // Corresponds to sprite for...
@@ -238,14 +250,13 @@ private:
     
     };
 
-    uint16_t m_fontsLocation{ ChipConfig::fontsLocation };
+    uint16_t m_fontsLocation{ InitialConfig::fontsStartLocation };
     
     // Used for implementing the display wait quirk. Assumption is that whenever execution of instructions is interrupted to draw a frame, this flag is reset back to false.
     bool m_executedDXYNFlag{ false };
 
 	// Quirk configurations (We alter the functionality of certain opcodes based on whether or not a quirk is enabled)
     QuirkFlags m_isQuirkEnabled{};
-
     RuntimeMetaData m_runtimeMetaData{};
 
     static constexpr QuirkFlags baseChip8Quirks {

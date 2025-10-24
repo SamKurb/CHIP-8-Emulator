@@ -11,7 +11,6 @@
 #include <algorithm>
 
 #include "utility.h"
-#include "settings.h"
 #include "colour.h"
 
 #include "displaysettings.h"

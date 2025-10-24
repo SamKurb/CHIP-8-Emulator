@@ -1,5 +1,15 @@
 #include "chip8.h"
 
+Chip8::Chip8(const QuirkFlags& quirks)
+: m_fontsLocation{ InitialConfig::fontsStartLocation }
+, m_isQuirkEnabled{ quirks }
+, m_runtimeMetaData{}
+{
+    m_stack.reserve(InitialConfig::maxStackDepth);
+    loadFonts(m_fontsLocation);
+}
+
+
 void handleInvalidOpcode(const uint16_t opcode)
 {
     std::cout << "Invalid opcode!\n"
@@ -254,7 +264,7 @@ void Chip8::op2NNN(const uint16_t opcode)
 {
     const uint16_t address{ extractNNN(opcode) };
 
-    if (std::size(m_stack) >= ChipConfig::levelsOfNesting)
+    if (std::size(m_stack) >= InitialConfig::maxStackDepth)
     {
         std::cout << "Stack limit reached, cannot push to stack. Increase ChipConfig::levelsOfNesting or ensure that the program/ROM is not buggy";
         std::exit(1);
@@ -555,8 +565,8 @@ void Chip8::opDXYN(const uint16_t opcode)
     const uint16_t registerX{ Utility::toU16(extractX(opcode)) };
     const uint16_t registerY{ Utility::toU16(extractY(opcode)) };
 
-    const uint8_t xCoord{ Utility::toU8(m_registers[registerX] % ChipConfig::screenWidth) };
-    const uint8_t yCoord{ Utility::toU8(m_registers[registerY] % ChipConfig::screenHeight) };
+    const uint8_t xCoord{ Utility::toU8(m_registers[registerX] % InitialConfig::numPixelsHorizontally) };
+    const uint8_t yCoord{ Utility::toU8(m_registers[registerY] % InitialConfig::numPixelsVertically) };
 
     uint16_t spriteWidth{ 8 };
     uint16_t spriteHeight{ Utility::toU16(extractN(opcode)) };

@@ -8,7 +8,6 @@
 
 // Convenience namespaces
 #include "utility.h"
-#include "settings.h"
 #include "random.h"
 
 // Chip-related classes
@@ -67,9 +66,10 @@ namespace ROMS
     const std::string puzzle15{ "roms/15puzzle.ch8" };
 }
 
-void executeInstructionsForFrame(Chip8& chip)
+void executeInstructionsForFrame(Chip8& chip, const int targetFPS)
 {
-    for (int i = 0; i < ChipConfig::instrPerFrame; ++i)
+    const int numInstructionsForThisFrame{ chip.getTargetNumInstrPerSecond() / targetFPS };
+    for (int i = 0; i < numInstructionsForThisFrame; ++i)
     {
         chip.performFDECycle();
 
@@ -166,7 +166,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
 
         if (stateManager.getCurrentState() == StateManager::State::running)
         {
-            executeInstructionsForFrame(chip);
+            executeInstructionsForFrame(chip, displaySettings -> targetFPS);
         }
         else if (stateManager.getCurrentState() == StateManager::State::debug)
         {
@@ -177,7 +177,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
 
             if (stateManager.getCurrentDebugMode() == StateManager::step && inputHandler.isSystemKeyPressed(InputHandler::K_NEXT_FRAME))
             {
-                executeInstructionsForFrame(chip);
+                executeInstructionsForFrame(chip, displaySettings -> targetFPS);
             }
 
             if (stateManager.getCurrentDebugMode() == StateManager::manual)

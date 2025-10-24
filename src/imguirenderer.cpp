@@ -1,7 +1,6 @@
 #include <array>
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "imguirenderer.h"
-#include "settings.h"
 #include "chip8.h"
 #include "renderer.h"
 #include "displaysettings.h"
