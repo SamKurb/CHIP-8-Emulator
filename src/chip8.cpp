@@ -9,6 +9,20 @@ Chip8::Chip8(const QuirkFlags& quirks)
     loadFonts(m_fontsLocation);
 }
 
+const Chip8::Array2DU8<Chip8::InitialConfig::numPixelsVertically, Chip8::InitialConfig::numPixelsHorizontally>&
+    Chip8::getScreenBuffer() const
+{
+    return m_screen;
+}
+
+
+uint8_t Chip8::getDelayTimer() const { return m_delayTimer; }
+uint8_t Chip8::getSoundTimer() const { return m_soundTimer; }
+
+bool Chip8::executedDXYN() const { return m_executedDXYNFlag; }
+void Chip8::resetDXYNFlag() { m_executedDXYNFlag = false; }
+
+Chip8::QuirkFlags& Chip8::getEnabledQuirks() { return m_isQuirkEnabled; }
 
 void handleInvalidOpcode(const uint16_t opcode)
 {
@@ -179,7 +193,7 @@ void Chip8::decodeAndExecute(const uint16_t opcode)
     m_runtimeMetaData.numInstructionsExecuted += 1;
 }
 
-bool Chip8::wasKeyReleasedThisFrame()
+bool Chip8::wasKeyReleasedThisFrame() const
 {
     for (std::size_t i{ 0 }; i < std::size(m_keyDownThisFrame); ++i)
     {
@@ -194,7 +208,7 @@ bool Chip8::wasKeyReleasedThisFrame()
     return false;
 }
 
-uint8_t Chip8::findKeyReleasedThisFrame()
+uint8_t Chip8::findKeyReleasedThisFrame() const
 {
     for (std::size_t i{ 0 }; i < std::size(m_keyDownThisFrame); ++i)
     {
@@ -247,12 +261,11 @@ void Chip8::op00E0()
 
 void Chip8::op00EE()
 {
-    assert(m_stack.size() > 0 && "Attempted to pop from empty stack in opcode 00EE");
+    assert(m_stack.size() < InitialConfig::maxStackDepth && "Attempted to pop from empty stack in opcode 00EE");
 
     m_pc = m_stack.back();
     m_stack.pop_back();
 }
-
 
 void Chip8::op1NNN(const uint16_t opcode)
 {
@@ -761,7 +774,7 @@ void Chip8::loadFonts(const uint16_t startLocation)
     m_runtimeMetaData.fontEndAddress = currLocation - 1;
 }
 
-void Chip8::loadFile(const std::string name)
+void Chip8::loadFile(const std::string& name)
 {
    // std::fill(m_memory.begin() + m_runtimeMetaData.programStartAddress, m_memory.end(), 0);
     std::cout << "Loading ROM: " << name << '\n';

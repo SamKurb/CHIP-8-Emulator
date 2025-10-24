@@ -6,10 +6,8 @@
 
 #include <iostream>
 #include <fstream>
-#include <iomanip>
 #include <array>
 #include <vector>
-#include <SDL_events.h>
 
 #include "utility.h"
 #include "random.h"
@@ -62,38 +60,35 @@ public:
     template <std::size_t r, std::size_t c>
     using Array2DU8 = std::array<std::array<uint8_t, c>, r>;
 
-    const Array2DU8<InitialConfig::numPixelsVertically, InitialConfig::numPixelsHorizontally>& getScreenBuffer() const
-    { return m_screen; }
+    const Array2DU8<InitialConfig::numPixelsVertically, InitialConfig::numPixelsHorizontally>& getScreenBuffer() const;
 
-    const uint8_t getDelayTimer() const { return m_delayTimer; }
-    const uint8_t getSoundTimer() const { return m_soundTimer; }
+    uint8_t getDelayTimer() const;
+    uint8_t getSoundTimer() const;
 
-    const bool executedDXYN() const { return m_executedDXYNFlag; }
-    void resetDXYNFlag() { m_executedDXYNFlag = false; }
+    bool executedDXYN() const;
+    void resetDXYNFlag();
 
-    QuirkFlags& getEnabledQuirks() { return m_isQuirkEnabled; }
+    QuirkFlags& getEnabledQuirks();
 
 
-    const uint64_t getNumInstructionsExecuted() const { return m_runtimeMetaData.numInstructionsExecuted; }
-    const uint16_t getFontStartAddress() const { return m_runtimeMetaData.fontStartAddress; }
-    const uint16_t getFontEndAddress() const { return m_runtimeMetaData.fontEndAddress; }
+    uint64_t getNumInstructionsExecuted() const { return m_runtimeMetaData.numInstructionsExecuted; }
+    uint16_t getFontStartAddress() const { return m_runtimeMetaData.fontStartAddress; }
+    uint16_t getFontEndAddress() const { return m_runtimeMetaData.fontEndAddress; }
+    uint16_t getProgramStartAddress() const { return m_runtimeMetaData.programStartAddress; }
+    uint16_t getProgramEndAddress() const { return m_runtimeMetaData.programEndAddress; }
 
-    const uint16_t getProgramStartAddress() const { return m_runtimeMetaData.programStartAddress; }
-    const uint16_t getProgramEndAddress() const { return m_runtimeMetaData.programEndAddress; }
+    int getTargetNumInstrPerSecond() const { return m_targetNumInstrPerSecond; }
 
-    int getTargetNumInstPerSecond() const { return m_targetNumInstrPerSecond; }
-
-    const std::array<uint8_t, 4096> getMemoryContents() const { return m_memory; }
-    const std::array<uint8_t, 16> getRegisterContents() const { return m_registers; }
-
-    const uint16_t getPCAddress() const { return m_pc; }
-    const uint16_t getIndexRegisterContents() const { return m_indexReg; }
+    std::array<uint8_t, 4096> getMemoryContents() const { return m_memory; }
+    std::array<uint8_t, 16> getRegisterContents() const { return m_registers; }
+    uint16_t getPCAddress() const { return m_pc; }
+    uint16_t getIndexRegisterContents() const { return m_indexReg; }
+    std::array<bool, 16> getKeysDownThisFrame() const { return m_keyDownThisFrame; };
 
     const std::vector<uint16_t>& getStackContents() const { return m_stack; }
 
-    const std::array<bool, 16> getKeysDownThisFrame() const { return m_keyDownThisFrame; };
 
-    void loadFile(const std::string name);
+    void loadFile(const std::string& name);
 
     void performFDECycle();
     void decrementTimers();
@@ -109,28 +104,28 @@ public:
     void printScreenBuffer();
 
 private:
-    // Given opcode with X, i.e 0x3XNN, extracts only the X nibble
+    // Given opcode with X, i.e. 0x3XNN, extracts only the X nibble
     uint16_t extractX(uint16_t opcode) const { return Utility::toU16((opcode & 0x0F00) >> 8); }
 
-    // Given opcode with Y, i.e 0x5XY0, extracts only the Y nibble
+    // Given opcode with Y, i.e. 0x5XY0, extracts only the Y nibble
     uint16_t extractY(uint16_t opcode) const { return Utility::toU16((opcode & 0x00F0) >> 4); }
 
-    // Given opcode with an N segment, i.e 0xDXYN, extracts only the N nibble
+    // Given opcode with an N segment, i.e. 0xDXYN, extracts only the N nibble
     uint16_t extractN(uint16_t opcode) const { return Utility::toU16(opcode & 0x000F); }
 
-    // Given opcode with an NN segment, i.e 0x3XNN, extracts only the N nibble
+    // Given opcode with an NN segment, i.e. 0x3XNN, extracts only the NN Byte
     uint16_t extractNN(uint16_t opcode) const { return Utility::toU16(opcode & 0x00FF); }
 
-    // Given opcode with an NNN segment, i.e 0x1NNN, extracts only the NNN segment
+    // Given opcode with an NNN segment, i.e. 0x1NNN, extracts only the NNN segment
     uint16_t extractNNN(uint16_t opcode) const { return Utility::toU16(opcode & 0x0FFF); }
 
     uint16_t fetchOpcode();
     void decodeAndExecute(uint16_t opcode);
 
-    bool wasKeyReleasedThisFrame();
+    bool wasKeyReleasedThisFrame() const;
 
     // Returns the *first* key it finds that was pressed down last frame and released this frame
-    uint8_t findKeyReleasedThisFrame();
+    uint8_t findKeyReleasedThisFrame() const;
 
     // Opcodes
     void op00E0();
