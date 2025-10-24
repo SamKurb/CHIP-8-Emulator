@@ -52,6 +52,9 @@ public:
 
 	void displayHelpMarker(const std::string_view helpInfo) const;
 
+	void drawKeyboardInputWindow();
+
+
 private:
     int m_windowWidth{};
     int m_windowHeight{};

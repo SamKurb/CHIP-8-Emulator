@@ -27,8 +27,10 @@ ImguiRenderer::ImguiRenderer(SDL_Window* window, SDL_Renderer* renderer, std::sh
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-    //ImGui::GetStyle().ScaleAllSizes(displayScaleFactor);
-    io.FontGlobalScale = displayScaleFactor;
+    const float scaleFactorModifier{ 0.6 };
+
+    ImGui::GetStyle().ScaleAllSizes(displayScaleFactor * scaleFactorModifier);
+    io.FontGlobalScale = displayScaleFactor * scaleFactorModifier;
 
     ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
     ImGui_ImplSDLRenderer2_Init(renderer);
@@ -92,7 +94,7 @@ void ImguiRenderer::printRowStartAddress(const std::size_t rowStartAddress, cons
 
 void ImguiRenderer::printASCIIRepresentationOfMemoryRow(const std::array<uint8_t, 4096> &memoryContents, const std::size_t rowStartPos, const int numBytesToPrint) const
 {
-    for (std::size_t addressOffset{ 0 }; addressOffset < numBytesToPrint; ++addressOffset)
+        for (std::size_t addressOffset{ 0 }; addressOffset < numBytesToPrint; ++addressOffset)
     {
         ImGui::SameLine();
         std::size_t currentAddress{ rowStartPos + addressOffset };
@@ -207,7 +209,7 @@ void ImguiRenderer::drawRegisterViewerWindow(const Chip8& chip) const
         const uint8_t contentsAtRegister{ registerContents[i] };
 
         ImGui::SameLine();
-        ImGui::Text(" ... %02X ", contentsAtRegister);
+        ImGui::Text("... %02X", contentsAtRegister);
         ++numRegistersPlacedInCurrentColumn;
         ImGui::Dummy(ImVec2(0, 5.0f));
 
@@ -463,6 +465,9 @@ void ImguiRenderer::drawAllImguiWindows(
         imguiRenderer.drawGameDisplayWindow(currGameFrame);
     }
 
+    imguiRenderer.drawKeyboardInputWindow();
+
     ImGui::Render();
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer.getRenderer());
 }
+

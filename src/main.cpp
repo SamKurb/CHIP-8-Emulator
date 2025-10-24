@@ -126,7 +126,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
     
     FrameInfo frameInfo{};
     // For a target fps of 60 this will be 16ms (rounded down because it is an int), so we will actually be rendering roughly 62-63 frames rather than 60
-    const int targetFrameDelayMs{ 1000 / DisplayConfig::targetFPS };
+    const int targetFrameDelayMs{ 1000 / displaySettings -> targetFPS };
 
     AudioPlayer audio{ "assets/beep.wav" };
 
@@ -239,11 +239,23 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
             drawDebugTextBasedOnMode(currentDebugMode, renderer);
         }
 
-        imguiRenderer.drawAllImguiWindows(
-            displaySettings, renderer, imguiRenderer,
-            chip, stateManager,
-            frameInfo);
+        if (inputHandler.isSystemKeyPressed(InputHandler::K_TOGGLE_DEBUG_WINDOWS))
+        {
+            displaySettings -> showDebugWindows = !displaySettings -> showDebugWindows;
+        }
+
+        if (displaySettings -> showDebugWindows)
+        {
+            imguiRenderer.drawAllImguiWindows(
+                displaySettings, renderer, imguiRenderer,
+                chip, stateManager,
+                frameInfo
+            );
+        }
+
         renderer.render();
+
+
     }
 
     return 0;

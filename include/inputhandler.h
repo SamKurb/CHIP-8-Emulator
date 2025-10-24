@@ -44,6 +44,7 @@ public:
         K_NEXT_INSTRUCTION,
 
         K_DEACTIVATE_DEBUG,
+        K_TOGGLE_DEBUG_WINDOWS,
         numSystemKeys,
     };
 
@@ -89,7 +90,9 @@ private:
         SDL_SCANCODE_8,       // Activate manual mode
         SDL_SCANCODE_I,       // Step through an instruction
 
-        SDL_SCANCODE_0        // Deactivate debug mode
+        SDL_SCANCODE_0,        // Deactivate debug mode
+
+        SDL_SCANCODE_F         // Toggle debug windows
     };
 
     static_assert(std::size(systemKeyMap) == InputHandler::numSystemKeys);

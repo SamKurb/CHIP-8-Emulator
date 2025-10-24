@@ -82,6 +82,8 @@ public:
 
     const std::vector<uint16_t>& getStackContents() const { return m_stack; }
 
+    const std::array<bool, 16> getKeysDownThisFrame() const { return m_keyDownThisFrame; };
+
     void loadFile(const std::string name);
 
     void performFDECycle();
