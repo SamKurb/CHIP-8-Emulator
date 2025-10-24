@@ -471,3 +471,9 @@ void ImguiRenderer::drawAllImguiWindows(
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer.getRenderer());
 }
 
+void ImguiRenderer::drawKeyboardInputWindow()
+{
+    // WORK IN PROGRESS
+    ;
+}
+
