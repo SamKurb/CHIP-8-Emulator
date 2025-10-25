@@ -1,5 +1,6 @@
 #include "chip8.h"
 #include "badopcodeexception.h"
+#include "fileinputexception.h"
 
 Chip8::Chip8(const QuirkFlags& quirks)
 : m_fontsLocation{ InitialConfig::fontsStartLocation }
@@ -775,13 +776,16 @@ void Chip8::loadFonts(const uint16_t startLocation)
 
 void Chip8::loadFile(const std::string& name)
 {
-   // std::fill(m_memory.begin() + m_runtimeMetaData.programStartAddress, m_memory.end(), 0);
+
     std::cout << "Loading ROM: " << name << '\n';
     std::ifstream ROM{ name, std::ios::binary };
 
     if (!ROM)
     {
-        std::cout << "Could not open ROM file!\n";
+        std::string errorMsg{ "Error opening ROM file. Path: " + name };
+        std::cerr << errorMsg << '\n';
+        ROM.close();
+        throw FileInputException(errorMsg);
     }
 
     std::uint8_t nextByte{};
@@ -799,6 +803,7 @@ void Chip8::loadFile(const std::string& name)
     m_runtimeMetaData.romIsLoaded = true;
 
     std::cout << "Done loading\n";
+    ROM.close();
 }
 
 // Prints contents of screen buffer For debugging. W for on pixels, whitespace for off. 

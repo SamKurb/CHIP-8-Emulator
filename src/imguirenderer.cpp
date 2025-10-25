@@ -4,6 +4,7 @@
 #include "chip8.h"
 #include "renderer.h"
 #include "displaysettings.h"
+#include "fileinputexception.h"
 
 #include "frameinfo.h"
 
@@ -435,10 +436,20 @@ void ImguiRenderer::drawROMSelectWindow(Chip8& chip)
             std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
 
             chip = Chip8{};
-            chip.loadFile(filePathName);
+            try
+            {
+                chip.loadFile(filePathName);
+            }
+            catch (const FileInputException& exception)
+            {
+                ImGuiFileDialog::Instance()->Close();
+                ImGui::End();
+                throw;
+            }
+
+            ImGuiFileDialog::Instance()->Close();
         }
 
-        ImGuiFileDialog::Instance()->Close();
     }
     ImGui::End();
 }
@@ -466,8 +477,6 @@ void ImguiRenderer::drawAllImguiWindows(
     imguiRenderer.drawStackDisplayWindow(chip.getStackContents());
 
     imguiRenderer.drawDisplaySettingsWindowAndApplyChanges();
-    imguiRenderer.drawROMSelectWindow(chip);
-
     imguiRenderer.drawChipSettingsWindow(chip.getEnabledQuirks(), chip);
 
     if (displaySettings -> renderGameToImGuiWindow)
@@ -477,6 +486,17 @@ void ImguiRenderer::drawAllImguiWindows(
     }
 
     imguiRenderer.drawKeyboardInputWindow();
+
+    try
+    {
+        imguiRenderer.drawROMSelectWindow(chip);
+    }
+    catch (const FileInputException& exception)
+    {
+        ImGui::Render();
+        ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer.getRenderer());
+        throw;
+    }
 
     ImGui::Render();
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer.getRenderer());

@@ -20,6 +20,7 @@
 #include "frameinfo.h"
 
 #include "rendererinitexception.h"
+#include "fileinputexception.h"
 
 void executeInstructionsForFrame(Chip8& chip, const int targetFPS)
 {
@@ -260,11 +261,19 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
 
         if (displaySettings -> showDebugWindows)
         {
-            imguiRenderer.drawAllImguiWindows(
-                displaySettings, *renderer, imguiRenderer,
-                chip, stateManager,
-                frameInfo
-            );
+            try
+            {
+                imguiRenderer.drawAllImguiWindows(
+                    displaySettings, *renderer, imguiRenderer,
+                    chip, stateManager,
+                    frameInfo
+                );
+            }
+            catch (const FileInputException& exception)
+            {
+                chip = Chip8();
+                messageToDisplayIfNotRunning = std::string(exception.what()) + " === Please try again, or load a different ROM.";
+            }
         }
 
         renderer->render();

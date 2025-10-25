@@ -6,7 +6,7 @@
 class BadOpcodeException : public std::runtime_error
 {
     public:
-        BadOpcodeException(const std::string& what)
+        explicit BadOpcodeException(const std::string& what)
         : std::runtime_error(what)
         {
         }
