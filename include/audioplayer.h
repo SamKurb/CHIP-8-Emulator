@@ -17,6 +17,7 @@ public:
 
     void startSound();
     void stopSound();
+    bool isAudioLoaded();
 
 private:
     void loadSoundEffect();

@@ -19,7 +19,7 @@
 
 #include "frameinfo.h"
 
-#include "rendererinitexception.h"
+#include "sdlinitexception.h"
 #include "fileinputexception.h"
 
 void executeInstructionsForFrame(Chip8& chip, const int targetFPS)
@@ -78,6 +78,10 @@ void updateDebugModeBasedOnInput(StateManager& stateManager, const InputHandler&
 
 int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
 {
+    Chip8 chip{};
+
+
+
     std::shared_ptr<DisplaySettings> displaySettings{ std::make_unique<DisplaySettings>() };
 
     std::unique_ptr<Renderer> renderer{};
@@ -85,34 +89,30 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
     {
         renderer = std::make_unique<Renderer>(displaySettings);
     }
-    catch (const RendererInitException& e)
+    catch (const SDLInitException& e)
     {
         std::cerr << "FATAL ERROR. Renderer initialisation failed in main(): " << e.what() << std::endl;
         return EXIT_FAILURE;
     }
 
-    Chip8 chip{};
-
-    bool userHasQuit{ false };
-
-    FrameInfo frameInfo{};
-    // For a target fps of 60 this will be 16ms (rounded down because it is an int), so we will actually be rendering roughly 62-63 frames rather than 60
-    const uint32_t targetFrameDelayMs{ 1000u / Utility::toU32(displaySettings -> targetFPS) };
-
-    AudioPlayer audio{ "assets/beep.wav" };
-
     InputHandler inputHandler{};
     StateManager stateManager{};
 
-    //ImVec4 clearColor = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 	float windowScaleFactor{ renderer->getDisplayScaleFactor() };
     ImguiRenderer imguiRenderer{ renderer->getWindow(), renderer->getRenderer(), displaySettings, windowScaleFactor };
 
-    //bool runningChip{ false };
+    AudioPlayer audioPlayer{ "assets/beep.wav" };
 
     std::string messageToDisplayIfNotRunning {"No ROM loaded. Open menu to load ROM." };
+
+    FrameInfo frameInfo{};
+
+    bool userHasQuit{ false };
     while (!userHasQuit)
     {
+        // For a target fps of 60 this will be 16ms (rounded down because it is an int), so we will actually be rendering roughly 62-63 frames rather than 60
+        const uint32_t targetFrameDelayMs{ 1000u / Utility::toU32(displaySettings -> targetFPS) };
+
         frameInfo.startTimeMs = SDL_GetTicks();
         inputHandler.resetSystemKeysState();
 
@@ -200,13 +200,13 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
                 }
             }
 
-            if (chip.getSoundTimer() > 0)
+            if (chip.getSoundTimer() > 0 && audioPlayer.isAudioLoaded())
             {
-                audio.startSound();
+                audioPlayer.startSound();
             }
-            else if (chip.getSoundTimer() == 0)
+            else if (chip.getSoundTimer() == 0 && audioPlayer.isAudioLoaded())
             {
-                audio.stopSound();
+                audioPlayer.stopSound();
             }
 
             chip.setPrevFrameInputs();
@@ -217,8 +217,8 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
         const uint64_t numInstructionsExecutedThisFrame{
             totalInstructionsExecutedAfterFrame - totalInstructionsExecutedBeforeFrame
         };
-        frameInfo.numInstructionsExecuted = numInstructionsExecutedThisFrame;
 
+        frameInfo.numInstructionsExecuted = numInstructionsExecutedThisFrame;
 
         renderer->clearDisplay();
 
@@ -236,7 +236,6 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
             renderer->clearDisplay();
             renderer->drawTextAt(messageToDisplayIfNotRunning, 0, 0);
         }
-
 
         if (inputHandler.isSystemKeyPressed(InputHandler::K_TOGGLE_DEBUG_WINDOWS))
         {
@@ -266,7 +265,8 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
                 imguiRenderer.drawAllImguiWindows(
                     displaySettings, *renderer, imguiRenderer,
                     chip, stateManager,
-                    frameInfo
+                    frameInfo,
+                    audioPlayer.isAudioLoaded()
                 );
             }
             catch (const FileInputException& exception)

@@ -1,21 +1,21 @@
 #include "renderer.h"
 #include "displaysettings.h"
-#include "rendererinitexception.h"
+#include "sdlinitexception.h"
 
 Renderer::Renderer()
-: m_defaultDPI(120.0f)
+: m_defaultDPI(92.0f)
 , m_displaySettings{ std::make_unique<DisplaySettings>() }
 {
 }
 
 Renderer::Renderer(std::shared_ptr<DisplaySettings> displaySettings)
-    : m_defaultDPI { 120.0f }
+    : m_defaultDPI { 92.0f }
     , m_displaySettings{ std::move(displaySettings) }
 {
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
         std::string errorMsg{ SDL_GetError() };
-        throw RendererInitException("SDL Failed to initialise. SDL_Error: " + errorMsg);
+        throw SDLInitException("SDL Failed to initialise. SDL_Error: " + errorMsg);
     }
     else
     {
@@ -33,7 +33,7 @@ Renderer::Renderer(std::shared_ptr<DisplaySettings> displaySettings)
         if (m_window == nullptr)
         {
             std::string errorMsg{ SDL_GetError() };
-            throw RendererInitException("Failed to create window. SDL_Error: " + errorMsg);
+            throw SDLInitException("Failed to create window. SDL_Error: " + errorMsg);
         }
         else
         {
@@ -58,7 +58,7 @@ Renderer::Renderer(std::shared_ptr<DisplaySettings> displaySettings)
             if (m_renderer == nullptr)
             {
                 std::string errorMsg{ SDL_GetError() };
-                throw RendererInitException("Failed to create renderer. SDL_Error: " + errorMsg);
+                throw SDLInitException("Failed to create renderer. SDL_Error: " + errorMsg);
             }
             else
             {
@@ -80,14 +80,14 @@ Renderer::Renderer(std::shared_ptr<DisplaySettings> displaySettings)
             if (m_currentGameFrame == nullptr)
             {
                 std::string errorMsg{ SDL_GetError() };
-                throw RendererInitException("Failed to create texture currentGameFrame. SDL_Error: " + errorMsg);
+                throw SDLInitException("Failed to create texture currentGameFrame. SDL_Error: " + errorMsg);
             }
         }
     }
     if (TTF_Init() == -1)
     {
         std::string errorMsg{ TTF_GetError() };
-        throw RendererInitException("SDL_ttf could not initialize! TTF_Error: " + errorMsg);
+        throw SDLInitException("SDL_ttf could not initialize! TTF_Error: " + errorMsg);
     }
 
     m_defaultFont.reset(TTF_OpenFont("assets/fonts/anonymous.ttf", 24));
@@ -95,7 +95,7 @@ Renderer::Renderer(std::shared_ptr<DisplaySettings> displaySettings)
     if (!m_defaultFont)
     {
         std::string errorMsg{ TTF_GetError() };
-        throw RendererInitException("Font error: " + errorMsg);
+        throw SDLInitException("Font error: " + errorMsg);
     }
     m_displayScaleFactor = calculateDisplayDPIScaleFactor() * calculateDisplayScaleFactorFromWindowSize();
 }
@@ -173,14 +173,9 @@ void Renderer::drawTextAt(const std::string_view text, const int xPos, const int
         SDL_SetRenderTarget(m_renderer.get(), m_currentGameFrame.get());
     }
 
-    SDL_Renderer* renderer{ m_renderer.get() };
-
-    // as TTF_RenderText_Solid could only be used on
-    // SDL_Surface then you have to create the surface first
-
     SDL_Surface* textSurface{ TTF_RenderText_Solid(m_defaultFont.get(), text.data(), {0,0xFF,0, 0xFF}) };
 
-    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(m_renderer.get(), textSurface);
 
     int textWidth{};
     int textHeight{};
@@ -188,7 +183,8 @@ void Renderer::drawTextAt(const std::string_view text, const int xPos, const int
 
     SDL_Rect textRect{ xPos, yPos, textWidth, textHeight };
 
-    SDL_RenderCopy(renderer, textTexture, nullptr, &textRect);
+    SDL_RenderCopy(m_renderer.get(), textTexture, nullptr, &textRect);
+
     SDL_FreeSurface(textSurface);
     SDL_DestroyTexture(textTexture);
 
@@ -205,9 +201,10 @@ void Renderer::renderPixel(const Pixel &pixel) const
         SDL_SetRenderTarget(m_renderer.get(), m_currentGameFrame.get());
     }
 
-    SDL_Renderer* renderer{ m_renderer.get() };
-    SDL_SetRenderDrawColor(renderer, pixel.colour.red, pixel.colour.green, pixel.colour.blue, pixel.colour.alpha);
-    SDL_RenderFillRect(renderer, &pixel.rect);
+    SDL_SetRenderDrawColor(m_renderer.get(),
+        pixel.colour.red, pixel.colour.green, pixel.colour.blue, pixel.colour.alpha);
+
+    SDL_RenderFillRect(m_renderer.get(), &pixel.rect);
 
     if (m_displaySettings->renderGameToImGuiWindow)
     {

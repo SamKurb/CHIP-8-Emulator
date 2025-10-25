@@ -23,7 +23,8 @@ public:
 	ImguiRenderer(SDL_Window* window, SDL_Renderer* renderer, std::shared_ptr<DisplaySettings> displaySettings, const float displayScaleFactor);
     ~ImguiRenderer();
 
-    void drawGeneralInfoWindow(const FrameInfo &frameInfo, uint8_t soundTimer, const StateManager& currentState, uint64_t numInstructionsExecuted) const;
+    void drawGeneralInfoWindow(const FrameInfo &frameInfo, uint8_t soundTimer,
+    	const StateManager& currentState, uint64_t numInstructionsExecuted, const bool isAudioLoaded) const;
 
     void printRowStartAddress(const std::size_t rowStartAddress, const uint16_t programStartAddress, const uint16_t programEndAddress, const uint16_t fontStartAddress, const uint16_t fontEndAddress) const;
 
@@ -48,7 +49,7 @@ public:
 
     void drawAllImguiWindows(std::shared_ptr<DisplaySettings> displaySettings, Renderer &renderer,
                              ImguiRenderer &imguiRenderer, Chip8 &chip, const StateManager &stateManager,
-                             const FrameInfo &frameInfo);
+                             const FrameInfo &frameInfo, const bool isAudioLoaded);
 
 	void displayHelpMarker(const std::string_view helpInfo) const;
 

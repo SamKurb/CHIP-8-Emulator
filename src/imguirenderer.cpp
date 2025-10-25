@@ -30,9 +30,8 @@ ImguiRenderer::ImguiRenderer(SDL_Window* window, SDL_Renderer* renderer, std::sh
 
     std::cout << displayScaleFactor << std::endl;
 
-    constexpr float displayScaleDampFactor{ 0.8f };
-    ImGui::GetStyle().ScaleAllSizes(displayScaleFactor * displayScaleDampFactor);
-    io.FontGlobalScale = displayScaleFactor * displayScaleDampFactor;
+    ImGui::GetStyle().ScaleAllSizes(displayScaleFactor);
+    io.FontGlobalScale = displayScaleFactor;
 
     ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
     ImGui_ImplSDLRenderer2_Init(renderer);
@@ -47,7 +46,8 @@ ImguiRenderer::~ImguiRenderer()
 
 void ImguiRenderer::drawGeneralInfoWindow(
     const FrameInfo& frameInfo, const uint8_t soundTimer, const StateManager& stateManager,
-    const uint64_t numInstructionsExecuted
+    const uint64_t numInstructionsExecuted,
+    const bool isAudioLoaded
 ) const
 {
     ImGui::Begin("Emulator Info");
@@ -72,6 +72,18 @@ void ImguiRenderer::drawGeneralInfoWindow(
 
     ImGui::Text("Instructions Executed: %ld", numInstructionsExecuted);
     ImGui::Text("IPF: %ld", frameInfo.numInstructionsExecuted);
+
+    ImGui::Text("Audio status:");
+    ImGui::SameLine();
+    if (isAudioLoaded)
+    {
+        ImGui::TextColored(green, "OK");
+    }
+    else
+    {
+        ImGui::TextColored(red, "Failed to load!");
+    }
+
     ImGui::End();
 }
 
@@ -79,15 +91,15 @@ void ImguiRenderer::printRowStartAddress(const std::size_t rowStartAddress, cons
 {
     if (rowStartAddress >= fontStartAddress && rowStartAddress <= fontEndAddress)
     {
-		ImGui::TextColored(blue, "0x%04lX | ", rowStartAddress);
+		ImGui::TextColored(blue, "0x%04lX |", rowStartAddress);
     }
     else if(rowStartAddress >= programStartAddress && rowStartAddress <= programEndAddress)
     {
-        ImGui::TextColored(green, "0x%04lX | ", rowStartAddress);
+        ImGui::TextColored(green, "0x%04lX |", rowStartAddress);
     }
     else
     {
-        ImGui::Text("0x%04lX | ", rowStartAddress);
+        ImGui::Text("0x%04lX |", rowStartAddress);
     }
 }
 
@@ -102,7 +114,7 @@ void ImguiRenderer::printASCIIRepresentationOfMemoryRow(const std::array<uint8_t
 
     for (auto currMemLocation { rowBegin} ; currMemLocation != rowEnd ; ++currMemLocation)
     {
-        ImGui::SameLine();
+        ImGui::SameLine(0.0f, 0.0f);
 
         uint8_t memContentsAtCurrLocation { *currMemLocation };
 
@@ -129,7 +141,6 @@ void ImguiRenderer::printMemoryRow(const std::array<uint8_t, 4096>& memoryConten
 	const uint16_t fontEndAddress{ chip.getFontEndAddress() };
 
     printRowStartAddress(rowStartPos, programStartAddress, programEndAddress, fontStartAddress, fontEndAddress);
-
 
     auto rowBegin { memoryContents.begin() + rowStartPos };
     auto rowEnd { rowBegin + numBytesToPrint };
@@ -165,7 +176,7 @@ void ImguiRenderer::printMemoryRow(const std::array<uint8_t, 4096>& memoryConten
     }
 
     ImGui::SameLine();
-	ImGui::Text("   ");
+	ImGui::Text(" ");
 
     printASCIIRepresentationOfMemoryRow(memoryContents, rowStartPos, numBytesToPrint);
 }
@@ -212,7 +223,7 @@ void ImguiRenderer::drawRegisterViewerWindow(const Chip8& chip) const
         const uint8_t contentsAtRegister{ registerContents[i] };
 
         ImGui::SameLine();
-        ImGui::Text("... %02X", contentsAtRegister);
+        ImGui::Text(".. %02X", contentsAtRegister);
         ++numRegistersPlacedInCurrentColumn;
         ImGui::Dummy(ImVec2(0, 5.0f));
 
@@ -311,6 +322,25 @@ void ImguiRenderer::drawDisplaySettingsWindowAndApplyChanges() const
         m_displaySettings -> gridColour = bufferedGridColour;
     }
 
+    ImGui::Text("Target FPS:");
+    ImGui::SameLine();
+
+    constexpr int minFPS { 30 };
+
+    if (ImGui::InputInt("##TargetFPS", &(m_displaySettings->targetFPS)))
+    {
+        if (m_displaySettings->targetFPS < minFPS)
+        {
+            m_displaySettings->targetFPS = minFPS;
+        }
+    }
+
+    static float textScale{ m_dpiScaleFactor };
+    if (ImGui::SliderFloat("TextScale", &textScale, 0.5f, 10.0f))
+    {
+        ImGui::GetIO().FontGlobalScale = textScale;
+    }
+
     ImGui::End();
 }
 
@@ -365,7 +395,9 @@ void ImguiRenderer::drawChipSettingsWindow(Chip8::QuirkFlags& chipQuirkFlags, Ch
     ImGui::Separator();
 
     int instructionsPerSecond{ chip.getTargetNumInstrPerSecond() };
-    if (ImGui::InputInt("IPS: ", &instructionsPerSecond))
+    ImGui::Text("IPS:");
+    ImGui::SameLine();
+    if (ImGui::InputInt("##", &instructionsPerSecond))
     {
         chip.setTargetNumInstrPerSecond(instructionsPerSecond);
     }
@@ -458,7 +490,8 @@ void ImguiRenderer::drawAllImguiWindows(
     std::shared_ptr<DisplaySettings> displaySettings,
     Renderer& renderer, ImguiRenderer& imguiRenderer,
     Chip8& chip, const StateManager& stateManager,
-    const FrameInfo& frameInfo)
+    const FrameInfo& frameInfo,
+    const bool isAudioLoaded)
 {
     ImGui_ImplSDL2_NewFrame();
     ImGui_ImplSDLRenderer2_NewFrame();
@@ -469,7 +502,8 @@ void ImguiRenderer::drawAllImguiWindows(
         frameInfo,
         chip.getSoundTimer(),
         stateManager,
-        chip.getNumInstructionsExecuted()
+        chip.getNumInstructionsExecuted(),
+        isAudioLoaded
     );
 
     imguiRenderer.drawMemoryViewerWindow(chip);
