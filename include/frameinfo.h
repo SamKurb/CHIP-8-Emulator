@@ -10,7 +10,7 @@ struct FrameInfo
     uint32_t timeElapsedMs{};
 
     float fps{};
-    uint64_t numInstructionsExecuted{};
+    uint64_t numInstructionsExecuted{ 0 };
 };
 
 #endif

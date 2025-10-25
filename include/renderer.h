@@ -25,8 +25,17 @@ public:
         Colour::RGBA colour{};
     };
 
-    Renderer(const std::shared_ptr<DisplaySettings> displaySettings);
-    ~Renderer();
+    Renderer();
+
+    explicit Renderer(std::shared_ptr<DisplaySettings> displaySettings);
+    ~Renderer() noexcept;
+
+    // SDL objects dont support shallow copying, so copy/copy costruction isnt an option
+    Renderer(Renderer&) = delete;
+    Renderer& operator=(Renderer&) = delete;
+
+    Renderer(Renderer&&) = default;
+    Renderer& operator=(Renderer&&) = default;
 
     template<typename T, std::size_t R, std::size_t C>
     using Array2D = std::array<std::array<T, C>, R>;
@@ -104,7 +113,7 @@ public:
     void clearDisplay(const Colour::RGBA colour) const;
 
 private:
-    const float m_defaultDPI{ 72.0f };
+    float m_defaultDPI{ 72.0f };
     float m_displayScaleFactor{ 0 };
 
     std::shared_ptr<DisplaySettings> m_displaySettings{};
@@ -113,7 +122,7 @@ private:
 
     std::unique_ptr<TTF_Font, decltype(&TTF_CloseFont)> m_defaultFont{ nullptr, TTF_CloseFont };
 
-	const std::string m_windowTitle{ "CHIP-8 Emulator" };
+	std::string m_windowTitle{ "CHIP-8 Emulator" };
 
     std::unique_ptr<SDL_Window, decltype(&SDL_DestroyWindow)> m_window { nullptr, SDL_DestroyWindow };
     std::unique_ptr<SDL_Renderer, decltype(&SDL_DestroyRenderer)> m_renderer{ nullptr, SDL_DestroyRenderer };

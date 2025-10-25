@@ -27,7 +27,9 @@ public:
 
     struct RuntimeMetaData
     {
-        uint64_t numInstructionsExecuted{};
+        bool romIsLoaded{ false };
+
+        uint64_t numInstructionsExecuted{ 0 };
 
         uint16_t fontStartAddress{};
         uint16_t fontEndAddress{};
@@ -75,6 +77,7 @@ public:
     uint16_t getFontEndAddress() const { return m_runtimeMetaData.fontEndAddress; }
     uint16_t getProgramStartAddress() const { return m_runtimeMetaData.programStartAddress; }
     uint16_t getProgramEndAddress() const { return m_runtimeMetaData.programEndAddress; }
+    bool isRomLoaded() const { return m_runtimeMetaData.romIsLoaded; }
 
     int getTargetNumInstrPerSecond() const { return m_targetNumInstrPerSecond; }
 
@@ -85,6 +88,8 @@ public:
     std::array<bool, 16> getKeysDownThisFrame() const { return m_keyDownThisFrame; };
 
     const std::vector<uint16_t>& getStackContents() const { return m_stack; }
+
+    void setTargetNumInstrPerSecond(int newTarget) { m_targetNumInstrPerSecond = newTarget; }
 
 
     void loadFile(const std::string& name);

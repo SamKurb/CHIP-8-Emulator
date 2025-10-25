@@ -26,6 +26,8 @@ set(OTHER_SOURCES
     external/imgui/backends/imgui_impl_sdlrenderer2.cpp
 
     external/imgui_file_dialog/ImGuiFileDialog.cpp
+        include/rendererinitexception.h
+        include/badopcodeexception.h
 )
 
 add_executable(${PROJECT_NAME} ${MAIN_SOURCES} ${OTHER_SOURCES})

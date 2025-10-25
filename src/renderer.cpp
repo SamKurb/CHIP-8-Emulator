@@ -1,16 +1,21 @@
 #include "renderer.h"
 #include "displaysettings.h"
+#include "rendererinitexception.h"
+
+Renderer::Renderer()
+: m_defaultDPI(120.0f)
+, m_displaySettings{ std::make_unique<DisplaySettings>() }
+{
+}
 
 Renderer::Renderer(std::shared_ptr<DisplaySettings> displaySettings)
     : m_defaultDPI { 120.0f }
     , m_displaySettings{ std::move(displaySettings) }
 {
-    bool success{ true };
-
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
-        std::cerr << "SDL Failed to initialise. SDL_Error: " << SDL_GetError() << std::endl;
-        success = false;
+        std::string errorMsg{ SDL_GetError() };
+        throw RendererInitException("SDL Failed to initialise. SDL_Error: " + errorMsg);
     }
     else
     {
@@ -27,8 +32,8 @@ Renderer::Renderer(std::shared_ptr<DisplaySettings> displaySettings)
 
         if (m_window == nullptr)
         {
-            std::cerr << "Failed to create window. SDL_Error: " << SDL_GetError() << std::endl;
-            std::exit(1);
+            std::string errorMsg{ SDL_GetError() };
+            throw RendererInitException("Failed to create window. SDL_Error: " + errorMsg);
         }
         else
         {
@@ -39,14 +44,10 @@ Renderer::Renderer(std::shared_ptr<DisplaySettings> displaySettings)
 
             SDL_GetRendererOutputSize(m_renderer.get(), &actualWindowWidthPixels, &actualWindowHeightPixels);
 
-            std::cout << actualWindowWidthPixels << " x " << actualWindowHeightPixels << std::endl;
-
             int logicalWindowWidthPixels{};
             int logicalWindowHeightPixels{};
 
             SDL_GetWindowSize(m_window.get(), &logicalWindowWidthPixels, &logicalWindowHeightPixels);
-
-            std::cout << logicalWindowWidthPixels << " x " << logicalWindowHeightPixels << std::endl;
 
             m_displaySettings -> mainWindowWidth = actualWindowWidthPixels;
             m_displaySettings -> mainWindowHeight = actualWindowHeightPixels;
@@ -54,21 +55,15 @@ Renderer::Renderer(std::shared_ptr<DisplaySettings> displaySettings)
             SDL_DisplayMode displayMode{};
             SDL_GetDisplayMode(0, 0, &displayMode);
 
-            std::cout << displayMode.w << "x" << displayMode.h << " @" << displayMode.refresh_rate << std::endl;
-
             if (m_renderer == nullptr)
             {
-                std::cerr << "Failed to create renderer. SDL_Error: " << SDL_GetError() << std::endl;
-                success = false;
+                std::string errorMsg{ SDL_GetError() };
+                throw RendererInitException("Failed to create renderer. SDL_Error: " + errorMsg);
             }
             else
             {
                 SDL_SetRenderDrawColor(m_renderer.get(), 0x00, 0x00, 0x00, 0xFF);
             }
-
-            // int actualWidthPixels{};
-            // int actualHeightPixels{};
-
             const int placeHolderWidth{ 1920 };
             const int placeHolderHeight{ 960 };
 
@@ -84,41 +79,47 @@ Renderer::Renderer(std::shared_ptr<DisplaySettings> displaySettings)
 
             if (m_currentGameFrame == nullptr)
             {
-                std::cerr << "Failed to create texture currentGameFrame. SDL_Error: " << SDL_GetError() << std::endl;
-                success = false;
+                std::string errorMsg{ SDL_GetError() };
+                throw RendererInitException("Failed to create texture currentGameFrame. SDL_Error: " + errorMsg);
             }
         }
     }
     if (TTF_Init() == -1)
     {
-        std::cerr << "SDL_ttf could not initialize! TTF_Error: " << TTF_GetError() << std::endl;
-        success = false;
+        std::string errorMsg{ TTF_GetError() };
+        throw RendererInitException("SDL_ttf could not initialize! TTF_Error: " + errorMsg);
     }
 
     m_defaultFont.reset(TTF_OpenFont("assets/fonts/anonymous.ttf", 24));
 
     if (!m_defaultFont)
     {
-        std::cerr << "Font error: " << TTF_GetError() << std::endl;
-        success = false;
+        std::string errorMsg{ TTF_GetError() };
+        throw RendererInitException("Font error: " + errorMsg);
     }
-
-	if (!success)
-	{
-        std::cerr << "Renderer failed to initialise properly." << std::endl;
-        std::exit(1);
-	}
-
     m_displayScaleFactor = calculateDisplayDPIScaleFactor() * calculateDisplayScaleFactorFromWindowSize();
 }
 
-Renderer::~Renderer()
+Renderer::~Renderer() noexcept
 {
+    m_currentGameFrame.reset();
+    m_defaultFont.reset();
+    
+    m_renderer.reset();
+    m_window.reset();
+
+    TTF_Quit();
     SDL_Quit();
 }
 
+
+
 void Renderer::clearDisplay() const
 {
+    SDL_SetRenderTarget(m_renderer.get(), m_currentGameFrame.get());
+    clearDisplay(m_displaySettings -> offPixelColour);
+
+    SDL_SetRenderTarget(m_renderer.get(), nullptr);
     clearDisplay(m_displaySettings -> offPixelColour);
 }
 

@@ -1,4 +1,5 @@
 #include "chip8.h"
+#include "badopcodeexception.h"
 
 Chip8::Chip8(const QuirkFlags& quirks)
 : m_fontsLocation{ InitialConfig::fontsStartLocation }
@@ -26,9 +27,8 @@ Chip8::QuirkFlags& Chip8::getEnabledQuirks() { return m_isQuirkEnabled; }
 
 void handleInvalidOpcode(const uint16_t opcode)
 {
-    std::cout << "Invalid opcode!\n"
-        << "Opcode: " << opcode << "\n." << "Exiting program.";
-    std::exit(1);
+    std::string opcodeAsString { std::format("{:X}", opcode) };
+    throw BadOpcodeException("Invald opcode! Opcode: " + opcodeAsString);
 }
 
 uint16_t Chip8::fetchOpcode()
@@ -99,7 +99,6 @@ void Chip8::decodeAndExecute(const uint16_t opcode)
             break;
         default:
             handleInvalidOpcode(opcode);
-            break;
         }
         break;
 
@@ -797,6 +796,7 @@ void Chip8::loadFile(const std::string& name)
     }
     
     m_runtimeMetaData.programEndAddress = currAddress - 1;
+    m_runtimeMetaData.romIsLoaded = true;
 
     std::cout << "Done loading\n";
 }

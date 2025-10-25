@@ -14,7 +14,7 @@
 #include "chip8.h"
 
 class Renderer;
-class FrameInfo;
+struct FrameInfo;
 struct DisplaySettings;
 
 class ImguiRenderer
@@ -38,7 +38,7 @@ public:
 
     void drawDisplaySettingsWindowAndApplyChanges() const;
 
-	void drawChipSettingsWindow(Chip8::QuirkFlags& chipQuirkFlags) const;
+	void drawChipSettingsWindow(Chip8::QuirkFlags& chipQuirkFlags, Chip8& chip) const;
 
     void drawGameDisplayWindow(SDL_Texture* gameFrame) const;
 

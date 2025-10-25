@@ -326,7 +326,7 @@ void ImguiRenderer::displayHelpMarker(const std::string_view helpInfo) const
     }
 }
 
-void ImguiRenderer::drawChipSettingsWindow(Chip8::QuirkFlags& chipQuirkFlags) const
+void ImguiRenderer::drawChipSettingsWindow(Chip8::QuirkFlags& chipQuirkFlags, Chip8& chip) const
 {
     ImGui::Begin("Chip Settings");
 
@@ -362,8 +362,13 @@ void ImguiRenderer::drawChipSettingsWindow(Chip8::QuirkFlags& chipQuirkFlags) co
     ImGui::SameLine();
     displayHelpMarker("To be added");
 
-
     ImGui::Separator();
+
+    int instructionsPerSecond{ chip.getTargetNumInstrPerSecond() };
+    if (ImGui::InputInt("IPS: ", &instructionsPerSecond))
+    {
+        chip.setTargetNumInstrPerSecond(instructionsPerSecond);
+    }
 
     ImGui::End();
 }
@@ -464,7 +469,7 @@ void ImguiRenderer::drawAllImguiWindows(
     imguiRenderer.drawDisplaySettingsWindowAndApplyChanges();
     imguiRenderer.drawROMSelectWindow(chip);
 
-    imguiRenderer.drawChipSettingsWindow(chip.getEnabledQuirks());
+    imguiRenderer.drawChipSettingsWindow(chip.getEnabledQuirks(), chip);
 
     if (displaySettings -> renderGameToImGuiWindow)
     {

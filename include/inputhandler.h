@@ -48,6 +48,8 @@ public:
         numSystemKeys,
     };
 
+    void readSystemInputs();
+
     void readChipAndSystemInputs(Chip8& chip);
 
     bool isSystemKeyPressed(const SystemKeyInputs key) const { return m_isSystemKeyPressed[key]; }
@@ -92,7 +94,7 @@ private:
 
         SDL_SCANCODE_0,        // Deactivate debug mode
 
-        SDL_SCANCODE_F         // Toggle debug windows
+        SDL_SCANCODE_G         // Toggle debug windows
     };
 
     static_assert(std::size(systemKeyMap) == InputHandler::numSystemKeys);
