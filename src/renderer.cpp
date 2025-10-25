@@ -150,12 +150,14 @@ void Renderer::drawGrid(const int pixelWidth, const int pixelHeight, int horizon
         int xCoord{ i * pixelWidth };
         SDL_RenderDrawLine(renderer, xCoord, 0, xCoord, frameHeight);
     }
+    SDL_RenderDrawLine(renderer, 0, frameHeight-1, frameWidth, frameHeight-1);
 
     for (int i{ 0 }; i < verticalPixelAmount; ++i)
     {
         int yCoord{ i * pixelHeight };
         SDL_RenderDrawLine(renderer, 0, yCoord, frameWidth, yCoord);
     }
+    SDL_RenderDrawLine(renderer, frameWidth-1, 0, frameWidth-1, frameHeight);
 
     if (m_displaySettings->renderGameToImGuiWindow)
     {
