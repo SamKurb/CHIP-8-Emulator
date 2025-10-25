@@ -26,10 +26,12 @@ ImguiRenderer::ImguiRenderer(SDL_Window* window, SDL_Renderer* renderer, std::sh
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-    const float scaleFactorModifier{ 0.6 };
 
-    ImGui::GetStyle().ScaleAllSizes(displayScaleFactor * scaleFactorModifier);
-    io.FontGlobalScale = displayScaleFactor * scaleFactorModifier;
+    std::cout << displayScaleFactor << std::endl;
+
+    constexpr float displayScaleDampFactor{ 0.8f };
+    ImGui::GetStyle().ScaleAllSizes(displayScaleFactor * displayScaleDampFactor);
+    io.FontGlobalScale = displayScaleFactor * displayScaleDampFactor;
 
     ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
     ImGui_ImplSDLRenderer2_Init(renderer);
@@ -47,9 +49,6 @@ void ImguiRenderer::drawGeneralInfoWindow(
     const uint64_t numInstructionsExecuted
 ) const
 {
-    constexpr int numLinesInWindow { 6 };
-    const float fontHeight { ImGui::GetFontSize() };
-
     ImGui::Begin("Emulator Info");
 
     ImGui::Text("FPS: %.1f", frameInfo.fps);
@@ -93,16 +92,18 @@ void ImguiRenderer::printRowStartAddress(const std::size_t rowStartAddress, cons
 
 void ImguiRenderer::printASCIIRepresentationOfMemoryRow(const std::array<uint8_t, 4096> &memoryContents, const std::size_t rowStartPos, const int numBytesToPrint) const
 {
-        for (std::size_t addressOffset{ 0 }; addressOffset < numBytesToPrint; ++addressOffset)
+    constexpr uint8_t validAsciiStart{ 33 };
+    constexpr uint8_t validAsciiEnd{ 126 };
+    constexpr char placeHolderForInvalidChar{ '.' };
+
+    auto rowBegin { memoryContents.begin() + rowStartPos };
+    auto rowEnd { rowBegin + numBytesToPrint };
+
+    for (auto currMemLocation { rowBegin} ; currMemLocation != rowEnd ; ++currMemLocation)
     {
         ImGui::SameLine();
-        std::size_t currentAddress{ rowStartPos + addressOffset };
-        const uint8_t memContentsAtCurrLocation{ memoryContents[currentAddress] };
 
-        const uint8_t validAsciiStart{ 33 };
-        const uint8_t validAsciiEnd{ 126 };
-
-        const char placeHolderForInvalidChar{ '.' };
+        uint8_t memContentsAtCurrLocation { *currMemLocation };
 
         if (memContentsAtCurrLocation >= validAsciiStart && memContentsAtCurrLocation <= validAsciiEnd)
         {
@@ -126,14 +127,17 @@ void ImguiRenderer::printMemoryRow(const std::array<uint8_t, 4096>& memoryConten
 	const uint16_t fontStartAddress{ chip.getFontStartAddress() };
 	const uint16_t fontEndAddress{ chip.getFontEndAddress() };
 
-
     printRowStartAddress(rowStartPos, programStartAddress, programEndAddress, fontStartAddress, fontEndAddress);
 
-    for (std::size_t addressOffset{ 0 }; addressOffset < numBytesToPrint; ++addressOffset)
+
+    auto rowBegin { memoryContents.begin() + rowStartPos };
+    auto rowEnd { rowBegin + numBytesToPrint };
+    for (auto currMemLocation{ rowBegin }; currMemLocation != rowEnd; ++currMemLocation)
     {
         ImGui::SameLine();
-        std::size_t currAddress{ rowStartPos + addressOffset };
-        const uint8_t memContentsAtCurrLocation{ memoryContents[currAddress] };
+        const uint8_t memContentsAtCurrLocation{ *currMemLocation };
+
+        uint16_t currAddress{ Utility::toU16(std::distance(memoryContents.begin(), currMemLocation))  };
 
         const bool currAddressInFontRange { currAddress >= fontStartAddress && currAddress <= fontEndAddress };
         const bool currAddressInProgramRange { currAddress >= programStartAddress && currAddress <= programEndAddress };
@@ -170,8 +174,7 @@ void ImguiRenderer::drawMemoryViewerWindow(const Chip8& chip) const
     const int bytesPerRow{ 16};
 
     const std::array<uint8_t, 4096> memoryContents{ chip.getMemoryContents() };
-    const uint16_t currentPCAddress{ chip.getPCAddress() };
-	
+
     ImGui::Begin("Memory Viewer");
 
     ImGui::SeparatorText("Legend");
@@ -238,7 +241,6 @@ void ImguiRenderer::drawRegisterViewerWindow(const Chip8& chip) const
     ImGui::Columns(numOtherRegisters);
     float columnWidth { ImGui::GetColumnWidth(-1) };
     const ImVec2 windowDimensions { ImGui::GetWindowSize() };
-    float windowWidth{ windowDimensions.x };
 
     for (std::size_t i{ 0 } ; i < numOtherRegisters ; ++i)
     {
@@ -246,16 +248,19 @@ void ImguiRenderer::drawRegisterViewerWindow(const Chip8& chip) const
 
         ImVec2 textDimensions { ImGui::CalcTextSize(currRegName.data()) };
         float textWidth{ textDimensions.x };
-        ImGui::SetCursorPosX((columnWidth * i) + ((columnWidth - textWidth) / 2.0f));
 
+        float columnStartXPos { columnWidth * static_cast<float>(i) };
+        float columnCentreXPos { columnStartXPos + (columnWidth / 2.0f) };
+
+        ImGui::SetCursorPosX(columnCentreXPos - (textWidth / 2.0f));
         ImGui::Text("%s\n", currRegName.data());
 
         const uint16_t currRegContents{ otherRegisterContents[i] };
 
-        ImGui::SetCursorPosX((columnWidth * i) + ((columnWidth - textWidth) / 2.0f));
+        ImGui::SetCursorPosX(columnCentreXPos - (textWidth / 2.0f));
         ImGui::Text("0x%02X\n", currRegContents);
 
-        ImGui::SetCursorPosX((columnWidth * i) + ((columnWidth - textWidth) / 2.0f));
+        ImGui::SetCursorPosX(columnCentreXPos - (textWidth / 2.0f));
         ImGui::Text("%i", currRegContents);
 
         ImGui::NextColumn();
@@ -373,7 +378,9 @@ void ImguiRenderer::drawGameDisplayWindow(SDL_Texture* gameFrame) const
     SDL_QueryTexture(gameFrame, nullptr, nullptr,
         &gameFrameTextureWidth, &gameFrameTextureHeight);
 
-    ImGui::Image(gameFrame, ImVec2(gameFrameTextureWidth, gameFrameTextureHeight));
+    ImVec2 gameFrameTextureDimensions { static_cast<float>(gameFrameTextureWidth),
+                                        static_cast<float>(gameFrameTextureHeight) };
+    ImGui::Image(gameFrame, gameFrameTextureDimensions);
 
     ImGui::End();
 }
@@ -384,9 +391,9 @@ void ImguiRenderer::drawStackDisplayWindow(const std::vector<uint16_t>& stackCon
     ImGui::Columns(2);
 
     ImGui::Text("Depth");
-    for (int i { 0 } ; i < stackContents.capacity() ; ++i)
+    for (std::size_t i { 0 } ; i < stackContents.capacity() ; ++i)
     {
-        ImGui::Text("%2d ... ", i);
+        ImGui::Text("%2lu ... ", i);
     }
 
     ImGui::NextColumn();
@@ -441,6 +448,7 @@ void ImguiRenderer::drawAllImguiWindows(
     ImGui_ImplSDL2_NewFrame();
     ImGui_ImplSDLRenderer2_NewFrame();
     ImGui::NewFrame();
+
 
     imguiRenderer.drawGeneralInfoWindow (
         frameInfo,

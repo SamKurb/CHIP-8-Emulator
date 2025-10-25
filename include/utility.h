@@ -14,6 +14,14 @@ namespace Utility
     }
 
     template<typename T>
+    constexpr uint32_t toU32(T value)
+    {
+        static_assert(std::is_integral_v<T> || std::is_enum_v<T>,
+            "toU32 only accepts integral or enum types");
+        return static_cast<uint32_t>(value);
+    }
+
+    template<typename T>
     constexpr uint16_t toU16(T value)
     {
         static_assert(std::is_integral_v<T> || std::is_enum_v<T>,

@@ -7,46 +7,47 @@
 
 #include <SDL_pixels.h>
 #include "imgui.h"
+#include "utility.h"
 
 namespace Colour
 {
     struct RGBA
     {
-        float red{0xFF};
-        float green{0xFF};
-        float blue{0xFF};
-        float alpha{0xFF};
+        uint8_t red{0xFF};
+        uint8_t green{0xFF};
+        uint8_t blue{0xFF};
+        uint8_t alpha{0xFF};
 
         constexpr RGBA() = default;
 
         constexpr RGBA(float r, float g, float b)
-        : red{ r }
-        , green{ g }
-        , blue{ b }
+        : red{ static_cast<uint8_t>(r) }
+        , green{ static_cast<uint8_t>(g) }
+        , blue{ static_cast<uint8_t>(b) }
         , alpha{ 0xFF }
         {
         }
 
         RGBA(const ImVec4& colour)
-        : red{ (colour.x * 255.0f) }
-        , green{ (colour.y * 255.0f) }
-        , blue{ (colour.z * 255.0f) }
-        , alpha{ (colour.w * 255.0f) }
+        : red{ static_cast<uint8_t>(colour.x * 255.0f) }
+        , green{ static_cast<uint8_t>(colour.y * 255.0f) }
+        , blue{ static_cast<uint8_t>(colour.z * 255.0f) }
+        , alpha{ static_cast<uint8_t>(colour.w * 255.0f) }
         {}
 
         operator SDL_Color() const 
         {
-            return SDL_Color{ static_cast<uint8_t>(red), static_cast<uint8_t>(green),
-                static_cast<uint8_t>(blue), static_cast<uint8_t>(0xFF) };
+            return SDL_Color{ red, green,
+                blue, 0xFF };
         }
 
         operator ImVec4() const
         {
             return ImVec4{ 
-                red / 255.0f, 
-                green / 255.0f, 
-                blue / 255.0f,
-                alpha / 255.0f
+                static_cast<float>(red) / 255.0f,
+                static_cast<float>(green) / 255.0f,
+                static_cast<float>(blue) / 255.0f,
+                static_cast<float>(alpha) / 255.0f
             };
         }
     };

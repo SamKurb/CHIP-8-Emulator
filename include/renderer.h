@@ -50,8 +50,8 @@ public:
             gameFrameHeight = m_displaySettings -> mainWindowHeight;
         }
 
-        const int pixelWidth{ Utility::toInt(gameFrameWidth / C)};
-        const int pixelHeight{ Utility::toInt(gameFrameHeight / R) };
+        const int pixelWidth{ gameFrameWidth / Utility::toInt(C)};
+        const int pixelHeight{ gameFrameHeight / Utility::toInt(R) };
 
         for (std::size_t y{ 0 }; y < R; ++y)
         {
@@ -60,8 +60,8 @@ public:
                 uint8_t pixelOn{ screenBuffer[y][x] };
                 Colour::RGBA pixelColour{ pixelOn ? m_displaySettings -> onPixelColour : m_displaySettings -> offPixelColour};
 
-                int xCoordOnScreen{ Utility::toInt(x * pixelWidth)  };
-                int yCoordOnScreen{ Utility::toInt(y * pixelHeight) };
+                int xCoordOnScreen{ Utility::toInt(x) * pixelWidth  };
+                int yCoordOnScreen{ Utility::toInt(y) * pixelHeight };
 
                 assert(xCoordOnScreen <= m_displaySettings -> mainWindowWidth && xCoordOnScreen >= 0);
                 assert(yCoordOnScreen <= m_displaySettings -> mainWindowHeight && yCoordOnScreen >= 0);
@@ -101,12 +101,7 @@ public:
 
     void clearDisplay() const;
 
-    void clearDisplay(const Colour::RGBA colour) const
-    {
-        SDL_Renderer* renderer{ m_renderer.get() };
-        SDL_SetRenderDrawColor(renderer, colour.red, colour.green, colour.blue, colour.alpha);
-        SDL_RenderClear(renderer);
-    }
+    void clearDisplay(const Colour::RGBA colour) const;
 
 private:
     const float m_defaultDPI{ 72.0f };
@@ -120,29 +115,11 @@ private:
 
 	const std::string m_windowTitle{ "CHIP-8 Emulator" };
 
-    //SDL_Window* m_window{};
-    //SDL_Renderer* m_renderer{};
-
     std::unique_ptr<SDL_Window, decltype(&SDL_DestroyWindow)> m_window { nullptr, SDL_DestroyWindow };
     std::unique_ptr<SDL_Renderer, decltype(&SDL_DestroyRenderer)> m_renderer{ nullptr, SDL_DestroyRenderer };
 
 
-    void renderPixel(const Pixel& pixel) const
-    {
-        if (m_displaySettings->renderGameToImGuiWindow)
-        {
-            SDL_SetRenderTarget(m_renderer.get(), m_currentGameFrame.get());
-        }
-
-        SDL_Renderer* renderer{ m_renderer.get() };
-        SDL_SetRenderDrawColor(renderer, pixel.colour.red, pixel.colour.green, pixel.colour.blue, pixel.colour.alpha);
-        SDL_RenderFillRect(renderer, &pixel.rect);
-
-        if (m_displaySettings->renderGameToImGuiWindow)
-        {
-            SDL_SetRenderTarget(m_renderer.get(), nullptr);
-        }
-    }
+    void renderPixel(const Pixel& pixel) const;
 
     float calculateDisplayDPIScaleFactor()
     {
@@ -159,8 +136,6 @@ private:
         float dpiScaleFactor { diagonalDPI / m_defaultDPI };
         return dpiScaleFactor;
     }
-
-    void toggleFullScreen();
 
     float calculateDisplayScaleFactorFromWindowSize()
     {

@@ -19,8 +19,6 @@ public:
     void stopSound();
 
 private:
-
-
     void loadSoundEffect();
 
     Mix_Chunk* m_soundEffect{};

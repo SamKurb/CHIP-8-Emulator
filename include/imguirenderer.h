@@ -58,9 +58,8 @@ public:
 private:
     int m_windowWidth{};
     int m_windowHeight{};
-    const float m_dpiScaleFactor{ 0 };
-
 	std::shared_ptr<DisplaySettings> m_displaySettings{};
+    const float m_dpiScaleFactor{ 0 };
 
     static constexpr ImVec4 red{ 1.0f, 0.0f, 0.0f, 1.0f };
     static constexpr ImVec4 green{ 0.0f, 1.0f, 0.0f, 1.0f };

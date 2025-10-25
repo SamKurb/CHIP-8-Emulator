@@ -122,6 +122,13 @@ void Renderer::clearDisplay() const
     clearDisplay(m_displaySettings -> offPixelColour);
 }
 
+void Renderer::clearDisplay(const Colour::RGBA colour) const
+{
+    SDL_Renderer* renderer{ m_renderer.get() };
+    SDL_SetRenderDrawColor(renderer, colour.red, colour.green, colour.blue, colour.alpha);
+    SDL_RenderClear(renderer);
+}
+
 void Renderer::drawGrid(const int pixelWidth, const int pixelHeight, int horizontalPixelAmount, int verticalPixelAmount)
 {
     Colour::RGBA gridColour{ m_displaySettings -> gridColour };
@@ -156,11 +163,6 @@ void Renderer::drawGrid(const int pixelWidth, const int pixelHeight, int horizon
     }
 }
 
-void Renderer::toggleFullScreen()
-{
-    const bool isFullScreenEnabled{};
-}
-
 void Renderer::drawTextAt(const std::string_view text, const int xPos, const int yPos)
 {
     if (m_displaySettings->renderGameToImGuiWindow)
@@ -173,7 +175,7 @@ void Renderer::drawTextAt(const std::string_view text, const int xPos, const int
     // as TTF_RenderText_Solid could only be used on
     // SDL_Surface then you have to create the surface first
 
-    SDL_Surface* textSurface{ TTF_RenderText_Solid(m_defaultFont.get(), text.data(), {0,0xFF,0}) };
+    SDL_Surface* textSurface{ TTF_RenderText_Solid(m_defaultFont.get(), text.data(), {0,0xFF,0, 0xFF}) };
 
     SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
 
@@ -193,5 +195,21 @@ void Renderer::drawTextAt(const std::string_view text, const int xPos, const int
     }
 }
 
+void Renderer::renderPixel(const Pixel &pixel) const
+{
+    if (m_displaySettings->renderGameToImGuiWindow)
+    {
+        SDL_SetRenderTarget(m_renderer.get(), m_currentGameFrame.get());
+    }
+
+    SDL_Renderer* renderer{ m_renderer.get() };
+    SDL_SetRenderDrawColor(renderer, pixel.colour.red, pixel.colour.green, pixel.colour.blue, pixel.colour.alpha);
+    SDL_RenderFillRect(renderer, &pixel.rect);
+
+    if (m_displaySettings->renderGameToImGuiWindow)
+    {
+        SDL_SetRenderTarget(m_renderer.get(), nullptr);
+    }
+}
 
 

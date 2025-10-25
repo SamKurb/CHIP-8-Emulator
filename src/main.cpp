@@ -14,11 +14,6 @@
 #include "statemanager.h"
 #include "chip8.h"
 
-// IMGUI
-#include "imgui.h"
-#include "imgui_impl_sdlrenderer2.h"
-#include "imgui_impl_sdl2.h"
-
 #include "imguirenderer.h"
 
 #include "frameinfo.h"
@@ -126,7 +121,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
     
     FrameInfo frameInfo{};
     // For a target fps of 60 this will be 16ms (rounded down because it is an int), so we will actually be rendering roughly 62-63 frames rather than 60
-    const int targetFrameDelayMs{ 1000 / displaySettings -> targetFPS };
+    const uint32_t targetFrameDelayMs{ 1000u / Utility::toU32(displaySettings -> targetFPS) };
 
     AudioPlayer audio{ "assets/beep.wav" };
 
@@ -216,6 +211,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
         };
 
         frameInfo.numInstructionsExecuted = numInstructionsExecutedThisFrame;
+
         /*
         Frames may process faster than the target frametime, so we delay to make
         sure that we only move on to the next frame when enough time has passed
@@ -228,7 +224,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
             frameInfo.timeElapsedMs += timeToWaitMs;
         }
 
-        frameInfo.fps = (frameInfo.timeElapsedMs > 0) ? (1000.0f / frameInfo.timeElapsedMs) : 0.0f;
+        frameInfo.fps = (frameInfo.timeElapsedMs > 0) ? (1000.0f / static_cast<float>(frameInfo.timeElapsedMs)) : 0.0f;
 
         renderer.clearDisplay();
         renderer.drawChipScreenBufferToFrame(chip.getScreenBuffer());

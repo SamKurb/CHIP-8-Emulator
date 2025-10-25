@@ -70,7 +70,6 @@ public:
 
     QuirkFlags& getEnabledQuirks();
 
-
     uint64_t getNumInstructionsExecuted() const { return m_runtimeMetaData.numInstructionsExecuted; }
     uint16_t getFontStartAddress() const { return m_runtimeMetaData.fontStartAddress; }
     uint16_t getFontEndAddress() const { return m_runtimeMetaData.fontEndAddress; }
@@ -191,7 +190,6 @@ private:
 
         m_memory[location] = value;
     }
-
 
     // Input handling
     bool isAKeyPressed();
