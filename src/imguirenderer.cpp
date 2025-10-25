@@ -240,7 +240,6 @@ void ImguiRenderer::drawRegisterViewerWindow(const Chip8& chip) const
 
     ImGui::Columns(numOtherRegisters);
     float columnWidth { ImGui::GetColumnWidth(-1) };
-    const ImVec2 windowDimensions { ImGui::GetWindowSize() };
 
     for (std::size_t i{ 0 } ; i < numOtherRegisters ; ++i)
     {
@@ -447,7 +446,7 @@ void ImguiRenderer::drawROMSelectWindow(Chip8& chip)
 void ImguiRenderer::drawAllImguiWindows(
     std::shared_ptr<DisplaySettings> displaySettings,
     Renderer& renderer, ImguiRenderer& imguiRenderer,
-    Chip8& chip, StateManager& stateManager,
+    Chip8& chip, const StateManager& stateManager,
     const FrameInfo& frameInfo)
 {
     ImGui_ImplSDL2_NewFrame();

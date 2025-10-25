@@ -47,7 +47,7 @@ public:
     void drawROMSelectWindow(Chip8& chip);
 
     void drawAllImguiWindows(std::shared_ptr<DisplaySettings> displaySettings, Renderer &renderer,
-                             ImguiRenderer &imguiRenderer, Chip8 &chip, StateManager &stateManager,
+                             ImguiRenderer &imguiRenderer, Chip8 &chip, const StateManager &stateManager,
                              const FrameInfo &frameInfo);
 
 	void displayHelpMarker(const std::string_view helpInfo) const;

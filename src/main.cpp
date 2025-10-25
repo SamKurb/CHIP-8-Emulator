@@ -21,49 +21,6 @@
 
 #include "rendererinitexception.h"
 
-// Temporary namespace to make it easier for me to swap roms 
-namespace ROMS
-{
-	const std::string brix{ "roms/brix.ch8" };
-    const std::string hidden{ "roms/Hidden [David Winter, 1996].ch8" };
-    const std::string danm8ku{ "roms/danm8ku.ch8" };
-
-    // Currently works
-    const std::string ibm{ "roms/ibm.ch8" };
-    const std::string testOpc{ "roms/3-corax+.ch8" };
-    const std::string testFlags{ "roms/4-flags.ch8" };
-    const std::string testQuirks{ "roms/5-quirks.ch8" };
-    const std::string testKeypad{ "roms/6-keypad.ch8" };
-    const std::string testSound{ "roms/7-beep.ch8" };
-    const std::string rngTest{ "roms/rngTest.ch8" };
-
-    const std::string OOBTest{ "roms/oob_test_7.ch8" };
-    const std::string allInOneTest{ "roms/AllInOne.ch8" };
-
-    // Works completely fine
-    const std::string tetris{ "roms/tetris.ch8" };
-    const std::string snake{ "roms/snake.ch8" };
-    const std::string superPong{ "roms/superpong.ch8" };
-    const std::string pong{ "roms/pong.ch8" };
-
-    // Doesnt fully work - likely due to quirks
-    const std::string spaceInvaders{ "roms/Space Invaders [David Winter].ch8" };
-    
-    // Works, but need to increase IPF by 2-3x
-    const std::string fallingGhosts{ "roms/ghosts.ch8" };
-
-    // Also works but runs slowly, not sure if that is normal
-    const std::string cellAuotmata1d{ "roms/1dcell.ch8" };
-
-    // Raises E12 error - not an issue with the emulator. Test is outdated/incorrect
-    const std::string bcTest{ "roms/BC_test.ch8" };
-
-
-
-    // Not sure if this works properly - dont know the controls and dont know where I found it
-    const std::string puzzle15{ "roms/15puzzle.ch8" };
-}
-
 void executeInstructionsForFrame(Chip8& chip, const int targetFPS)
 {
     int numInstructionsForThisFrame{ 1 };
