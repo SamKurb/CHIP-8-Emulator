@@ -1,7 +1,9 @@
 # WORK IN PROGRESS: Will add building instructions soon
 
 # Overview
-This is a fully functional emulator/interpreter for the CHIP-8. It is written in C++, and uses the SDL2 library for both graphics, input handling and audio output. GUI library used is ImGui, along with an extension library called ImGuiFileDialog.
+This is a fully functional emulator/interpreter for the CHIP-8. It is written in C++, and uses the following librariesd:
+ - SDL2 - for graphics, input handling and audio
+ - ImGui and ImGuiFileDialog - for GUI
 
 ## Usage instructions:
 ### Input:
@@ -46,3 +48,8 @@ Will add more features and make key mapping configurable in the future!
 - https://tobiasvl.github.io/blog/write-a-chip-8-emulator/ - For information regarding quirks/ambiguous instructions as well as typical keyboard-to-input mappings
 
 - Random.h file from [https://www.learncpp.com/](https://www.learncpp.com/cpp-tutorial/global-random-numbers-random-h/) (highly recommend this resource! its great)
+
+## Honourable mention: Tommy
+This is not at all relevant to the emulator but here is a cute picture of my cat Tommy:
+
+<img src="readme_images/tommy_sleeping.jpg" alt="Cute Cat Picture" width="450" height="1000">
