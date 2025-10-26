@@ -43,12 +43,12 @@ void updateDebugModeBasedOnInput(StateManager& stateManager, const InputHandler&
 {
     if (stateManager.getCurrentDebugMode() != StateManager::DebugMode::step && inputHandler.isSystemKeyPressed(InputHandler::K_ACTIVATE_STEP))
     {
-        stateManager.changeDebugModeTo(StateManager::DebugMode::step);
+        stateManager.tryTransitionTo(StateManager::DebugMode::step);
     }
 
     if (stateManager.getCurrentDebugMode() != StateManager::DebugMode::manual && inputHandler.isSystemKeyPressed(InputHandler::K_ACTIVATE_MANUAL))
     {
-        stateManager.changeDebugModeTo(StateManager::DebugMode::manual);
+        stateManager.tryTransitionTo(StateManager::DebugMode::manual);
     }
 }
 
@@ -96,7 +96,6 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
     while (!userHasQuit)
     {
         frameTimer.startFrameTiming();
-        // For a target fps of 60 this will be 16ms (rounded down because it is an int), so we will actually be rendering roughly 62-63 frames rather than 60
 
         inputHandler.resetSystemKeysState();
 
@@ -115,18 +114,28 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
 
         if (chip.isRomLoaded())
         {
-            // State switching
             const bool activateDebugPressed{ inputHandler.isSystemKeyPressed(InputHandler::K_ACTIVATE_DEBUG) };
-            const bool deactivateDebugPressed{ inputHandler.isSystemKeyPressed(InputHandler::K_DEACTIVATE_DEBUG) };
-            const StateManager::State currentState{ stateManager.getCurrentState() };
-
-            if (activateDebugPressed && currentState == StateManager::State::running)
+            if (activateDebugPressed)
             {
-                stateManager.changeMainStateTo(StateManager::debug);
+                stateManager.tryTransitionTo(StateManager::debug);
             }
-            else if (deactivateDebugPressed && currentState == StateManager::State::debug)
+
+            const bool deactivateDebugPressed{ inputHandler.isSystemKeyPressed(InputHandler::K_DEACTIVATE_DEBUG) };
+            if (deactivateDebugPressed)
             {
-                stateManager.changeMainStateTo(StateManager::running);
+                stateManager.tryTransitionTo(StateManager::running);
+            }
+
+            const bool activateStepPressed{ inputHandler.isSystemKeyPressed(InputHandler::K_ACTIVATE_STEP) };
+            if (activateStepPressed)
+            {
+                stateManager.tryTransitionTo(StateManager::step);
+            }
+
+            const bool activateManualPressed{ inputHandler.isSystemKeyPressed(InputHandler::K_ACTIVATE_MANUAL) };
+            if (activateManualPressed)
+            {
+                stateManager.tryTransitionTo(StateManager::manual);
             }
 
             chip.decrementTimers();
@@ -188,7 +197,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
 
                 if (inputHandler.isSystemKeyPressed(InputHandler::K_DEACTIVATE_DEBUG))
                 {
-                    stateManager.changeMainStateTo(StateManager::State::running);
+                    stateManager.tryTransitionTo(StateManager::State::running);
                 }
             }
 

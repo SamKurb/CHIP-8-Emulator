@@ -7,6 +7,7 @@ FrameTimer::FrameTimer(int targetFPS)
 , m_startTimeMs{ 0 }
 , m_endTimeMs{ 0 }
 , m_frameTimeMs{ 0 }
+// For a target fps of 60 this will be 16ms (rounded down because it is an int), so we will actually be rendering roughly 62-63 frames rather than 60
 , m_targetFrameTimeMs{ 1000u / m_targetFPS }
 {
 }

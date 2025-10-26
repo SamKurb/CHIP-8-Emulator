@@ -31,6 +31,7 @@ set(OTHER_SOURCES
         include/fileinputexception.h
         src/frametimer.cpp
         include/frametimer.h
+        src/statemanager.cpp
 )
 
 add_executable(${PROJECT_NAME} ${MAIN_SOURCES} ${OTHER_SOURCES})
