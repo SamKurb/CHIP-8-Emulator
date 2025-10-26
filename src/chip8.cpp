@@ -26,6 +26,26 @@ void Chip8::resetDXYNFlag() { m_executedDXYNFlag = false; }
 
 Chip8::QuirkFlags& Chip8::getEnabledQuirks() { return m_isQuirkEnabled; }
 
+uint64_t Chip8::getNumInstructionsExecuted() const { return m_runtimeMetaData.numInstructionsExecuted; }
+uint16_t Chip8::getFontStartAddress() const { return m_runtimeMetaData.fontStartAddress; }
+uint16_t Chip8::getFontEndAddress() const { return m_runtimeMetaData.fontEndAddress; }
+uint16_t Chip8::getProgramStartAddress() const { return m_runtimeMetaData.programStartAddress; }
+uint16_t Chip8::getProgramEndAddress() const { return m_runtimeMetaData.programEndAddress; }
+bool Chip8::isRomLoaded() const { return m_runtimeMetaData.romIsLoaded; }
+
+int Chip8::getTargetNumInstrPerSecond() const { return m_targetNumInstrPerSecond; }
+
+std::array<uint8_t, 4096> Chip8::getMemoryContents() const { return m_memory; }
+std::array<uint8_t, 16> Chip8::getRegisterContents() const { return m_registers; }
+uint16_t Chip8::getPCAddress() const { return m_pc; }
+uint16_t Chip8::getIndexRegisterContents() const { return m_indexReg; }
+std::array<bool, 16> Chip8::getKeysDownThisFrame() const { return m_keyDownThisFrame; };
+
+const std::vector<uint16_t>& Chip8::getStackContents() const { return m_stack; }
+
+void Chip8::setTargetNumInstrPerSecond(int newTarget) { m_targetNumInstrPerSecond = newTarget; }
+
+
 void Chip8::handleInvalidOpcode(const uint16_t opcode)
 {
     std::string opcodeAsString { std::format("{:X}", opcode) };

@@ -20,18 +20,22 @@ struct DisplaySettings;
 class ImguiRenderer
 {
 public:
-	ImguiRenderer(SDL_Window* window, SDL_Renderer* renderer, std::shared_ptr<DisplaySettings> displaySettings, const float displayScaleFactor);
+	ImguiRenderer(SDL_Window* window, SDL_Renderer* renderer, std::shared_ptr<DisplaySettings> displaySettings,
+		const float displayScaleFactor);
     ~ImguiRenderer();
 
     void drawGeneralInfoWindow(const FrameInfo &frameInfo, uint8_t soundTimer,
     	const StateManager& currentState, uint64_t numInstructionsExecuted, const bool isAudioLoaded) const;
 
-    void printRowStartAddress(const std::size_t rowStartAddress, const uint16_t programStartAddress, const uint16_t programEndAddress, const uint16_t fontStartAddress, const uint16_t fontEndAddress) const;
+	void printRowStartAddress(const std::size_t rowStartAddress,
+	const uint16_t programStartAddress, const uint16_t programEndAddress,
+	const uint16_t fontStartAddress, const uint16_t fontEndAddress) const;
 
     void printMemoryRow(const std::array<uint8_t, 4096>& memoryContents, const std::size_t rowStartPos, const int numBytesToPrint,
         const Chip8& chip) const;
 
-    void printASCIIRepresentationOfMemoryRow(const std::array<uint8_t, 4096>& memoryContents, const std::size_t rowStartPos, const int numBytesToPrint) const;
+    void printASCIIRepresentationOfMemoryRow(const std::array<uint8_t, 4096>& memoryContents,
+    	const std::size_t rowStartPos, const int numBytesToPrint) const;
 
     void drawMemoryViewerWindow(const Chip8& chip) const;
 

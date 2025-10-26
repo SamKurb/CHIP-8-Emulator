@@ -72,24 +72,23 @@ public:
 
     QuirkFlags& getEnabledQuirks();
 
-    uint64_t getNumInstructionsExecuted() const { return m_runtimeMetaData.numInstructionsExecuted; }
-    uint16_t getFontStartAddress() const { return m_runtimeMetaData.fontStartAddress; }
-    uint16_t getFontEndAddress() const { return m_runtimeMetaData.fontEndAddress; }
-    uint16_t getProgramStartAddress() const { return m_runtimeMetaData.programStartAddress; }
-    uint16_t getProgramEndAddress() const { return m_runtimeMetaData.programEndAddress; }
-    bool isRomLoaded() const { return m_runtimeMetaData.romIsLoaded; }
+    uint64_t getNumInstructionsExecuted() const;
+    uint16_t getFontStartAddress() const;
+    uint16_t getFontEndAddress() const;
+    uint16_t getProgramStartAddress() const;
+    uint16_t getProgramEndAddress() const;
+    bool isRomLoaded() const;
 
-    int getTargetNumInstrPerSecond() const { return m_targetNumInstrPerSecond; }
+    int getTargetNumInstrPerSecond() const;
+    std::array<uint8_t, 4096> getMemoryContents() const;
+    std::array<uint8_t, 16> getRegisterContents() const;
+    uint16_t getPCAddress() const;
+    uint16_t getIndexRegisterContents() const;
+    std::array<bool, 16> getKeysDownThisFrame() const;
 
-    std::array<uint8_t, 4096> getMemoryContents() const { return m_memory; }
-    std::array<uint8_t, 16> getRegisterContents() const { return m_registers; }
-    uint16_t getPCAddress() const { return m_pc; }
-    uint16_t getIndexRegisterContents() const { return m_indexReg; }
-    std::array<bool, 16> getKeysDownThisFrame() const { return m_keyDownThisFrame; };
+    const std::vector<uint16_t>& getStackContents() const;
 
-    const std::vector<uint16_t>& getStackContents() const { return m_stack; }
-
-    void setTargetNumInstrPerSecond(int newTarget) { m_targetNumInstrPerSecond = newTarget; }
+    void setTargetNumInstrPerSecond(int newTarget);
 
 
     void loadFile(const std::string& name);

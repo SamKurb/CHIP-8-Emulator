@@ -84,7 +84,9 @@ void ImguiRenderer::drawGeneralInfoWindow(
     ImGui::End();
 }
 
-void ImguiRenderer::printRowStartAddress(const std::size_t rowStartAddress, const uint16_t programStartAddress, const uint16_t programEndAddress, const uint16_t fontStartAddress, uint16_t fontEndAddress) const
+void ImguiRenderer::printRowStartAddress(const std::size_t rowStartAddress,
+    const uint16_t programStartAddress, const uint16_t programEndAddress,
+    const uint16_t fontStartAddress, const uint16_t fontEndAddress) const
 {
     if (rowStartAddress >= fontStartAddress && rowStartAddress <= fontEndAddress)
     {
@@ -100,7 +102,8 @@ void ImguiRenderer::printRowStartAddress(const std::size_t rowStartAddress, cons
     }
 }
 
-void ImguiRenderer::printASCIIRepresentationOfMemoryRow(const std::array<uint8_t, 4096> &memoryContents, const std::size_t rowStartPos, const int numBytesToPrint) const
+void ImguiRenderer::printASCIIRepresentationOfMemoryRow(const std::array<uint8_t, 4096> &memoryContents,
+    const std::size_t rowStartPos, const int numBytesToPrint) const
 {
     constexpr uint8_t validAsciiStart{ 33 };
     constexpr uint8_t validAsciiEnd{ 126 };
@@ -319,7 +322,7 @@ void ImguiRenderer::drawDisplaySettingsWindowAndApplyChanges() const
         m_displaySettings -> gridColour = bufferedGridColour;
     }
 
-    ImGui::Text("Target FPS:");
+    ImGui::Text("Target FPS:   ");
     ImGui::SameLine();
 
     constexpr int minFPS { 30 };
@@ -332,8 +335,10 @@ void ImguiRenderer::drawDisplaySettingsWindowAndApplyChanges() const
         }
     }
 
+    ImGui::Text("UI Text Scale:");
+    ImGui::SameLine();
     static float textScale{ m_dpiScaleFactor };
-    if (ImGui::SliderFloat("TextScale", &textScale, 0.5f, 10.0f))
+    if (ImGui::SliderFloat("##TextScale", &textScale, 0.5f, 10.0f))
     {
         ImGui::GetIO().FontGlobalScale = textScale;
     }
