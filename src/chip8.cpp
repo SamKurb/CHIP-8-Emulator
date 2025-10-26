@@ -26,8 +26,9 @@ void Chip8::resetDXYNFlag() { m_executedDXYNFlag = false; }
 
 Chip8::QuirkFlags& Chip8::getEnabledQuirks() { return m_isQuirkEnabled; }
 
-void handleInvalidOpcode(const uint16_t opcode)
+void Chip8::handleInvalidOpcode(const uint16_t opcode)
 {
+    *this = Chip8{};
     std::string opcodeAsString { std::format("{:X}", opcode) };
     throw BadOpcodeException("Invald opcode! Opcode: " + opcodeAsString);
 }

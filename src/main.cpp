@@ -75,9 +75,9 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
     {
         renderer = std::make_unique<Renderer>(displaySettings);
     }
-    catch (const SDLInitException& e)
+    catch (const SDLInitException& exception)
     {
-        std::cerr << "FATAL ERROR. Renderer initialisation failed in main(): " << e.what() << std::endl;
+        std::cerr << "FATAL ERROR. Renderer initialisation failed in main(): " << exception.what() << std::endl;
         return EXIT_FAILURE;
     }
 
@@ -152,7 +152,6 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
                 }
                 catch (const BadOpcodeException& exception)
                 {
-                    chip = Chip8{};
                     messageToDisplayIfNotRunning = std::string(exception.what()) + " - Please try a different ROM";
                 }
             }
@@ -176,7 +175,6 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
                     }
                     catch (const BadOpcodeException& exception)
                     {
-                        chip = Chip8{};
                         messageToDisplayIfNotRunning = std::string(exception.what()) + " - Please try a different ROM";
                     }
                 }
@@ -190,7 +188,6 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
                     }
                     catch (const BadOpcodeException& exception)
                     {
-                        chip = Chip8{};
                         messageToDisplayIfNotRunning = std::string(exception.what()) + " - Please try a different ROM";
                     }
                 }
@@ -264,7 +261,6 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
             }
             catch (const FileInputException& exception)
             {
-                chip = Chip8();
                 messageToDisplayIfNotRunning = std::string(exception.what()) + " === Please try again, or load a different ROM.";
             }
         }

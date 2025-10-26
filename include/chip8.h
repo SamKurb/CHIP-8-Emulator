@@ -96,6 +96,8 @@ public:
 
     void performFDECycle();
     void executeInstructions(int count);
+    void handleInvalidOpcode(const uint16_t opcode);
+
 
 
     void decrementTimers();
