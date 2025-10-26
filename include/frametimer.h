@@ -3,13 +3,15 @@
 
 #include <SDL2/SDL.h>
 #include <cstdint>
+#include <memory>
 
 struct FrameInfo;
+struct DisplaySettings;
 
 class FrameTimer
 {
 public:
-    explicit FrameTimer(int targetFPS);
+    explicit FrameTimer(const int targetFPS);
 
     void startFrameTiming();
     void endFrameTiming();
@@ -19,12 +21,14 @@ public:
     float getActualFPS() const;
     int getTargetFPS() const;
 
+    void setTargetFPS(const int newTargetFPS);
+
     uint32_t getFrameTimeMs() const;
 
     FrameInfo getFrameInfo() const;
 
 private:
-    float m_actualFPS;
+    float m_actualFPS{};
     int m_targetFPS{};
 
     uint32_t m_startTimeMs{};

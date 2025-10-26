@@ -98,8 +98,6 @@ public:
     void executeInstructions(int count);
     void handleInvalidOpcode(const uint16_t opcode);
 
-
-
     void decrementTimers();
 
     void setKeyUp(std::size_t key);

@@ -27,10 +27,7 @@ ImguiRenderer::ImguiRenderer(SDL_Window* window, SDL_Renderer* renderer, std::sh
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-
-    std::cout << displayScaleFactor << std::endl;
-
-    ImGui::GetStyle().ScaleAllSizes(displayScaleFactor);
+    ImGui::GetStyle().ScaleAllSizes(displayScaleFactor*0.5f);
     io.FontGlobalScale = displayScaleFactor;
 
     ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
@@ -488,7 +485,7 @@ void ImguiRenderer::drawROMSelectWindow(Chip8& chip)
 
 void ImguiRenderer::drawAllImguiWindows(
     std::shared_ptr<DisplaySettings> displaySettings,
-    Renderer& renderer, ImguiRenderer& imguiRenderer,
+    Renderer& renderer,
     Chip8& chip, const StateManager& stateManager,
     const FrameInfo& frameInfo,
     const bool isAudioLoaded)
@@ -498,7 +495,7 @@ void ImguiRenderer::drawAllImguiWindows(
     ImGui::NewFrame();
 
 
-    imguiRenderer.drawGeneralInfoWindow (
+    drawGeneralInfoWindow (
         frameInfo,
         chip.getSoundTimer(),
         stateManager,
@@ -506,24 +503,24 @@ void ImguiRenderer::drawAllImguiWindows(
         isAudioLoaded
     );
 
-    imguiRenderer.drawMemoryViewerWindow(chip);
-    imguiRenderer.drawRegisterViewerWindow(chip);
-    imguiRenderer.drawStackDisplayWindow(chip.getStackContents());
+    drawMemoryViewerWindow(chip);
+    drawRegisterViewerWindow(chip);
+    drawStackDisplayWindow(chip.getStackContents());
 
-    imguiRenderer.drawDisplaySettingsWindowAndApplyChanges();
-    imguiRenderer.drawChipSettingsWindow(chip.getEnabledQuirks(), chip);
+    drawDisplaySettingsWindowAndApplyChanges();
+    drawChipSettingsWindow(chip.getEnabledQuirks(), chip);
 
     if (displaySettings -> renderGameToImGuiWindow)
     {
         SDL_Texture* currGameFrame { renderer.getCurrentGameFrame() };
-        imguiRenderer.drawGameDisplayWindow(currGameFrame);
+        drawGameDisplayWindow(currGameFrame);
     }
 
-    imguiRenderer.drawKeyboardInputWindow();
+    drawKeyboardInputWindow();
 
     try
     {
-        imguiRenderer.drawROMSelectWindow(chip);
+        drawROMSelectWindow(chip);
     }
     catch (const FileInputException& exception)
     {

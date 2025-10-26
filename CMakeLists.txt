@@ -32,6 +32,8 @@ set(OTHER_SOURCES
         src/frametimer.cpp
         include/frametimer.h
         src/statemanager.cpp
+        include/emulator.h
+        src/emulator.cpp
 )
 
 add_executable(${PROJECT_NAME} ${MAIN_SOURCES} ${OTHER_SOURCES})

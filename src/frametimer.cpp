@@ -1,7 +1,9 @@
 #include "frametimer.h"
+
+#include "displaysettings.h"
 #include "frameinfo.h"
 
-FrameTimer::FrameTimer(int targetFPS)
+FrameTimer::FrameTimer(const int targetFPS)
 : m_actualFPS{ 0.0f }
 , m_targetFPS{ targetFPS }
 , m_startTimeMs{ 0 }
@@ -45,6 +47,14 @@ float FrameTimer::getActualFPS() const
     return m_actualFPS;
 }
 
+void FrameTimer::setTargetFPS(const int newTargetFPS)
+{
+    m_targetFPS = newTargetFPS;
+    m_targetFrameTimeMs = 1000u / m_targetFPS;
+}
+
+
+
 FrameInfo FrameTimer::getFrameInfo() const
 {
     return FrameInfo {
@@ -55,5 +65,6 @@ FrameInfo FrameTimer::getFrameInfo() const
         .numInstructionsExecuted = 0
     };
 }
+
 
 
