@@ -30,16 +30,15 @@ AudioPlayer::AudioPlayer(std::string soundFileLocation)
 
 AudioPlayer::~AudioPlayer()
 {
-   Mix_FreeChunk(m_soundEffect);
-   m_soundEffect = nullptr;
    Mix_Quit();
 }
 
 void AudioPlayer::startSound()
 {
+   constexpr int channelToUse{ -1 };
    if (m_currentChannel == -1)
    {
-       m_currentChannel = Mix_PlayChannel(-1, m_soundEffect, 0);
+       m_currentChannel = Mix_PlayChannel(channelToUse, m_soundEffect.get(), 0);
    }
 }
 
@@ -54,10 +53,13 @@ void AudioPlayer::stopSound()
 
 void AudioPlayer::loadSoundEffect()
 {
-    m_soundEffect = Mix_LoadWAV(m_soundFileLocation.data());
+    m_soundEffect.reset(
+        Mix_LoadWAV(m_soundFileLocation.data())
+    );
+
     if (m_soundEffect == nullptr)
     {
-        std::string errorMsg{ Mix_GetError() };
+       std::string errorMsg{ Mix_GetError() };
        throw FileInputException("Failed to load sound effect in AudioPlayer::loadSoundEffect(). "
                                 "Audio will not play. SDL_mixer Error: " + errorMsg);
     }

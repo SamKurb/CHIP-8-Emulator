@@ -1,4 +1,4 @@
-#ifndef AUDIOPLAYER_H
+#ifndef AUDIO_PLAYER_H
 #define AUDIO_PLAYER_H
 
 #include <SDL.h>
@@ -22,7 +22,7 @@ public:
 private:
     void loadSoundEffect();
 
-    Mix_Chunk* m_soundEffect{};
+    std::unique_ptr<Mix_Chunk, decltype(&Mix_FreeChunk)> m_soundEffect{nullptr, Mix_FreeChunk };
 
     static constexpr int m_soundFrequency{ 44100 };
     static constexpr Uint32 m_sampleFormat{ MIX_DEFAULT_FORMAT };
