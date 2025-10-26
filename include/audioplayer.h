@@ -24,15 +24,15 @@ private:
 
     std::unique_ptr<Mix_Chunk, decltype(&Mix_FreeChunk)> m_soundEffect{nullptr, Mix_FreeChunk };
 
-    static constexpr int m_soundFrequency{ 44100 };
-    static constexpr Uint32 m_sampleFormat{ MIX_DEFAULT_FORMAT };
-    static constexpr int m_numHardwareChannels{ 2 };
-    static constexpr int m_sampleSize{ 512 }; // lower number = lower sound delay, but less quality
+    static constexpr int s_soundFrequency{ 44100 };
+    static constexpr uint32_t s_sampleFormat{ MIX_DEFAULT_FORMAT };
+    static constexpr int s_numHardwareChannels{ 2 };
+    static constexpr int s_sampleSize{ 512 }; // lower number = lower sound delay, but less quality
 
     const std::string m_soundFileLocation{};
 
-    static constexpr int m_defaultChannelWhenTurnedOff{ -1 };
-    int m_currentChannel{ m_defaultChannelWhenTurnedOff };
+    static constexpr int s_channelValueIfNoChannel{ -1 };
+    int m_currentChannel{ s_channelValueIfNoChannel };
 };
 
 #endif

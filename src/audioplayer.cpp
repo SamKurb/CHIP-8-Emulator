@@ -11,7 +11,7 @@ AudioPlayer::AudioPlayer(std::string soundFileLocation)
        throw SDLInitException("Failed to initialize audio. SDL_Error: " + errorMsg);
    }
 
-   if (Mix_OpenAudio(m_soundFrequency, m_sampleFormat, m_numHardwareChannels, m_sampleSize) < 0)
+   if (Mix_OpenAudio(s_soundFrequency, s_sampleFormat, s_numHardwareChannels, s_sampleSize) < 0)
    {
        std::string errorMsg{ Mix_GetError() };
        throw SDLInitException("SDL_mixer could not initialize. SDL_mixer Error: " + errorMsg);
@@ -30,6 +30,7 @@ AudioPlayer::AudioPlayer(std::string soundFileLocation)
 
 AudioPlayer::~AudioPlayer()
 {
+   stopSound();
    Mix_Quit();
 }
 
@@ -44,10 +45,10 @@ void AudioPlayer::startSound()
 
 void AudioPlayer::stopSound()
 {
-   if (m_currentChannel != m_defaultChannelWhenTurnedOff)
+   if (m_currentChannel != s_channelValueIfNoChannel)
    {
        Mix_HaltChannel(m_currentChannel);
-       m_currentChannel = m_defaultChannelWhenTurnedOff;
+       m_currentChannel = s_channelValueIfNoChannel;
    }
 }
 

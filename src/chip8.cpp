@@ -785,10 +785,12 @@ void Chip8::opFX65(const uint16_t opcode)
 
     uint16_t currMemLocation{ m_indexReg };
 
+    f
     for (uint16_t currReg{ 0x0 }; currReg <= regX; ++currReg)
     {
         m_registers[currReg] = readMemory(currMemLocation);
         ++currMemLocation;
+
         if (m_isQuirkEnabled.index)
         {
             ++m_indexReg;
