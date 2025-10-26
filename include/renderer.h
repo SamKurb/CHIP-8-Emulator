@@ -8,9 +8,12 @@
 #include <SDL_ttf.h>
 #include <memory>
 
+#include <algorithm>
+
 #include "utility.h"
-#include "settings.h"
 #include "colour.h"
+
+#include "displaysettings.h"
 
 class Renderer
 {
@@ -19,55 +22,79 @@ public:
     struct Pixel
     {
         SDL_Rect rect{};
-        Colour::RGBValues colour{};
+        Colour::RGBA colour{};
     };
 
+    Renderer();
 
-    Renderer(int width, int height, bool gridOn,
-        Colour::RGBValues onPixelColour, Colour::RGBValues offPixelColour);
-    ~Renderer();
+    explicit Renderer(std::shared_ptr<DisplaySettings> displaySettings);
+    ~Renderer() noexcept;
+
+    // SDL objects dont support shallow copying, so copy/copy costruction isnt an option
+    Renderer(Renderer&) = delete;
+    Renderer& operator=(Renderer&) = delete;
+
+    Renderer(Renderer&&) = default;
+    Renderer& operator=(Renderer&&) = default;
 
     template<typename T, std::size_t R, std::size_t C>
     using Array2D = std::array<std::array<T, C>, R>;
 
     template<typename T, std::size_t R, std::size_t C>
-    void drawToScreen(const Array2D<T, R, C>& screenBuffer)
+    void drawChipScreenBufferToFrame(const Array2D<T, R, C>& screenBuffer)
     {
-        const int pixelWidth{ Utility::toInt(m_width / C)};
-        const int pixelHeight{ Utility::toInt(m_height / R) };
+        int gameFrameWidth{};
+        int gameFrameHeight{};
+
+        if (m_displaySettings -> renderGameToImGuiWindow)
+        {
+            SDL_SetRenderTarget(m_renderer.get(), m_currentGameFrame.get());
+
+            SDL_QueryTexture(m_currentGameFrame.get(), nullptr, nullptr,
+                &gameFrameWidth, &gameFrameHeight);
+        }
+        else
+        {
+            gameFrameWidth = m_displaySettings -> mainWindowWidth;
+            gameFrameHeight = m_displaySettings -> mainWindowHeight;
+        }
+
+        const int pixelWidth{ gameFrameWidth / Utility::toInt(C)};
+        const int pixelHeight{ gameFrameHeight / Utility::toInt(R) };
 
         for (std::size_t y{ 0 }; y < R; ++y)
         {
             for (std::size_t x{ 0 }; x < C; ++x)
             {
                 uint8_t pixelOn{ screenBuffer[y][x] };
-                Colour::RGBValues pixelColour{ pixelOn ? m_onPixelColour : m_offPixelColour};
+                Colour::RGBA pixelColour{ pixelOn ? m_displaySettings -> onPixelColour : m_displaySettings -> offPixelColour};
 
-                int xCoordOnScreen{ Utility::toInt(x * pixelWidth)  };
-                int yCoordOnScreen{ Utility::toInt(y * pixelHeight) };
+                int xCoordOnScreen{ Utility::toInt(x) * pixelWidth  };
+                int yCoordOnScreen{ Utility::toInt(y) * pixelHeight };
 
-                assert(xCoordOnScreen <= m_width && xCoordOnScreen >= 0);
-                assert(yCoordOnScreen <= m_height && yCoordOnScreen >= 0);
+                assert(xCoordOnScreen <= m_displaySettings -> mainWindowWidth && xCoordOnScreen >= 0);
+                assert(yCoordOnScreen <= m_displaySettings -> mainWindowHeight && yCoordOnScreen >= 0);
 
                 Pixel pixel{ { xCoordOnScreen, yCoordOnScreen, pixelWidth, pixelHeight }
-                              , pixelColour };
+                            , pixelColour };
 
                 renderPixel(pixel);
             }
         }
-
-        if (m_gridOn)
+        if (m_displaySettings -> gridOn)
         {
-            SDL_SetRenderDrawColor(m_renderer.get(), 0x00, 0x00, 0x00, 0xFF);
             drawGrid(pixelWidth, pixelHeight, C, R);
+        }
+
+        if (m_displaySettings -> renderGameToImGuiWindow)
+        {
+            SDL_SetRenderTarget(m_renderer.get(), nullptr);
         }
     }
 
-
     void render()
-    { 
-        SDL_RenderPresent(m_renderer.get()); 
-        //clearDisplay();
+    {
+        SDL_RenderPresent(m_renderer.get());
     }
 
     void drawGrid(const int pixelWidth, const int pixelHeight, int horizontalPixelAmount, int verticalPixelAmount);
@@ -77,41 +104,64 @@ public:
     SDL_Window* getWindow() { return m_window.get(); }
     SDL_Renderer* getRenderer() { return m_renderer.get(); }
 
+    float getDisplayScaleFactor() { return m_displayScaleFactor; }
+
+    SDL_Texture* getCurrentGameFrame() { return m_currentGameFrame.get(); };
+
+    void clearDisplay() const;
+
+    void clearDisplay(const Colour::RGBA colour) const;
+
 private:
-    const int m_width{};
-    const int m_height{};
-    const int m_pixelSize{};
+    float m_defaultDPI{ 72.0f };
+    float m_displayScaleFactor{ 0 };
 
-	const std::string m_windowTitle{ "CHIP-8 Emulator" };
+    std::shared_ptr<DisplaySettings> m_displaySettings{};
 
-    bool m_gridOn{};
+    std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> m_currentGameFrame { nullptr, SDL_DestroyTexture };
 
-    //SDL_Window* m_window{};
-    //SDL_Renderer* m_renderer{};
+    std::unique_ptr<TTF_Font, decltype(&TTF_CloseFont)> m_defaultFont{ nullptr, TTF_CloseFont };
+
+	std::string m_windowTitle{ "CHIP-8 Emulator" };
 
     std::unique_ptr<SDL_Window, decltype(&SDL_DestroyWindow)> m_window { nullptr, SDL_DestroyWindow };
     std::unique_ptr<SDL_Renderer, decltype(&SDL_DestroyRenderer)> m_renderer{ nullptr, SDL_DestroyRenderer };
 
-    const Colour::RGBValues m_offPixelColour{};
-    const Colour::RGBValues m_onPixelColour{};
 
-    void clearDisplay() const
+    void renderPixel(const Pixel& pixel) const;
+
+    float calculateDisplayDPIScaleFactor()
     {
-        clearDisplay(m_offPixelColour);
+        float diagonalDPI{};
+        float horizontalDPI{};
+        float verticalDPI{};
+
+        if (SDL_GetDisplayDPI(0, &diagonalDPI, &horizontalDPI, &verticalDPI))
+        {
+            std::cerr << "SDL failed to fetch display DPI properly. SDL_Error: " << SDL_GetError() << std::endl;
+            std::exit(1);
+        }
+
+        float dpiScaleFactor { diagonalDPI / m_defaultDPI };
+        return dpiScaleFactor;
     }
 
-    void clearDisplay(const Colour::RGBValues colour) const
+    float calculateDisplayScaleFactorFromWindowSize()
     {
-        SDL_Renderer* renderer{ m_renderer.get() };
-        SDL_SetRenderDrawColor(renderer, colour.r, colour.b, colour.g, 0xFF);
-        SDL_RenderClear(renderer);
-    }
+        const int referenceWidth{ 1920 };
+        const int referenceHeight{ 1080 };
 
-    void renderPixel(const Pixel& p) const
-    {
-        SDL_Renderer* renderer{ m_renderer.get() };
-        SDL_SetRenderDrawColor(renderer, p.colour.r, p.colour.g, p.colour.b, 0xFF);
-        SDL_RenderFillRect(renderer, &p.rect);
+        int windowWidth{};
+        int windowHeight{};
+        
+        SDL_GetWindowSize(m_window.get(), &windowWidth, &windowHeight); 
+
+        const float widthScaleFactor{ static_cast<float>(windowWidth) / referenceWidth };
+        const float heightScaleFactor{ static_cast<float>(windowHeight) / referenceHeight };
+        
+        const float displayScaleFactor{ std::min(widthScaleFactor, heightScaleFactor) };
+
+        return displayScaleFactor;
     }
 };
 

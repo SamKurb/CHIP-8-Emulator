@@ -1,10 +1,35 @@
 #include "chip8.h"
+#include "badopcodeexception.h"
+#include "fileinputexception.h"
 
-void handleInvalidOpcode(const uint16_t opcode)
+Chip8::Chip8(const QuirkFlags& quirks)
+: m_fontsLocation{ InitialConfig::fontsStartLocation }
+, m_isQuirkEnabled{ quirks }
+, m_runtimeMetaData{}
 {
-    std::cout << "Invalid opcode!\n"
-        << "Opcode: " << opcode << "\n." << "Exiting program.";
-    std::exit(1);
+    m_stack.reserve(InitialConfig::maxStackDepth);
+    loadFonts(m_fontsLocation);
+}
+
+const Chip8::Array2DU8<Chip8::InitialConfig::numPixelsVertically, Chip8::InitialConfig::numPixelsHorizontally>&
+    Chip8::getScreenBuffer() const
+{
+    return m_screen;
+}
+
+
+uint8_t Chip8::getDelayTimer() const { return m_delayTimer; }
+uint8_t Chip8::getSoundTimer() const { return m_soundTimer; }
+
+bool Chip8::executedDXYN() const { return m_executedDXYNFlag; }
+void Chip8::resetDXYNFlag() { m_executedDXYNFlag = false; }
+
+Chip8::QuirkFlags& Chip8::getEnabledQuirks() { return m_isQuirkEnabled; }
+
+void Chip8::handleInvalidOpcode(const uint16_t opcode)
+{
+    std::string opcodeAsString { std::format("{:X}", opcode) };
+    throw BadOpcodeException("Invald opcode! Opcode: " + opcodeAsString);
 }
 
 uint16_t Chip8::fetchOpcode()
@@ -75,7 +100,6 @@ void Chip8::decodeAndExecute(const uint16_t opcode)
             break;
         default:
             handleInvalidOpcode(opcode);
-            break;
         }
         break;
 
@@ -169,6 +193,37 @@ void Chip8::decodeAndExecute(const uint16_t opcode)
     m_runtimeMetaData.numInstructionsExecuted += 1;
 }
 
+bool Chip8::wasKeyReleasedThisFrame() const
+{
+    for (std::size_t i{ 0 }; i < std::size(m_keyDownThisFrame); ++i)
+    {
+        const bool keyUpThisFrame{ !m_keyDownThisFrame[i] };
+        const bool keyDownLastFrame{ m_keyDownLastFrame[i] };
+
+        if (keyDownLastFrame && keyUpThisFrame)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+uint8_t Chip8::findKeyReleasedThisFrame() const
+{
+    for (std::size_t i{ 0 }; i < std::size(m_keyDownThisFrame); ++i)
+    {
+        const bool keyUpThisFrame{ !m_keyDownThisFrame[i] };
+        const bool keyDownLastFrame{ m_keyDownLastFrame[i] };
+
+        if (keyDownLastFrame && keyUpThisFrame)
+        {
+            return Utility::toU8(i);
+        }
+    }
+    assert(false && "Chip8::findKeyReleasedThisFrame called in context where a key was not released");
+    return 0x10;
+}
+
 void Chip8::decrementTimers()
 {
     if (m_soundTimer > 0)
@@ -186,6 +241,20 @@ void Chip8::performFDECycle()
 {
     uint16_t opcode{ fetchOpcode() };
     decodeAndExecute(opcode);
+}
+
+void Chip8::executeInstructions(int count)
+{
+    for (int i{ 0 } ; i < count ; ++i)
+    {
+        performFDECycle();
+
+        if (m_isQuirkEnabled.displayWait && executedDXYN())
+        {
+            resetDXYNFlag();
+            break;
+        }
+    }
 }
 
 /*
@@ -206,12 +275,11 @@ void Chip8::op00E0()
 
 void Chip8::op00EE()
 {
-    assert(m_stack.size() > 0 && "Attempted to pop from empty stack in opcode 00EE");
+    assert(m_stack.size() < InitialConfig::maxStackDepth && "Attempted to pop from empty stack in opcode 00EE");
 
     m_pc = m_stack.back();
     m_stack.pop_back();
 }
-
 
 void Chip8::op1NNN(const uint16_t opcode)
 {
@@ -223,7 +291,7 @@ void Chip8::op2NNN(const uint16_t opcode)
 {
     const uint16_t address{ extractNNN(opcode) };
 
-    if (std::size(m_stack) >= ChipConfig::levelsOfNesting)
+    if (std::size(m_stack) >= InitialConfig::maxStackDepth)
     {
         std::cout << "Stack limit reached, cannot push to stack. Increase ChipConfig::levelsOfNesting or ensure that the program/ROM is not buggy";
         std::exit(1);
@@ -524,8 +592,8 @@ void Chip8::opDXYN(const uint16_t opcode)
     const uint16_t registerX{ Utility::toU16(extractX(opcode)) };
     const uint16_t registerY{ Utility::toU16(extractY(opcode)) };
 
-    const uint8_t xCoord{ Utility::toU8(m_registers[registerX] % ChipConfig::screenWidth) };
-    const uint8_t yCoord{ Utility::toU8(m_registers[registerY] % ChipConfig::screenHeight) };
+    const uint8_t xCoord{ Utility::toU8(m_registers[registerX] % InitialConfig::numPixelsHorizontally) };
+    const uint8_t yCoord{ Utility::toU8(m_registers[registerY] % InitialConfig::numPixelsVertically) };
 
     uint16_t spriteWidth{ 8 };
     uint16_t spriteHeight{ Utility::toU16(extractN(opcode)) };
@@ -720,14 +788,18 @@ void Chip8::loadFonts(const uint16_t startLocation)
     m_runtimeMetaData.fontEndAddress = currLocation - 1;
 }
 
-void Chip8::loadFile(const std::string name)
+void Chip8::loadFile(const std::string& name)
 {
+
     std::cout << "Loading ROM: " << name << '\n';
     std::ifstream ROM{ name, std::ios::binary };
 
     if (!ROM)
     {
-        std::cout << "Could not open ROM file!\n";
+        std::string errorMsg{ "Error opening ROM file. Path: " + name };
+        std::cerr << errorMsg << '\n';
+        ROM.close();
+        throw FileInputException(errorMsg);
     }
 
     std::uint8_t nextByte{};
@@ -742,8 +814,10 @@ void Chip8::loadFile(const std::string name)
     }
     
     m_runtimeMetaData.programEndAddress = currAddress - 1;
+    m_runtimeMetaData.romIsLoaded = true;
 
     std::cout << "Done loading\n";
+    ROM.close();
 }
 
 // Prints contents of screen buffer For debugging. W for on pixels, whitespace for off. 

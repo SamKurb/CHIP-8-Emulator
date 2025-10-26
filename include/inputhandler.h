@@ -44,8 +44,11 @@ public:
         K_NEXT_INSTRUCTION,
 
         K_DEACTIVATE_DEBUG,
+        K_TOGGLE_DEBUG_WINDOWS,
         numSystemKeys,
     };
+
+    void readSystemInputs();
 
     void readChipAndSystemInputs(Chip8& chip);
 
@@ -89,12 +92,14 @@ private:
         SDL_SCANCODE_8,       // Activate manual mode
         SDL_SCANCODE_I,       // Step through an instruction
 
-        SDL_SCANCODE_0        // Deactivate debug mode
+        SDL_SCANCODE_0,        // Deactivate debug mode
+
+        SDL_SCANCODE_G         // Toggle debug windows
     };
 
     static_assert(std::size(systemKeyMap) == InputHandler::numSystemKeys);
 
-    void checkForChipInput(const SDL_Event event, Chip8& chip);
+    void checkForChipInput(const SDL_Event& event, Chip8& chip);
     void checkForSystemInput(const SDL_Event event);
 
     std::array<bool, numSystemKeys> m_isSystemKeyPressed{};

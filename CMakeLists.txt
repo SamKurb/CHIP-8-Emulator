@@ -5,12 +5,16 @@ project(chip8)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-set(SOURCES
+set(MAIN_SOURCES
     src/main.cpp
     src/chip8.cpp
     src/inputhandler.cpp
     src/renderer.cpp
+    src/audioplayer.cpp
+    src/imguirenderer.cpp
+)
 
+set(OTHER_SOURCES
     external/imgui/imgui.cpp
     external/imgui/imgui_draw.cpp
     external/imgui/imgui_widgets.cpp
@@ -20,10 +24,24 @@ set(SOURCES
 
     external/imgui/backends/imgui_impl_sdl2.cpp
     external/imgui/backends/imgui_impl_sdlrenderer2.cpp
-    
+
+    external/imgui_file_dialog/ImGuiFileDialog.cpp
+        include/sdlinitexception.h
+        include/badopcodeexception.h
+        include/fileinputexception.h
+        src/frametimer.cpp
+        include/frametimer.h
+        src/statemanager.cpp
+        include/emulator.h
+        src/emulator.cpp
 )
 
-add_executable(${PROJECT_NAME} ${SOURCES} "src/imguirenderer.cpp" "include/imguirenderer.h")
+add_executable(${PROJECT_NAME} ${MAIN_SOURCES} ${OTHER_SOURCES})
+
+foreach(src_file IN LISTS MAIN_SOURCES)
+    set_source_files_properties(${src_file} PROPERTIES COMPILE_FLAGS
+            "-Wall -Wextra -Wconversion -Wsign-conversion -Werror")
+endforeach()
 
 find_package(OpenGL REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE OpenGL::GL)
@@ -39,11 +57,14 @@ target_link_libraries(${PROJECT_NAME} PRIVATE SDL2_mixer::SDL2_mixer)
 
 target_include_directories(${PROJECT_NAME} PUBLIC 
     "${CMAKE_CURRENT_SOURCE_DIR}/include/"
+
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE
+target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/"
     "${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/external/imgui_file_dialog/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/external/imgui_file_dialog/"
 )
 
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD

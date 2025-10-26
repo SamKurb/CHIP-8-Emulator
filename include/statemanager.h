@@ -1,7 +1,9 @@
 #ifndef STATEMANAGER_H
 #define STATEMANAGER_H
 
-// Header-only class because it is relatively simple. Used to keep track of current emulator state as well as any changes to it
+#include <string>
+#include <array>
+#include <sys/stat.h>
 
 class StateManager
 {
@@ -17,24 +19,38 @@ public:
 	{
 		step,
 		manual,
-		numDebugMode,
+		numDebugModes,
 	};
 
+	bool tryTransitionTo(const State newState);
+	bool tryTransitionTo(const DebugMode newDebugMode);
 
-	void changeMainStateTo(const State nextState)
-	{
-		m_currentState = nextState;
-	}
+	bool isInDebugMode();
 
-	void changeDebugModeTo(const DebugMode nextMode)
-	{
-		m_currentDebugMode = nextMode;
-	}
+	State getCurrentState() const;
+	DebugMode getCurrentDebugMode() const;
 
-	State getCurrentState() const { return m_currentState; }
-	DebugMode getCurrentDebugMode() const { return m_currentDebugMode; }
+	std::string_view getCurrentStateString() const;
+	std::string_view getCurrentDebugModeString() const;
 
 private:
+	static constexpr std::array<std::string_view, numMainStates> s_stateStrings {
+		"Running",
+		"Debug"
+	};
+
+	static_assert(s_stateStrings.size() == numMainStates);
+
+	static constexpr std::array<std::string_view, numMainStates> s_debugModeStrings {
+		"Step",
+		"Manual"
+	};
+
+	static_assert(s_debugModeStrings.size() == numDebugModes);
+
+	bool canTransitionTo(const State newState);
+	bool canTransitionTo(const DebugMode newDebugMode);
+
 	State m_currentState{ running };
 
 	// Only relevant if debug mode is on

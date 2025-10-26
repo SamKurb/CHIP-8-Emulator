@@ -1,117 +1,215 @@
 #include "renderer.h"
+#include "displaysettings.h"
+#include "sdlinitexception.h"
 
-
-Renderer::Renderer(int width, int height, bool gridOn,
-    Colour::RGBValues onPixelColour, Colour::RGBValues offPixelColour)
-    : m_width{width}
-    , m_height{height}
-    , m_gridOn{gridOn}
-    , m_onPixelColour{onPixelColour}
-    , m_offPixelColour{offPixelColour}
-    , m_windowTitle{ "CHIP-8 Emulator" }
+Renderer::Renderer()
+: m_defaultDPI(92.0f)
+, m_displaySettings{ std::make_unique<DisplaySettings>() }
 {
-    bool success{ true };
+}
 
+Renderer::Renderer(std::shared_ptr<DisplaySettings> displaySettings)
+    : m_defaultDPI { 92.0f }
+    , m_displaySettings{ std::move(displaySettings) }
+{
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
-        std::cerr << "SDL Failed to initialise. SDL_Error: " << SDL_GetError() << std::endl;
-        success = false;
+        std::string errorMsg{ SDL_GetError() };
+        throw SDLInitException("SDL Failed to initialise. SDL_Error: " + errorMsg);
     }
     else
     {
+        const int defaultWindowWidth{ 1920 };
+        const int defaultWindowHeight{ 1200 };
         m_window.reset(
-            SDL_CreateWindow(m_windowTitle.data(),
+            SDL_CreateWindow(
+                m_windowTitle.data(),
                 SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                m_width, m_height, 
-                SDL_WINDOW_SHOWN)
+                defaultWindowWidth,defaultWindowHeight,
+                SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_FULLSCREEN_DESKTOP
+            )
         );
 
         if (m_window == nullptr)
         {
-            std::cerr << "Failed to create window. SDL_Error: " << SDL_GetError() << std::endl;
+            std::string errorMsg{ SDL_GetError() };
+            throw SDLInitException("Failed to create window. SDL_Error: " + errorMsg);
         }
         else
         {
             m_renderer.reset( SDL_CreateRenderer(m_window.get(), -1, SDL_RENDERER_ACCELERATED));
 
+            int actualWindowWidthPixels{};
+            int actualWindowHeightPixels{};
+
+            SDL_GetRendererOutputSize(m_renderer.get(), &actualWindowWidthPixels, &actualWindowHeightPixels);
+
+            int logicalWindowWidthPixels{};
+            int logicalWindowHeightPixels{};
+
+            SDL_GetWindowSize(m_window.get(), &logicalWindowWidthPixels, &logicalWindowHeightPixels);
+
+            m_displaySettings -> mainWindowWidth = actualWindowWidthPixels;
+            m_displaySettings -> mainWindowHeight = actualWindowHeightPixels;
+
+            SDL_DisplayMode displayMode{};
+            SDL_GetDisplayMode(0, 0, &displayMode);
+
             if (m_renderer == nullptr)
             {
-                std::cerr << "Failed to create renderer. SDL_Error: " << SDL_GetError() << std::endl;
-                success = false;
+                std::string errorMsg{ SDL_GetError() };
+                throw SDLInitException("Failed to create renderer. SDL_Error: " + errorMsg);
             }
             else
             {
                 SDL_SetRenderDrawColor(m_renderer.get(), 0x00, 0x00, 0x00, 0xFF);
             }
+            const int placeHolderWidth{ 1920 };
+            const int placeHolderHeight{ 960 };
+
+            m_currentGameFrame.reset(
+                SDL_CreateTexture(
+                    m_renderer.get(),
+                    SDL_PIXELFORMAT_ARGB8888,
+                    SDL_TEXTUREACCESS_TARGET,
+                    placeHolderWidth,
+                    placeHolderHeight
+                )
+            );
+
+            if (m_currentGameFrame == nullptr)
+            {
+                std::string errorMsg{ SDL_GetError() };
+                throw SDLInitException("Failed to create texture currentGameFrame. SDL_Error: " + errorMsg);
+            }
         }
     }
-    if (TTF_Init() == -1) {
-        std::cerr << "SDL_ttf could not initialize! TTF_Error: " << TTF_GetError() << std::endl;
+    if (TTF_Init() == -1)
+    {
+        std::string errorMsg{ TTF_GetError() };
+        throw SDLInitException("SDL_ttf could not initialize! TTF_Error: " + errorMsg);
     }
 
-	if (!success)
-	{
-        std::cerr << "Renderer failed to initialise properly." << std::endl;
-        std::exit(1);
-	}
+    m_defaultFont.reset(TTF_OpenFont("assets/fonts/anonymous.ttf", 24));
+
+    if (!m_defaultFont)
+    {
+        std::string errorMsg{ TTF_GetError() };
+        throw SDLInitException("Font error: " + errorMsg);
+    }
+    m_displayScaleFactor = calculateDisplayDPIScaleFactor() * calculateDisplayScaleFactorFromWindowSize();
 }
 
-Renderer::~Renderer()
+Renderer::~Renderer() noexcept
 {
+    m_currentGameFrame.reset();
+    m_defaultFont.reset();
+    
+    m_renderer.reset();
+    m_window.reset();
+
+    TTF_Quit();
     SDL_Quit();
+}
+
+
+
+void Renderer::clearDisplay() const
+{
+    SDL_SetRenderTarget(m_renderer.get(), m_currentGameFrame.get());
+    clearDisplay(m_displaySettings -> offPixelColour);
+
+    SDL_SetRenderTarget(m_renderer.get(), nullptr);
+    clearDisplay(m_displaySettings -> offPixelColour);
+}
+
+void Renderer::clearDisplay(const Colour::RGBA colour) const
+{
+    SDL_Renderer* renderer{ m_renderer.get() };
+    SDL_SetRenderDrawColor(renderer, colour.red, colour.green, colour.blue, colour.alpha);
+    SDL_RenderClear(renderer);
 }
 
 void Renderer::drawGrid(const int pixelWidth, const int pixelHeight, int horizontalPixelAmount, int verticalPixelAmount)
 {
+    Colour::RGBA gridColour{ m_displaySettings -> gridColour };
+    SDL_SetRenderDrawColor(m_renderer.get(), gridColour.red, gridColour.green, gridColour.blue, gridColour.alpha);
+
+    int frameWidth{ m_displaySettings -> mainWindowWidth };
+    int frameHeight{ m_displaySettings -> mainWindowHeight };
+
+    if (m_displaySettings->renderGameToImGuiWindow)
+    {
+        SDL_SetRenderTarget(m_renderer.get(), m_currentGameFrame.get());
+        frameWidth = m_displaySettings -> gameDisplayTextureWidth;
+        frameHeight = m_displaySettings -> gameDisplayTextureHeight;
+    }
+
     SDL_Renderer* renderer{ m_renderer.get() };
-    // Draw vertical lines
     for (int i{ 0 }; i < horizontalPixelAmount ; ++i)
     {
         int xCoord{ i * pixelWidth };
-        SDL_RenderDrawLine(renderer, xCoord, 0, xCoord, m_height);
+        SDL_RenderDrawLine(renderer, xCoord, 0, xCoord, frameHeight);
     }
+    SDL_RenderDrawLine(renderer, 0, frameHeight-1, frameWidth, frameHeight-1);
 
-    // Draw horizontal lines
     for (int i{ 0 }; i < verticalPixelAmount; ++i)
     {
         int yCoord{ i * pixelHeight };
-        SDL_RenderDrawLine(renderer, 0, yCoord, m_width, yCoord);
+        SDL_RenderDrawLine(renderer, 0, yCoord, frameWidth, yCoord);
+    }
+    SDL_RenderDrawLine(renderer, frameWidth-1, 0, frameWidth-1, frameHeight);
+
+    if (m_displaySettings->renderGameToImGuiWindow)
+    {
+        SDL_SetRenderTarget(m_renderer.get(), nullptr);
     }
 }
 
 void Renderer::drawTextAt(const std::string_view text, const int xPos, const int yPos)
 {
-    SDL_Renderer* renderer{ m_renderer.get() };
-
-    // Font by: Mark Simonsom. Name: "Anonymous". Source: https://www.fontsquirrel.com/fonts/list/classification/monospaced
-    TTF_Font* font = TTF_OpenFont("assets/fonts/anonymous.ttf", 24);
-
-    if (!font)
+    if (m_displaySettings->renderGameToImGuiWindow)
     {
-        std::cerr << "Font error: " << TTF_GetError() << std::endl;
-        std::exit(1);
+        SDL_SetRenderTarget(m_renderer.get(), m_currentGameFrame.get());
     }
 
-    // as TTF_RenderText_Solid could only be used on
-    // SDL_Surface then you have to create the surface first
+    SDL_Surface* textSurface{ TTF_RenderText_Solid(m_defaultFont.get(), text.data(), {0,0xFF,0, 0xFF}) };
 
-    SDL_Color textColour = Colour::colours[Colour::darkGreen];
+    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(m_renderer.get(), textSurface);
 
-    SDL_Surface* textSurface{ TTF_RenderText_Solid(font, text.data(), {0,0xff,0}) };
-
-    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
-
-    // For some reason this function makes use of out parameters. Passing in a pointer to our
-    // width and height will alter their values to represent the "intended" size of the text. Why is this library so esoteric? 
     int textWidth{};
     int textHeight{};
-    TTF_SizeText(font, text.data(), &textWidth, &textHeight);
+    TTF_SizeText(m_defaultFont.get(), text.data(), &textWidth, &textHeight);
 
     SDL_Rect textRect{ xPos, yPos, textWidth, textHeight };
 
-    SDL_RenderCopy(renderer, textTexture, nullptr, &textRect);
+    SDL_RenderCopy(m_renderer.get(), textTexture, nullptr, &textRect);
+
     SDL_FreeSurface(textSurface);
     SDL_DestroyTexture(textTexture);
+
+    if (m_displaySettings->renderGameToImGuiWindow)
+    {
+        SDL_SetRenderTarget(m_renderer.get(), nullptr);
+    }
+}
+
+void Renderer::renderPixel(const Pixel &pixel) const
+{
+    if (m_displaySettings->renderGameToImGuiWindow)
+    {
+        SDL_SetRenderTarget(m_renderer.get(), m_currentGameFrame.get());
+    }
+
+    SDL_SetRenderDrawColor(m_renderer.get(),
+        pixel.colour.red, pixel.colour.green, pixel.colour.blue, pixel.colour.alpha);
+
+    SDL_RenderFillRect(m_renderer.get(), &pixel.rect);
+
+    if (m_displaySettings->renderGameToImGuiWindow)
+    {
+        SDL_SetRenderTarget(m_renderer.get(), nullptr);
+    }
 }
 
 
