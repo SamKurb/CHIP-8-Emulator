@@ -29,6 +29,8 @@ set(OTHER_SOURCES
         include/sdlinitexception.h
         include/badopcodeexception.h
         include/fileinputexception.h
+        src/frametimer.cpp
+        include/frametimer.h
 )
 
 add_executable(${PROJECT_NAME} ${MAIN_SOURCES} ${OTHER_SOURCES})

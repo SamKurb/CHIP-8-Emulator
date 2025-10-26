@@ -18,6 +18,7 @@
 #include "imguirenderer.h"
 
 #include "frameinfo.h"
+#include "frametimer.h"
 
 #include "sdlinitexception.h"
 #include "fileinputexception.h"
@@ -80,8 +81,6 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
 {
     Chip8 chip{};
 
-
-
     std::shared_ptr<DisplaySettings> displaySettings{ std::make_unique<DisplaySettings>() };
 
     std::unique_ptr<Renderer> renderer{};
@@ -105,15 +104,13 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
 
     std::string messageToDisplayIfNotRunning {"No ROM loaded. Open menu to load ROM." };
 
-    FrameInfo frameInfo{};
-
+    FrameTimer frameTimer{ displaySettings->targetFPS };
     bool userHasQuit{ false };
     while (!userHasQuit)
     {
+        frameTimer.startFrameTiming();
         // For a target fps of 60 this will be 16ms (rounded down because it is an int), so we will actually be rendering roughly 62-63 frames rather than 60
-        const uint32_t targetFrameDelayMs{ 1000u / Utility::toU32(displaySettings -> targetFPS) };
 
-        frameInfo.startTimeMs = SDL_GetTicks();
         inputHandler.resetSystemKeysState();
 
         if (chip.isRomLoaded())
@@ -212,14 +209,6 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
             chip.setPrevFrameInputs();
         }
 
-        const uint64_t totalInstructionsExecutedAfterFrame{ chip.getNumInstructionsExecuted() };
-
-        const uint64_t numInstructionsExecutedThisFrame{
-            totalInstructionsExecutedAfterFrame - totalInstructionsExecutedBeforeFrame
-        };
-
-        frameInfo.numInstructionsExecuted = numInstructionsExecutedThisFrame;
-
         renderer->clearDisplay();
 
         if (chip.isRomLoaded())
@@ -242,21 +231,21 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
             displaySettings -> showDebugWindows = !displaySettings -> showDebugWindows;
         }
 
-        frameInfo.endTimeMs = SDL_GetTicks();
-        frameInfo.timeElapsedMs = frameInfo.endTimeMs - frameInfo.startTimeMs;
+        frameTimer.endFrameTiming();
         /*
         Frames may process faster than the target frametime, so we delay to make
         sure that we only move on to the next frame when enough time has passed
         */
-        if (frameInfo.timeElapsedMs < targetFrameDelayMs)
-        {
-            Uint32 timeToWaitMs{ targetFrameDelayMs - frameInfo.timeElapsedMs };
-            SDL_Delay(timeToWaitMs);
+        frameTimer.delayToReachTargetFrameTime();
+        FrameInfo frameInfo { frameTimer.getFrameInfo() };
 
-            frameInfo.timeElapsedMs += timeToWaitMs;
-        }
+        const uint64_t totalInstructionsExecutedAfterFrame{ chip.getNumInstructionsExecuted() };
 
-        frameInfo.fps = (frameInfo.timeElapsedMs > 0) ? (1000.0f / static_cast<float>(frameInfo.timeElapsedMs)) : 0.0f;
+        const uint64_t numInstructionsExecutedThisFrame{
+            totalInstructionsExecutedAfterFrame - totalInstructionsExecutedBeforeFrame
+        };
+
+        frameInfo.numInstructionsExecuted = numInstructionsExecutedThisFrame;
 
         if (displaySettings -> showDebugWindows)
         {

@@ -53,7 +53,7 @@ void ImguiRenderer::drawGeneralInfoWindow(
     ImGui::Begin("Emulator Info");
 
     ImGui::Text("FPS: %.1f", frameInfo.fps);
-    ImGui::Text("Frame Time: %.1dms", frameInfo.timeElapsedMs);
+    ImGui::Text("Frame Time: %.1dms", frameInfo.frameTimeMs);
 
     ImGui::Text("Sound timer: %d", soundTimer);
 
