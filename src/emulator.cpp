@@ -17,7 +17,7 @@
 
 Emulator::Emulator()
 : m_chip{ std::make_unique<Chip8>() }
-, m_stateManager{ std::make_unique<StateManager>() }
+, m_stateManager{}
 , m_displaySettings{ std::make_shared<DisplaySettings>() }
 , m_isRunning{ true }
 , m_numInstrExecutedThisFrame{ 0 }
@@ -26,10 +26,10 @@ Emulator::Emulator()
     initialiseMainRenderer();
     initialiseGUIRenderer();
 
-    m_inputHandler = std::make_unique<InputHandler>();
+    m_inputHandler = InputHandler();
     m_audioPlayer = std::make_unique<AudioPlayer>("assets/beep.wav");
 
-    m_frameTimer = std::make_unique<FrameTimer>(m_displaySettings->targetFPS);
+    m_frameTimer = FrameTimer(m_displaySettings->targetFPS);
 }
 
 Emulator::~Emulator() = default;
@@ -52,23 +52,23 @@ void Emulator::initialiseGUIRenderer()
 
 void Emulator::processInputs()
 {
-    m_inputHandler->resetSystemKeysState();
+    m_inputHandler.resetSystemKeysState();
 
     if (m_chip->isRomLoaded())
     {
-        m_inputHandler->readChipAndSystemInputs(*m_chip);
+        m_inputHandler.readChipAndSystemInputs(*m_chip);
     }
     else
     {
-        m_inputHandler->readSystemInputs();
+        m_inputHandler.readSystemInputs();
     }
 
-    if (m_inputHandler->isSystemKeyPressed(InputHandler::K_QUIT))
+    if (m_inputHandler.isSystemKeyPressed(InputHandler::K_QUIT))
     {
         m_isRunning = false;
     }
 
-    if (m_inputHandler-> isSystemKeyPressed(InputHandler::K_TOGGLE_DEBUG_WINDOWS))
+    if (m_inputHandler.isSystemKeyPressed(InputHandler::K_TOGGLE_DEBUG_WINDOWS))
     {
         m_displaySettings->showDebugWindows = !(m_displaySettings->showDebugWindows);
     }
@@ -76,28 +76,28 @@ void Emulator::processInputs()
 
 void Emulator::handleEmulatorStateTransitions()
 {
-    const bool activateDebugPressed{ m_inputHandler->isSystemKeyPressed(InputHandler::K_ACTIVATE_DEBUG) };
+    const bool activateDebugPressed{ m_inputHandler.isSystemKeyPressed(InputHandler::K_ACTIVATE_DEBUG) };
     if (activateDebugPressed)
     {
-        m_stateManager->tryTransitionTo(StateManager::debug);
+        m_stateManager.tryTransitionTo(StateManager::debug);
     }
 
-    const bool deactivateDebugPressed{ m_inputHandler->isSystemKeyPressed(InputHandler::K_DEACTIVATE_DEBUG) };
+    const bool deactivateDebugPressed{ m_inputHandler.isSystemKeyPressed(InputHandler::K_DEACTIVATE_DEBUG) };
     if (deactivateDebugPressed)
     {
-        m_stateManager->tryTransitionTo(StateManager::running);
+        m_stateManager.tryTransitionTo(StateManager::running);
     }
 
-    const bool activateStepPressed{ m_inputHandler->isSystemKeyPressed(InputHandler::K_ACTIVATE_STEP) };
+    const bool activateStepPressed{ m_inputHandler.isSystemKeyPressed(InputHandler::K_ACTIVATE_STEP) };
     if (activateStepPressed)
     {
-        m_stateManager->tryTransitionTo(StateManager::step);
+        m_stateManager.tryTransitionTo(StateManager::step);
     }
 
-    const bool activateManualPressed{ m_inputHandler->isSystemKeyPressed(InputHandler::K_ACTIVATE_MANUAL) };
+    const bool activateManualPressed{ m_inputHandler.isSystemKeyPressed(InputHandler::K_ACTIVATE_MANUAL) };
     if (activateManualPressed)
     {
-        m_stateManager->tryTransitionTo(StateManager::manual);
+        m_stateManager.tryTransitionTo(StateManager::manual);
     }
 }
 
@@ -162,37 +162,37 @@ void Emulator::executeChipInstructions()
 {
     try
     {
-        if (m_stateManager->getCurrentState() == StateManager::State::running)
+        if (m_stateManager.getCurrentState() == StateManager::State::running)
         {
             int numInstructionsToExecute { calculateNumInstructionsNeededForFrame() };
             m_chip->executeInstructions(numInstructionsToExecute);
         }
-        else if (m_stateManager->getCurrentState() == StateManager::State::debug)
+        else if (m_stateManager.getCurrentState() == StateManager::State::debug)
         {
             // Debug mode - Allows user to pause the program and step through it instruction by instruction or frame by frame. Inputs are still processed during this, so that the
             // User can input things while debugging. Need to hold down the buttons while stepping for that input to be processed
 
-            if (m_stateManager->getCurrentDebugMode() != StateManager::DebugMode::step
-                && m_inputHandler->isSystemKeyPressed(InputHandler::K_ACTIVATE_STEP))
+            if (m_stateManager.getCurrentDebugMode() != StateManager::DebugMode::step
+                && m_inputHandler.isSystemKeyPressed(InputHandler::K_ACTIVATE_STEP))
             {
-                m_stateManager->tryTransitionTo(StateManager::DebugMode::step);
+                m_stateManager.tryTransitionTo(StateManager::DebugMode::step);
             }
 
-            if (m_stateManager->getCurrentDebugMode() != StateManager::DebugMode::manual
-                && m_inputHandler->isSystemKeyPressed(InputHandler::K_ACTIVATE_MANUAL))
+            if (m_stateManager.getCurrentDebugMode() != StateManager::DebugMode::manual
+                && m_inputHandler.isSystemKeyPressed(InputHandler::K_ACTIVATE_MANUAL))
             {
-                m_stateManager->tryTransitionTo(StateManager::DebugMode::manual);
+                m_stateManager.tryTransitionTo(StateManager::DebugMode::manual);
             }
 
-            if (m_stateManager->getCurrentDebugMode() == StateManager::step
-                && m_inputHandler->isSystemKeyPressed(InputHandler::K_NEXT_FRAME))
+            if (m_stateManager.getCurrentDebugMode() == StateManager::step
+                && m_inputHandler.isSystemKeyPressed(InputHandler::K_NEXT_FRAME))
             {
                 int numInstructionsToExecute{ calculateNumInstructionsNeededForFrame() };
                 m_chip->executeInstructions(numInstructionsToExecute);
             }
 
-            if (m_stateManager->getCurrentDebugMode() == StateManager::manual
-                && m_inputHandler->isSystemKeyPressed(InputHandler::K_NEXT_INSTRUCTION))
+            if (m_stateManager.getCurrentDebugMode() == StateManager::manual
+                && m_inputHandler.isSystemKeyPressed(InputHandler::K_NEXT_INSTRUCTION))
             {
                 m_chip->performFDECycle();
             }
@@ -212,12 +212,12 @@ void Emulator::render()
     {
         m_renderer->drawChipScreenBufferToFrame(m_chip->getScreenBuffer());
 
-        if (m_stateManager->getCurrentState() == StateManager::debug)
+        if (m_stateManager.getCurrentState() == StateManager::debug)
         {
             constexpr int xPos{ 10 };
             constexpr int yPos{ 10 };
 
-            StateManager::DebugMode debugMode{ m_stateManager->getCurrentDebugMode() };
+            StateManager::DebugMode debugMode{ m_stateManager.getCurrentDebugMode() };
             if (debugMode == StateManager::DebugMode::step)
             {
                 m_renderer->drawTextAt("STEP MODE ON", xPos, yPos);
@@ -237,7 +237,7 @@ void Emulator::render()
     {
         try
         {
-            FrameInfo frameInfo { m_frameTimer->getFrameInfo() };
+            FrameInfo frameInfo { m_frameTimer.getFrameInfo() };
             frameInfo.numInstructionsExecuted = m_numInstrExecutedThisFrame;
 
             int targetFPSBeforeUserInput{ m_displaySettings->targetFPS };
@@ -246,7 +246,7 @@ void Emulator::render()
                 m_displaySettings,
                 *m_renderer,
                 *m_chip,
-                *m_stateManager,
+                m_stateManager,
                 frameInfo,
                 m_audioPlayer->isAudioLoaded()
             );
@@ -256,7 +256,7 @@ void Emulator::render()
             bool targetFPSChanged{ targetFPSAfterUserInput != targetFPSBeforeUserInput };
             if (targetFPSChanged)
             {
-                m_frameTimer->setTargetFPS(targetFPSAfterUserInput);
+                m_frameTimer.setTargetFPS(targetFPSAfterUserInput);
             }
         }
         catch (const FileInputException& exception)
@@ -270,15 +270,15 @@ void Emulator::render()
 
 void Emulator::updateFrameTimingInfo()
 {
-    m_frameTimer->endFrameTiming();
-    m_frameTimer->delayToReachTargetFrameTime();
+    m_frameTimer.endFrameTiming();
+    m_frameTimer.delayToReachTargetFrameTime();
 }
 
 void Emulator::run()
 {
     while (m_isRunning)
     {
-        m_frameTimer->startFrameTiming();
+        m_frameTimer.startFrameTiming();
 
         const uint64_t totalInstrExecutedBeforeFrame{ m_chip->getNumInstructionsExecuted() };
 

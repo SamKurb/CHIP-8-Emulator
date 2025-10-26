@@ -12,6 +12,7 @@ class FrameTimer
 {
 public:
     explicit FrameTimer(const int targetFPS);
+    FrameTimer();
 
     void startFrameTiming();
     void endFrameTiming();

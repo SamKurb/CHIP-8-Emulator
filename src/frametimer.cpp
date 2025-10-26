@@ -14,6 +14,11 @@ FrameTimer::FrameTimer(const int targetFPS)
 {
 }
 
+FrameTimer::FrameTimer()
+: FrameTimer(60)
+{
+}
+
 void FrameTimer::startFrameTiming()
 {
     m_startTimeMs = SDL_GetTicks();

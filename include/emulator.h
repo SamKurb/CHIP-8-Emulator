@@ -4,16 +4,18 @@
 #include <cstdint>
 #include <memory>
 
+#include "frametimer.h"
+#include "displaysettings.h"
+#include "statemanager.h"
+#include "inputhandler.h"
+
 class Renderer;
 class ImguiRenderer;
 struct DisplaySettings;
-class FrameTimer;
 
 class Chip8;
 class AudioPlayer;
-class InputHandler;
 
-class StateManager;
 class BadOpcodeException;
 class FileInputException;
 
@@ -54,10 +56,12 @@ private:
     std::unique_ptr<Renderer> m_renderer{};
     std::unique_ptr<ImguiRenderer> m_imguiRenderer{};
 
-    std::unique_ptr<FrameTimer> m_frameTimer{};
+    FrameTimer m_frameTimer{ 60 };
+    InputHandler m_inputHandler{};
+    StateManager m_stateManager{};
+
+
     std::unique_ptr<AudioPlayer> m_audioPlayer{};
-    std::unique_ptr<InputHandler> m_inputHandler{};
-    std::unique_ptr<StateManager> m_stateManager{};
     std::shared_ptr<DisplaySettings> m_displaySettings{};
 
     bool m_isRunning{};
