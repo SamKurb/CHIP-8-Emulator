@@ -95,6 +95,9 @@ public:
     void loadFile(const std::string& name);
 
     void performFDECycle();
+    void executeInstructions(int count);
+
+
     void decrementTimers();
 
     void setKeyUp(std::size_t key);

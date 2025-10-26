@@ -243,6 +243,20 @@ void Chip8::performFDECycle()
     decodeAndExecute(opcode);
 }
 
+void Chip8::executeInstructions(int count)
+{
+    for (int i{ 0 } ; i < count ; ++i)
+    {
+        performFDECycle();
+
+        if (m_isQuirkEnabled.displayWait && executedDXYN())
+        {
+            resetDXYNFlag();
+            break;
+        }
+    }
+}
+
 /*
     All opcodes in the order they are mentioned in:
     The wikipedia page: https://en.wikipedia.org/wiki/CHIP-8

@@ -23,31 +23,6 @@
 #include "sdlinitexception.h"
 #include "fileinputexception.h"
 
-void executeInstructionsForFrame(Chip8& chip, const int targetFPS)
-{
-    int numInstructionsForThisFrame{ 1 };
-    if (chip.getTargetNumInstrPerSecond() >= targetFPS)
-    {
-        numInstructionsForThisFrame = chip.getTargetNumInstrPerSecond() / targetFPS;
-    }
-    else if (chip.getTargetNumInstrPerSecond() <= 0)
-    {
-        numInstructionsForThisFrame = 0;
-    }
-
-    for (int i = 0; i < numInstructionsForThisFrame; ++i)
-    {
-        chip.performFDECycle();
-
-        const Chip8::QuirkFlags& isQuirkEnabled{ chip.getEnabledQuirks() };
-
-        if (isQuirkEnabled.displayWait && chip.executedDXYN())
-        {
-            chip.resetDXYNFlag();
-            break;
-        }
-    }
-}
 
 void drawDebugTextBasedOnMode(const StateManager::DebugMode mode, Renderer& renderer)
 {
@@ -75,6 +50,18 @@ void updateDebugModeBasedOnInput(StateManager& stateManager, const InputHandler&
     {
         stateManager.changeDebugModeTo(StateManager::DebugMode::manual);
     }
+}
+
+int calculateHowManyInstrForFrameNeeded(int instructionsPerSecond, int targetFPS) {
+    if (instructionsPerSecond <= 0)
+    {
+        return 0;
+    }
+    if (instructionsPerSecond < targetFPS)
+    {
+        return 1;
+    }
+    return instructionsPerSecond / targetFPS;
 }
 
 int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
@@ -148,7 +135,11 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
             {
                 try
                 {
-                    executeInstructionsForFrame(chip, displaySettings -> targetFPS);
+                    int numInstructionsToExecute{calculateHowManyInstrForFrameNeeded(
+                        chip.getTargetNumInstrPerSecond(),
+                        displaySettings->targetFPS
+                    )};
+                    chip.executeInstructions(numInstructionsToExecute);
                 }
                 catch (const BadOpcodeException& exception)
                 {
@@ -168,7 +159,11 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char* args[])
                 {
                     try
                     {
-                        executeInstructionsForFrame(chip, displaySettings -> targetFPS);
+                        int numInstructionsToExecute{calculateHowManyInstrForFrameNeeded(
+                        chip.getTargetNumInstrPerSecond(),
+                        displaySettings->targetFPS
+                    )};
+                        chip.executeInstructions(numInstructionsToExecute);
                     }
                     catch (const BadOpcodeException& exception)
                     {
