@@ -34,6 +34,7 @@ set(OTHER_SOURCES
         src/statemanager.cpp
         include/emulator.h
         src/emulator.cpp
+        include/enumarray.h
 )
 
 add_executable(${PROJECT_NAME} ${MAIN_SOURCES} ${OTHER_SOURCES})

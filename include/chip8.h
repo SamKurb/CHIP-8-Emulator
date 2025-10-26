@@ -1,6 +1,7 @@
 #ifndef CHIP8_H
 #define CHIP8_H
 
+
 #include <cstdint>
 #include <cassert>
 
@@ -12,9 +13,32 @@
 #include "utility.h"
 #include "random.h"
 
+#include "enumarray.h"
+
 class Chip8
 {
 public:
+    enum class KeyInputs
+    {
+        K_0,
+        K_1,
+        K_2,
+        K_3,
+        K_4,
+        K_5,
+        K_6,
+        K_7,
+        K_8,
+        K_9,
+        K_A,
+        K_B,
+        K_C,
+        K_D,
+        K_E,
+        K_F,
+        MAX_VALUE,
+    };
+
     struct QuirkFlags
     {
         bool resetVF{};
@@ -84,7 +108,8 @@ public:
     std::array<uint8_t, 16> getRegisterContents() const;
     uint16_t getPCAddress() const;
     uint16_t getIndexRegisterContents() const;
-    std::array<bool, 16> getKeysDownThisFrame() const;
+
+    EnumArray<KeyInputs, bool> getKeysDownThisFrame() const;
 
     const std::vector<uint16_t>& getStackContents() const;
 
@@ -99,8 +124,8 @@ public:
 
     void decrementTimers();
 
-    void setKeyUp(std::size_t key);
-    void setKeyDown(std::size_t key);
+    void setKeyUp(KeyInputs key);
+    void setKeyDown(KeyInputs key);
     void setPrevFrameInputs();
 
     // We increment by 2 because memeory is 1 bytes per location but instructions are 2 bytes each, so to get to the next instruction PC needs to be icremeneted by 2 rather than 1
@@ -131,7 +156,7 @@ private:
     bool wasKeyReleasedThisFrame() const;
 
     // Returns the *first* key it finds that was pressed down last frame and released this frame
-    uint8_t findKeyReleasedThisFrame() const;
+    KeyInputs findKeyReleasedThisFrame() const;
 
     // Opcodes
     void op00E0();
@@ -200,7 +225,7 @@ private:
 
     // Input handling
     bool isAKeyPressed();
-    uint8_t findFirstPressedKey();
+    Chip8::KeyInputs findFirstPressedKey();
 
     void loadFonts(const uint16_t startLocation);
 
@@ -223,8 +248,8 @@ private:
     Array2DU8 <InitialConfig::numPixelsVertically, InitialConfig::numPixelsHorizontally> m_screen{};
 
     // Need to keep track of inputs from both current and last frame so that we can detect when a key was released
-    std::array<bool, 16> m_keyDownThisFrame{};
-    std::array<bool, 16> m_keyDownLastFrame{};
+    EnumArray<KeyInputs, bool> m_keyDownThisFrame{};
+    EnumArray<KeyInputs, bool> m_keyDownLastFrame{};
 
     uint16_t m_width{ InitialConfig::numPixelsHorizontally };
     uint16_t m_height{ InitialConfig::numPixelsVertically };

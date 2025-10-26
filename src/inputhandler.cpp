@@ -30,37 +30,40 @@ void InputHandler::checkForChipInput(const SDL_Event& event, Chip8& chip)
 {
     if (event.type == SDL_KEYDOWN)
     {
-        for (std::size_t i{ 0 }; i < numChipKeys; ++i)
+        auto iteratorAtValidKey { std::find(chipKeyMap.begin(), chipKeyMap.end(), event.key.keysym.scancode) };
+        if (iteratorAtValidKey != chipKeyMap.end())
         {
-            if (event.key.keysym.scancode == chipKeyMap[i])
-            {
-                chip.setKeyDown(i);
-            }
+            auto keyIndex{ std::distance(chipKeyMap.begin(), iteratorAtValidKey) };
+            Chip8::KeyInputs keyInput { static_cast<Chip8::KeyInputs>(keyIndex) };
+
+            chip.setKeyDown(keyInput);
         }
     }
     else if (event.type == SDL_KEYUP)
     {
-        for (std::size_t i{ 0 }; i < numChipKeys; ++i)
+        auto iteratorAtValidKey { std::find(chipKeyMap.begin(), chipKeyMap.end(), event.key.keysym.scancode) };
+        if (iteratorAtValidKey != chipKeyMap.end())
         {
-            if (event.key.keysym.scancode == chipKeyMap[i])
-            {
-                chip.setKeyUp(i);
-            }
+            auto keyIndex{ std::distance(chipKeyMap.begin(), iteratorAtValidKey) };
+            Chip8::KeyInputs keyInput { static_cast<Chip8::KeyInputs>(keyIndex) };
+
+            chip.setKeyUp(keyInput);
         }
     }
 }
 
 void InputHandler::checkForSystemInput(const SDL_Event event)
 {
-    if (event.type == SDL_QUIT) { m_isSystemKeyPressed[K_QUIT] = true; }
+    if (event.type == SDL_QUIT) { m_isSystemKeyPressed[SystemKeyInputs::K_QUIT] = true; }
     if (event.type != SDL_KEYDOWN) { return; }
 
-    for (std::size_t i{ 0 }; i < numSystemKeys; ++i)
+    auto iteratorAtValidKey { std::find(systemKeyMap.begin(), systemKeyMap.end(), event.key.keysym.scancode) };
+    if (iteratorAtValidKey != systemKeyMap.end())
     {
-        if (event.key.keysym.scancode == systemKeyMap[i])
-        {
-            m_isSystemKeyPressed[i] = true;
-        }
+        auto keyIndex{ std::distance(systemKeyMap.begin(), iteratorAtValidKey) };
+        SystemKeyInputs keyInput { static_cast<SystemKeyInputs>(keyIndex) };
+
+        m_isSystemKeyPressed[keyInput] = true;
     }
 }
 

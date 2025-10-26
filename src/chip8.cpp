@@ -3,6 +3,7 @@
 #include "fileinputexception.h"
 #include <ranges>
 #include <algorithm>
+#include <utility>
 
 Chip8::Chip8(const QuirkFlags& quirks)
 : m_fontsLocation{ InitialConfig::fontsStartLocation }
@@ -41,7 +42,7 @@ std::array<uint8_t, 4096> Chip8::getMemoryContents() const { return m_memory; }
 std::array<uint8_t, 16> Chip8::getRegisterContents() const { return m_registers; }
 uint16_t Chip8::getPCAddress() const { return m_pc; }
 uint16_t Chip8::getIndexRegisterContents() const { return m_indexReg; }
-std::array<bool, 16> Chip8::getKeysDownThisFrame() const { return m_keyDownThisFrame; };
+EnumArray<Chip8::KeyInputs, bool> Chip8::getKeysDownThisFrame() const { return m_keyDownThisFrame; };
 
 const std::vector<uint16_t>& Chip8::getStackContents() const { return m_stack; }
 
@@ -229,20 +230,20 @@ bool Chip8::wasKeyReleasedThisFrame() const
     return false;
 }
 
-uint8_t Chip8::findKeyReleasedThisFrame() const
+Chip8::KeyInputs Chip8::findKeyReleasedThisFrame() const
 {
-    for (std::size_t i{ 0 }; i < std::size(m_keyDownThisFrame); ++i)
+    auto currAndLastFrameKeyStates { std::views::zip(m_keyDownThisFrame.data(), m_keyDownLastFrame.data()) };
+    for (auto [index, prevAndCurrKeyState] : std::views::enumerate(currAndLastFrameKeyStates))
     {
-        const bool keyUpThisFrame{ !m_keyDownThisFrame[i] };
-        const bool keyDownLastFrame{ m_keyDownLastFrame[i] };
-
-        if (keyDownLastFrame && keyUpThisFrame)
+        auto [isKeyDownThisFrame, wasKeyDownLastFrame] { prevAndCurrKeyState };
+        const bool isKeyUpThisFrame{ !isKeyDownThisFrame };
+        if (wasKeyDownLastFrame && isKeyUpThisFrame)
         {
-            return Utility::toU8(i);
+            return static_cast<KeyInputs>(index);
         }
     }
     assert(false && "Chip8::findKeyReleasedThisFrame called in context where a key was not released");
-    return 0x10;
+    return KeyInputs::K_A;
 }
 
 void Chip8::decrementTimers()
@@ -661,7 +662,8 @@ void Chip8::opEX9E(const uint16_t opcode)
     const uint8_t keyToCheck{ m_registers[regX] };
     const uint8_t keyToCheckSanitised{ Utility::toU8(keyToCheck & 0x0F) };
 
-    if (m_keyDownThisFrame[keyToCheckSanitised])
+    const KeyInputs keyInput{ static_cast<KeyInputs>(keyToCheckSanitised) };
+    if (m_keyDownThisFrame[keyInput])
     {
         incrementPC();
     }
@@ -674,7 +676,8 @@ void Chip8::opEXA1(const uint16_t opcode)
     const uint8_t keyToCheck{ m_registers[regX] };
     const uint8_t keyToCheckSanitised{ Utility::toU8(keyToCheck & 0x0F) };
 
-    if (!m_keyDownThisFrame[keyToCheckSanitised])
+    const KeyInputs keyInput{ static_cast<KeyInputs>(keyToCheckSanitised) };
+    if (!m_keyDownThisFrame[keyInput])
     {
         incrementPC();
     }
@@ -696,11 +699,9 @@ void Chip8::opFX0A(const uint16_t opcode)
     }
 
     const uint16_t regX{ extractX(opcode) };
-    const uint8_t key{ findKeyReleasedThisFrame() };
+    const KeyInputs keyReleased{ findKeyReleasedThisFrame() };
 
-    assert(key != 0x10);
-
-    m_registers[regX] = key;
+    m_registers[regX] = Utility::toU8(std::to_underlying(keyReleased));
 }
 
 void Chip8::opFX15(const uint16_t opcode)
@@ -861,14 +862,27 @@ void Chip8::printScreenBuffer()
     }
 }
 
-void Chip8::setKeyDown(std::size_t key)
+void Chip8::setKeyDown(KeyInputs key)
 {
     m_keyDownThisFrame[key] = true;
 }
 
-void Chip8::setKeyUp(std::size_t key)
+void Chip8::setKeyUp(KeyInputs key)
 {
     m_keyDownThisFrame[key] = false;
+}
+
+Chip8::KeyInputs Chip8::findFirstPressedKey()
+{
+    for (const auto& [key, isKeyDown] : std::views::enumerate(m_keyDownLastFrame))
+    {
+        if (isKeyDown)
+        {
+            return static_cast<KeyInputs>(key);
+        }
+    }
+    assert(false && "Chip8::findFirstPressedKey() called in "
+                     "context where no key was pressed -> likely bug in input handling");
 }
 
 bool Chip8::isAKeyPressed()
@@ -879,16 +893,4 @@ bool Chip8::isAKeyPressed()
 void Chip8::setPrevFrameInputs()
 {
     m_keyDownLastFrame = m_keyDownThisFrame;
-}
-
-uint8_t Chip8::findFirstPressedKey()
-{
-    for (uint8_t key{ 0x0 }; key <= 0xF; ++key)
-    {
-        if (m_keyDownThisFrame[key])
-        {
-            return key;
-        }
-    }
-    return 0x10;
 }

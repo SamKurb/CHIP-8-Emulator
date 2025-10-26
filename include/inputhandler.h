@@ -3,34 +3,14 @@
 
 #include <SDL_events.h>
 #include <array>
+#include "enumarray.h"
 
-class Chip8;
+#include "chip8.h"
 
 class InputHandler
 {
 public:
-    enum ChipKeyInputs
-    {
-        K_0,
-        K_1,
-        K_2,
-        K_3,
-        K_4,
-        K_5,
-        K_6,
-        K_7,
-        K_8,
-        K_9,
-        K_A,
-        K_B,
-        K_C,
-        K_D,
-        K_E,
-        K_F,
-        numChipKeys,
-    };
-   
-    enum SystemKeyInputs
+    enum class SystemKeyInputs
     {
         K_QUIT,
 
@@ -45,7 +25,7 @@ public:
 
         K_DEACTIVATE_DEBUG,
         K_TOGGLE_DEBUG_WINDOWS,
-        numSystemKeys,
+        MAX_VALUE,
     };
 
     void readSystemInputs();
@@ -54,11 +34,12 @@ public:
 
     bool isSystemKeyPressed(const SystemKeyInputs key) const { return m_isSystemKeyPressed[key]; }
 
-    void resetSystemKeysState() { std::fill(m_isSystemKeyPressed.begin(), m_isSystemKeyPressed.end(), false); }
+    void resetSystemKeysState() { std::fill(m_isSystemKeyPressed.begin(),
+                                             m_isSystemKeyPressed.end(), false); }
 
 private:
-    static inline constexpr std::array chipKeyMap {
-                           // Corresponds to...
+    static constexpr EnumArray<Chip8::KeyInputs, SDL_Scancode> chipKeyMap {{
+        // Corresponds to...
         SDL_SCANCODE_X,    // 0 
         SDL_SCANCODE_1,    // 1 
         SDL_SCANCODE_2,    // 2 
@@ -76,11 +57,9 @@ private:
         SDL_SCANCODE_F,    // E
         SDL_SCANCODE_V,    // F
                            // On CHIP-8 hex keypad
-    };
+    }};
 
-    static_assert(std::size(chipKeyMap) == numChipKeys);
-
-    static inline constexpr std::array systemKeyMap {
+    static constexpr EnumArray<SystemKeyInputs, SDL_Scancode> systemKeyMap {{
                               // Corresponds to...
         SDL_SCANCODE_ESCAPE,  // Quit emulator
 
@@ -95,14 +74,12 @@ private:
         SDL_SCANCODE_0,        // Deactivate debug mode
 
         SDL_SCANCODE_G         // Toggle debug windows
-    };
-
-    static_assert(std::size(systemKeyMap) == InputHandler::numSystemKeys);
+    }};
 
     void checkForChipInput(const SDL_Event& event, Chip8& chip);
     void checkForSystemInput(const SDL_Event event);
 
-    std::array<bool, numSystemKeys> m_isSystemKeyPressed{};
+    EnumArray<SystemKeyInputs, bool> m_isSystemKeyPressed{};
 };
 
 #endif

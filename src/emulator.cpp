@@ -63,12 +63,12 @@ void Emulator::processInputs()
         m_inputHandler.readSystemInputs();
     }
 
-    if (m_inputHandler.isSystemKeyPressed(InputHandler::K_QUIT))
+    if (m_inputHandler.isSystemKeyPressed(InputHandler::SystemKeyInputs::K_QUIT))
     {
         m_isRunning = false;
     }
 
-    if (m_inputHandler.isSystemKeyPressed(InputHandler::K_TOGGLE_DEBUG_WINDOWS))
+    if (m_inputHandler.isSystemKeyPressed(InputHandler::SystemKeyInputs::K_TOGGLE_DEBUG_WINDOWS))
     {
         m_displaySettings->showDebugWindows = !(m_displaySettings->showDebugWindows);
     }
@@ -76,25 +76,25 @@ void Emulator::processInputs()
 
 void Emulator::handleEmulatorStateTransitions()
 {
-    const bool activateDebugPressed{ m_inputHandler.isSystemKeyPressed(InputHandler::K_ACTIVATE_DEBUG) };
+    const bool activateDebugPressed{ m_inputHandler.isSystemKeyPressed(InputHandler::SystemKeyInputs::K_ACTIVATE_DEBUG) };
     if (activateDebugPressed)
     {
         m_stateManager.tryTransitionTo(StateManager::debug);
     }
 
-    const bool deactivateDebugPressed{ m_inputHandler.isSystemKeyPressed(InputHandler::K_DEACTIVATE_DEBUG) };
+    const bool deactivateDebugPressed{ m_inputHandler.isSystemKeyPressed(InputHandler::SystemKeyInputs::K_DEACTIVATE_DEBUG) };
     if (deactivateDebugPressed)
     {
         m_stateManager.tryTransitionTo(StateManager::running);
     }
 
-    const bool activateStepPressed{ m_inputHandler.isSystemKeyPressed(InputHandler::K_ACTIVATE_STEP) };
+    const bool activateStepPressed{ m_inputHandler.isSystemKeyPressed(InputHandler::SystemKeyInputs::K_ACTIVATE_STEP) };
     if (activateStepPressed)
     {
         m_stateManager.tryTransitionTo(StateManager::step);
     }
 
-    const bool activateManualPressed{ m_inputHandler.isSystemKeyPressed(InputHandler::K_ACTIVATE_MANUAL) };
+    const bool activateManualPressed{ m_inputHandler.isSystemKeyPressed(InputHandler::SystemKeyInputs::K_ACTIVATE_MANUAL) };
     if (activateManualPressed)
     {
         m_stateManager.tryTransitionTo(StateManager::manual);
@@ -173,26 +173,26 @@ void Emulator::executeChipInstructions()
             // User can input things while debugging. Need to hold down the buttons while stepping for that input to be processed
 
             if (m_stateManager.getCurrentDebugMode() != StateManager::DebugMode::step
-                && m_inputHandler.isSystemKeyPressed(InputHandler::K_ACTIVATE_STEP))
+                && m_inputHandler.isSystemKeyPressed(InputHandler::SystemKeyInputs::K_ACTIVATE_STEP))
             {
                 m_stateManager.tryTransitionTo(StateManager::DebugMode::step);
             }
 
             if (m_stateManager.getCurrentDebugMode() != StateManager::DebugMode::manual
-                && m_inputHandler.isSystemKeyPressed(InputHandler::K_ACTIVATE_MANUAL))
+                && m_inputHandler.isSystemKeyPressed(InputHandler::SystemKeyInputs::K_ACTIVATE_MANUAL))
             {
                 m_stateManager.tryTransitionTo(StateManager::DebugMode::manual);
             }
 
             if (m_stateManager.getCurrentDebugMode() == StateManager::step
-                && m_inputHandler.isSystemKeyPressed(InputHandler::K_NEXT_FRAME))
+                && m_inputHandler.isSystemKeyPressed(InputHandler::SystemKeyInputs::K_NEXT_FRAME))
             {
                 int numInstructionsToExecute{ calculateNumInstructionsNeededForFrame() };
                 m_chip->executeInstructions(numInstructionsToExecute);
             }
 
             if (m_stateManager.getCurrentDebugMode() == StateManager::manual
-                && m_inputHandler.isSystemKeyPressed(InputHandler::K_NEXT_INSTRUCTION))
+                && m_inputHandler.isSystemKeyPressed(InputHandler::SystemKeyInputs::K_NEXT_INSTRUCTION))
             {
                 m_chip->performFDECycle();
             }
