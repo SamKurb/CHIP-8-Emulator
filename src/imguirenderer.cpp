@@ -3,10 +3,10 @@
 #include "imguirenderer.h"
 #include "chip8.h"
 #include "renderer.h"
-#include "displaysettings.h"
-#include "fileinputexception.h"
+#include "../include/types/displaysettings.h"
+#include "../include/exceptions/fileinputexception.h"
 
-#include "frameinfo.h"
+#include "../include/types/frameinfo.h"
 
 #include "ImGuiFileDialog.h"
 #include "imgui_internal.h"

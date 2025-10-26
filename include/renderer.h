@@ -10,10 +10,10 @@
 
 #include <algorithm>
 
-#include "utility.h"
-#include "colour.h"
+#include "utils/utility.h"
+#include "types/colour.h"
 
-#include "displaysettings.h"
+#include "types/displaysettings.h"
 
 class Renderer
 {

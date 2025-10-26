@@ -10,10 +10,10 @@
 #include <array>
 #include <vector>
 
-#include "utility.h"
-#include "random.h"
+#include "utils/utility.h"
+#include "utils/random.h"
 
-#include "enumarray.h"
+#include "types/enumarray.h"
 
 class Chip8
 {
@@ -130,9 +130,6 @@ public:
 
     // We increment by 2 because memeory is 1 bytes per location but instructions are 2 bytes each, so to get to the next instruction PC needs to be icremeneted by 2 rather than 1
     void incrementPC() { m_pc += 2; };
-
-    // For debugging, prints contents of screen buffer to stdout
-    void printScreenBuffer();
 
 private:
     // Given opcode with X, i.e. 0x3XNN, extracts only the X nibble

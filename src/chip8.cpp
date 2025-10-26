@@ -1,6 +1,6 @@
 #include "chip8.h"
-#include "badopcodeexception.h"
-#include "fileinputexception.h"
+#include "../include/exceptions/badopcodeexception.h"
+#include "../include/exceptions/fileinputexception.h"
 #include <ranges>
 #include <algorithm>
 #include <utility>
@@ -784,8 +784,7 @@ void Chip8::opFX65(const uint16_t opcode)
     const uint16_t regX{ extractX(opcode) };
 
     uint16_t currMemLocation{ m_indexReg };
-
-    f
+    
     for (uint16_t currReg{ 0x0 }; currReg <= regX; ++currReg)
     {
         m_registers[currReg] = readMemory(currMemLocation);
@@ -846,22 +845,6 @@ void Chip8::loadFile(const std::string& name)
 
     std::cout << "Done loading\n";
     ROM.close();
-}
-
-// Prints contents of screen buffer For debugging. W for on pixels, whitespace for off. 
-void Chip8::printScreenBuffer()
-{
-    for (auto row : m_screen)
-    {
-        for (auto element : row)
-        {
-            if (element == 1)
-                std::cout << " W";
-            else
-                std::cout << "  ";
-        }
-        std::cout << '\n';
-    }
 }
 
 void Chip8::setKeyDown(KeyInputs key)

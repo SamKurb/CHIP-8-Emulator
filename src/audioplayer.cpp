@@ -1,6 +1,6 @@
 #include "audioplayer.h"
-#include "sdlinitexception.h"
-#include "fileinputexception.h"
+#include "../include/exceptions/sdlinitexception.h"
+#include "../include/exceptions/fileinputexception.h"
 
 AudioPlayer::AudioPlayer(std::string soundFileLocation)
 : m_soundFileLocation{ soundFileLocation }

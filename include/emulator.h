@@ -4,8 +4,8 @@
 #include <cstdint>
 #include <memory>
 
-#include "frametimer.h"
-#include "displaysettings.h"
+#include "utils/frametimer.h"
+#include "types/displaysettings.h"
 #include "statemanager.h"
 #include "inputhandler.h"
 

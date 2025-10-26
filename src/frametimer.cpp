@@ -1,7 +1,7 @@
-#include "frametimer.h"
+#include "../include/utils/frametimer.h"
 
-#include "displaysettings.h"
-#include "frameinfo.h"
+#include "../include/types/displaysettings.h"
+#include "../include/types/frameinfo.h"
 
 FrameTimer::FrameTimer(const int targetFPS)
 : m_actualFPS{ 0.0f }

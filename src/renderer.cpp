@@ -1,6 +1,6 @@
 #include "renderer.h"
-#include "displaysettings.h"
-#include "sdlinitexception.h"
+#include "../include/types/displaysettings.h"
+#include "../include/exceptions/sdlinitexception.h"
 
 Renderer::Renderer()
 : m_defaultDPI(92.0f)

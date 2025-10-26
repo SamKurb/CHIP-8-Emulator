@@ -4,7 +4,7 @@
 #include <memory>
 #include <SDL.h>
 
-#include "displaysettings.h"
+#include "types/displaysettings.h"
 #include "imgui.h"
 #include "imgui_impl_sdlrenderer2.h"
 #include "imgui_impl_sdl2.h"

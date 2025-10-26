@@ -3,7 +3,7 @@
 
 #include <SDL_events.h>
 #include <array>
-#include "enumarray.h"
+#include "types/enumarray.h"
 
 #include "chip8.h"
 

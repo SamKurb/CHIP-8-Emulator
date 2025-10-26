@@ -7,7 +7,7 @@
 
 #include <SDL_pixels.h>
 #include "imgui.h"
-#include "utility.h"
+#include "../utils/utility.h"
 
 namespace Colour
 {

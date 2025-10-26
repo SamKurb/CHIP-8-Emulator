@@ -26,15 +26,15 @@ set(OTHER_SOURCES
     external/imgui/backends/imgui_impl_sdlrenderer2.cpp
 
     external/imgui_file_dialog/ImGuiFileDialog.cpp
-        include/sdlinitexception.h
-        include/badopcodeexception.h
-        include/fileinputexception.h
+        include/exceptions/sdlinitexception.h
+        include/exceptions/badopcodeexception.h
+        include/exceptions/fileinputexception.h
         src/frametimer.cpp
-        include/frametimer.h
+        include/utils/frametimer.h
         src/statemanager.cpp
         include/emulator.h
         src/emulator.cpp
-        include/enumarray.h
+        include/types/enumarray.h
 )
 
 add_executable(${PROJECT_NAME} ${MAIN_SOURCES} ${OTHER_SOURCES})

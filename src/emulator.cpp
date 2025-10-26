@@ -2,18 +2,18 @@
 
 #include "renderer.h"
 #include "imguirenderer.h"
-#include "displaysettings.h"
-#include "frametimer.h"
+#include "../include/types/displaysettings.h"
+#include "../include/utils/frametimer.h"
 #include "chip8.h"
 #include "audioplayer.h"
 #include "inputhandler.h"
 #include "statemanager.h"
 
-#include "frameinfo.h"
+#include "../include/types/frameinfo.h"
 
-#include "sdlinitexception.h"
-#include "fileinputexception.h"
-#include "badopcodeexception.h"
+#include "../include/exceptions/sdlinitexception.h"
+#include "../include/exceptions/fileinputexception.h"
+#include "../include/exceptions/badopcodeexception.h"
 
 Emulator::Emulator()
 : m_chip{ std::make_unique<Chip8>() }
