@@ -49,28 +49,26 @@ void ImguiRenderer::drawGeneralInfoWindow(
 {
     ImGui::Begin("Emulator Info");
 
-    ImGui::Text("FPS: %.1f", frameInfo.fps);
-    ImGui::Text("Frame Time: %.1dms", frameInfo.frameTimeMs);
+    displayText("FPS: {:.1f}", frameInfo.fps);
+    displayText("Frame Time: {}ms", frameInfo.frameTimeMs);
 
-    ImGui::Text("Sound timer: %d", soundTimer);
+    displayText("Sound timer: {}", soundTimer);
 
     StateManager::State currentState { stateManager.getCurrentState() };
 
-    ImGui::Text("Current state: %s", (currentState == StateManager::State::running) ? "Running" : "Debug");
+    displayText("Current state: {}", stateManager.getCurrentStateString());
 
 
     if (currentState == StateManager::State::debug)
     {
         ImGui::SameLine();
-
-        StateManager::DebugMode currentDebugMode { stateManager.getCurrentDebugMode() };
-        ImGui::Text(" - %s", (currentDebugMode == StateManager::DebugMode::manual ? "Manual" : "Step"));
+        displayText(" - {}", stateManager.getCurrentDebugModeString());
     }
 
-    ImGui::Text("Instructions Executed: %ld", numInstructionsExecuted);
-    ImGui::Text("IPF: %ld", frameInfo.numInstructionsExecuted);
+    displayText("Instructions Executed: {}", numInstructionsExecuted);
+    displayText("IPF: {}", frameInfo.numInstructionsExecuted);
 
-    ImGui::Text("Audio status:");
+    displayText("Audio status:");
     ImGui::SameLine();
     if (isAudioLoaded)
     {
@@ -90,7 +88,7 @@ void ImguiRenderer::printRowStartAddress(const std::size_t rowStartAddress,
 {
     if (rowStartAddress >= fontStartAddress && rowStartAddress <= fontEndAddress)
     {
-		ImGui::TextColored(blue, "0x%04lX |", rowStartAddress);
+        ImGui::TextColored(blue, "0x%04lX |", rowStartAddress);
     }
     else if(rowStartAddress >= programStartAddress && rowStartAddress <= programEndAddress)
     {
@@ -98,7 +96,7 @@ void ImguiRenderer::printRowStartAddress(const std::size_t rowStartAddress,
     }
     else
     {
-        ImGui::Text("0x%04lX |", rowStartAddress);
+        displayText("0x{:04X} |", rowStartAddress);
     }
 }
 
@@ -120,11 +118,11 @@ void ImguiRenderer::printASCIIRepresentationOfMemoryRow(const std::array<uint8_t
 
         if (memContentsAtCurrLocation >= validAsciiStart && memContentsAtCurrLocation <= validAsciiEnd)
         {
-            ImGui::Text("%c", memContentsAtCurrLocation);
+            displayText("{:c}", memContentsAtCurrLocation);
         }
         else
         {
-            ImGui::Text("%c", placeHolderForInvalidChar);
+            displayText("{:c}", placeHolderForInvalidChar);
         }
 
     }
@@ -133,12 +131,12 @@ void ImguiRenderer::printASCIIRepresentationOfMemoryRow(const std::array<uint8_t
 void ImguiRenderer::printMemoryRow(const std::array<uint8_t, 4096>& memoryContents, const std::size_t rowStartPos,
                                    const int numBytesToPrint, const Chip8& chip) const
 {
-	const uint16_t currentPCAddress{ chip.getPCAddress() };
-	const uint16_t programStartAddress{ chip.getProgramStartAddress() };
-	const uint16_t programEndAddress{ chip.getProgramEndAddress() };
+    const uint16_t currentPCAddress{ chip.getPCAddress() };
+    const uint16_t programStartAddress{ chip.getProgramStartAddress() };
+    const uint16_t programEndAddress{ chip.getProgramEndAddress() };
 
-	const uint16_t fontStartAddress{ chip.getFontStartAddress() };
-	const uint16_t fontEndAddress{ chip.getFontEndAddress() };
+    const uint16_t fontStartAddress{ chip.getFontStartAddress() };
+    const uint16_t fontEndAddress{ chip.getFontEndAddress() };
 
     printRowStartAddress(rowStartPos, programStartAddress, programEndAddress, fontStartAddress, fontEndAddress);
 
@@ -171,12 +169,12 @@ void ImguiRenderer::printMemoryRow(const std::array<uint8_t, 4096>& memoryConten
         }
         else
         {
-            ImGui::Text("%02X", memContentsAtCurrLocation);
-        } 
+            displayText("{:02X}", memContentsAtCurrLocation);
+        }
     }
 
     ImGui::SameLine();
-	ImGui::Text(" ");
+    displayText(" ");
 
     printASCIIRepresentationOfMemoryRow(memoryContents, rowStartPos, numBytesToPrint);
 }
@@ -194,7 +192,7 @@ void ImguiRenderer::drawMemoryViewerWindow(const Chip8& chip) const
     ImGui::TextColored(red, "Next instruction");
     ImGui::TextColored(green, "Program code");
     ImGui::TextColored(blue, "Font data");
-    ImGui::Text("Unused memory");
+    displayText("Unused memory");
 
     ImGui::SeparatorText("Memory Contents");
 
@@ -218,12 +216,12 @@ void ImguiRenderer::drawRegisterViewerWindow(const Chip8& chip) const
     int numRegistersPlacedInCurrentColumn{ 0 };
     for(unsigned int i{ 0 } ; i < registerContents.size() ; ++i)
     {
-        ImGui::Text("V%X", i);
+        displayText("V{:X}", i);
 
         const uint8_t contentsAtRegister{ registerContents[i] };
 
         ImGui::SameLine();
-        ImGui::Text(".. %02X", contentsAtRegister);
+        displayText(".. {:02X}", contentsAtRegister);
         ++numRegistersPlacedInCurrentColumn;
         ImGui::Dummy(ImVec2(0, 5.0f));
 
@@ -264,15 +262,15 @@ void ImguiRenderer::drawRegisterViewerWindow(const Chip8& chip) const
         float columnCentreXPos { columnStartXPos + (columnWidth / 2.0f) };
 
         ImGui::SetCursorPosX(columnCentreXPos - (textWidth / 2.0f));
-        ImGui::Text("%s\n", currRegName.data());
+        displayText("{}\n", currRegName);
 
         const uint16_t currRegContents{ otherRegisterContents[i] };
 
         ImGui::SetCursorPosX(columnCentreXPos - (textWidth / 2.0f));
-        ImGui::Text("0x%02X\n", currRegContents);
+        displayText("0x{:02X}\n", currRegContents);
 
         ImGui::SetCursorPosX(columnCentreXPos - (textWidth / 2.0f));
-        ImGui::Text("%i", currRegContents);
+        displayText("{}", currRegContents);
 
         ImGui::NextColumn();
     }
@@ -296,7 +294,7 @@ void ImguiRenderer::drawDisplaySettingsWindowAndApplyChanges() const
         m_displaySettings -> renderGameToImGuiWindow = !(m_displaySettings -> renderGameToImGuiWindow);
     }
 
-    ImGui::Text("Off Pixel Colour: ");
+    displayText("Off Pixel Colour: ");
 
     // Unfortunately ColorEdit4 only takes a float array as input, so this is the only easy way to do this
     static ImVec4 bufferedOffPixelColour { m_displaySettings -> offPixelColour };
@@ -306,7 +304,7 @@ void ImguiRenderer::drawDisplaySettingsWindowAndApplyChanges() const
         m_displaySettings -> offPixelColour = bufferedOffPixelColour;
     }
 
-    ImGui::Text("On Pixel Colour: ");
+    displayText("On Pixel Colour: ");
     ImGui::SameLine();
     static ImVec4 bufferedOnPixelColour { m_displaySettings -> onPixelColour };
     if (ImGui::ColorEdit4("On Pixel", (float*) &(bufferedOnPixelColour), ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel))
@@ -314,7 +312,7 @@ void ImguiRenderer::drawDisplaySettingsWindowAndApplyChanges() const
         m_displaySettings -> onPixelColour = bufferedOnPixelColour;
     }
 
-    ImGui::Text("Grid Colour: ");
+    displayText("Grid Colour: ");
     ImGui::SameLine();
     static ImVec4 bufferedGridColour { m_displaySettings -> gridColour };
     if (ImGui::ColorEdit4("Grid Colour", (float*) &(bufferedGridColour), ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel))
@@ -322,7 +320,7 @@ void ImguiRenderer::drawDisplaySettingsWindowAndApplyChanges() const
         m_displaySettings -> gridColour = bufferedGridColour;
     }
 
-    ImGui::Text("Target FPS:   ");
+    displayText("Target FPS:   ");
     ImGui::SameLine();
 
     constexpr int minFPS { 30 };
@@ -335,7 +333,7 @@ void ImguiRenderer::drawDisplaySettingsWindowAndApplyChanges() const
         }
     }
 
-    ImGui::Text("UI Text Scale:");
+    displayText("UI Text Scale:");
     ImGui::SameLine();
     static float textScale{ m_dpiScaleFactor };
     if (ImGui::SliderFloat("##TextScale", &textScale, 0.5f, 10.0f))
@@ -362,7 +360,7 @@ void ImguiRenderer::drawChipSettingsWindow(Chip8::QuirkFlags& chipQuirkFlags, Ch
 {
     ImGui::Begin("Chip Settings");
 
-    ImGui::Text("Quirk Flags");
+    displayText("Quirk Flags");
     ImGui::Separator();
 
     ImGui::Checkbox("reset VF flag", &chipQuirkFlags.resetVF);
@@ -397,7 +395,7 @@ void ImguiRenderer::drawChipSettingsWindow(Chip8::QuirkFlags& chipQuirkFlags, Ch
     ImGui::Separator();
 
     int instructionsPerSecond{ chip.getTargetNumInstrPerSecond() };
-    ImGui::Text("IPS:");
+    displayText("IPS:");
     ImGui::SameLine();
     if (ImGui::InputInt("##", &instructionsPerSecond))
     {
@@ -429,24 +427,24 @@ void ImguiRenderer::drawStackDisplayWindow(const std::vector<uint16_t>& stackCon
     ImGui::Begin("Stack Viewer");
     ImGui::Columns(2);
 
-    ImGui::Text("Depth");
+    displayText("Depth");
     for (std::size_t i { 0 } ; i < stackContents.capacity() ; ++i)
     {
-        ImGui::Text("%2lu ... ", i);
+        displayText("{:2} ... ", i);
     }
 
     ImGui::NextColumn();
 
-    ImGui::Text("Contents");
+    displayText("Contents");
     for (std::size_t i{ 0 } ; i < stackContents.capacity() ; ++i)
     {
         const uint16_t stackItem = { Utility::toU16((i < stackContents.size()) ? stackContents[i] : 0) };
-        ImGui::Text("%i  0x%04X", stackItem, stackItem);
+        displayText("{}  0x{:04X}", stackItem, stackItem);
 
         if (i == stackContents.size() - 1)
         {
             ImGui::SameLine();
-            ImGui::Text("<-- SP");
+            displayText("<-- SP");
         }
     }
 
@@ -521,7 +519,7 @@ void ImguiRenderer::drawAllImguiWindows(
         drawGameDisplayWindow(currGameFrame);
     }
 
-    drawKeyboardInputWindow();
+    //drawKeyboardInputWindow();
 
     try
     {
@@ -537,10 +535,3 @@ void ImguiRenderer::drawAllImguiWindows(
     ImGui::Render();
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer.getRenderer());
 }
-
-void ImguiRenderer::drawKeyboardInputWindow()
-{
-    // WORK IN PROGRESS
-    ;
-}
-

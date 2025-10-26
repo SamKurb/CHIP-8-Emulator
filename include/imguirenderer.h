@@ -59,6 +59,13 @@ public:
 
 	void drawKeyboardInputWindow();
 
+    template <class... Args>
+    void displayText(std::format_string<Args...> format, Args&&... args) const
+    {
+        std::string string{ std::format(format, std::forward<Args>(args)...) };
+        ImGui::Text("%s", string.data());
+    }
+
 
 private:
     int m_windowWidth{};
