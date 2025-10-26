@@ -659,7 +659,8 @@ void Chip8::opEX9E(const uint16_t opcode)
 {
     const uint16_t regX{ extractX(opcode) };
 
-    const uint8_t keyToCheck{ m_registers[regX] };
+    const uint16_t regXSanitised{ Utility::toU16(regX & 0x000F) };
+    const uint8_t keyToCheck{ m_registers[regXSanitised] };
 
     if (m_keyDownThisFrame[keyToCheck])
     {
@@ -671,7 +672,8 @@ void Chip8::opEXA1(const uint16_t opcode)
 {
     const uint16_t regX{ extractX(opcode) };
 
-    const uint8_t keyToCheck{ m_registers[regX] };
+    const uint16_t regXSanitised{ Utility::toU16(regX & 0x000F) };
+    const uint8_t keyToCheck{ m_registers[regXSanitised] };
 
     if (!m_keyDownThisFrame[keyToCheck])
     {
@@ -726,8 +728,12 @@ void Chip8::opFX1E(const uint16_t opcode)
 void Chip8::opFX29(const uint16_t opcode)
 {
     const uint16_t regX{ extractX(opcode) };
-    const uint16_t character{ m_registers[regX] };
-    const uint16_t spriteLocation{ Utility::toU16((character * 5) + m_fontsLocation) };
+
+    const uint16_t regXSanitised{ Utility::toU16(regX & 0x000F) };
+    const uint16_t character{ m_registers[regXSanitised] };
+
+    const uint16_t spriteWidthInBytes{ 5u };
+    const uint16_t spriteLocation{ Utility::toU16((character * spriteWidthInBytes) + m_fontsLocation) };
 
     m_indexReg = spriteLocation;
 }
