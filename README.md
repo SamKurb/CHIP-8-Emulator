@@ -32,6 +32,7 @@ This is a fully functional emulator/interpreter for the CHIP-8. It is written in
 - When you first run the program, the GUI windows will all popup in one place and may not be sized the way you want. This is intended. Make sure to size and place the GUI windows as you'd like (you can dock them into one another), and the layout you have will be saved for the next time you run the program (layout is saved in "imgui.ini")
 - Using the GUI windows you can do things like enable/disable quirks, load ROMs, change the emulator colour scheme, edit run-time settings like instructions-per-frame (to be executed).
 - => if you have any suggestions on what new GUI features to add, let me know!
+[Example UI layout](readme_images/emulator_ui_layout_example.pmg)
 
 Will add more features and make key mapping configurable in the future!
 ## Other notes:
