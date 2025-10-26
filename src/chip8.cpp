@@ -1,6 +1,8 @@
 #include "chip8.h"
 #include "badopcodeexception.h"
 #include "fileinputexception.h"
+#include <ranges>
+#include <algorithm>
 
 Chip8::Chip8(const QuirkFlags& quirks)
 : m_fontsLocation{ InitialConfig::fontsStartLocation }
@@ -215,11 +217,10 @@ void Chip8::decodeAndExecute(const uint16_t opcode)
 
 bool Chip8::wasKeyReleasedThisFrame() const
 {
-    for (std::size_t i{ 0 }; i < std::size(m_keyDownThisFrame); ++i)
+    for (const auto& [keyDownLastFrame, keyDownThisFrame]
+        : std::views::zip(m_keyDownLastFrame, m_keyDownThisFrame))
     {
-        const bool keyUpThisFrame{ !m_keyDownThisFrame[i] };
-        const bool keyDownLastFrame{ m_keyDownLastFrame[i] };
-
+        const bool keyUpThisFrame{ !keyDownThisFrame };
         if (keyDownLastFrame && keyUpThisFrame)
         {
             return true;
@@ -284,12 +285,10 @@ void Chip8::executeInstructions(int count)
 */
 void Chip8::op00E0()
 {
-    for (std::size_t y{ 0 }; y < m_height; ++y)
+    const int valueForOffPixel{ 0 };
+    for (auto& row : m_screen)
     {
-        for (std::size_t x{ 0 }; x < m_width; ++x)
-        {
-            m_screen[y][x] = 0;
-        }
+        std::ranges::fill(row, valueForOffPixel);
     }
 }
 
@@ -659,10 +658,10 @@ void Chip8::opEX9E(const uint16_t opcode)
 {
     const uint16_t regX{ extractX(opcode) };
 
-    const uint16_t regXSanitised{ Utility::toU16(regX & 0x000F) };
-    const uint8_t keyToCheck{ m_registers[regXSanitised] };
+    const uint8_t keyToCheck{ m_registers[regX] };
+    const uint8_t keyToCheckSanitised{ Utility::toU8(keyToCheck & 0x0F) };
 
-    if (m_keyDownThisFrame[keyToCheck])
+    if (m_keyDownThisFrame[keyToCheckSanitised])
     {
         incrementPC();
     }
@@ -672,10 +671,10 @@ void Chip8::opEXA1(const uint16_t opcode)
 {
     const uint16_t regX{ extractX(opcode) };
 
-    const uint16_t regXSanitised{ Utility::toU16(regX & 0x000F) };
-    const uint8_t keyToCheck{ m_registers[regXSanitised] };
+    const uint8_t keyToCheck{ m_registers[regX] };
+    const uint8_t keyToCheckSanitised{ Utility::toU8(keyToCheck & 0x0F) };
 
-    if (!m_keyDownThisFrame[keyToCheck])
+    if (!m_keyDownThisFrame[keyToCheckSanitised])
     {
         incrementPC();
     }
@@ -729,11 +728,11 @@ void Chip8::opFX29(const uint16_t opcode)
 {
     const uint16_t regX{ extractX(opcode) };
 
-    const uint16_t regXSanitised{ Utility::toU16(regX & 0x000F) };
-    const uint16_t character{ m_registers[regXSanitised] };
+    const uint16_t character{ m_registers[regX] };
+    const uint16_t characterSanitised{ Utility::toU16(character & 0x000F) };
 
     const uint16_t spriteWidthInBytes{ 5u };
-    const uint16_t spriteLocation{ Utility::toU16((character * spriteWidthInBytes) + m_fontsLocation) };
+    const uint16_t spriteLocation{ Utility::toU16((characterSanitised * spriteWidthInBytes) + m_fontsLocation) };
 
     m_indexReg = spriteLocation;
 }
@@ -874,14 +873,7 @@ void Chip8::setKeyUp(std::size_t key)
 
 bool Chip8::isAKeyPressed()
 {
-    for (const bool isPressed : m_keyDownThisFrame)
-    {
-        if (isPressed)
-        {
-            return true;
-        }
-    }
-    return false;
+    return std::ranges::any_of(m_keyDownThisFrame, [](bool isPressed) { return isPressed; });
 }
 
 void Chip8::setPrevFrameInputs()
