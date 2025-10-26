@@ -478,9 +478,8 @@ void ImguiRenderer::drawROMSelectWindow(Chip8& chip)
                 ImGui::End();
                 throw;
             }
-
-            ImGuiFileDialog::Instance()->Close();
         }
+        ImGuiFileDialog::Instance()->Close();
 
     }
     ImGui::End();

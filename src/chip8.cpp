@@ -243,7 +243,6 @@ Chip8::KeyInputs Chip8::findKeyReleasedThisFrame() const
         }
     }
     assert(false && "Chip8::findKeyReleasedThisFrame called in context where a key was not released");
-    return KeyInputs::K_A;
 }
 
 void Chip8::decrementTimers()
@@ -581,7 +580,6 @@ void Chip8::opCXNN(const uint16_t opcode)
     m_registers[regX] = Utility::toU8(randomByte & valueToAnd);
 }
 
-
 /*
 |==== QUIRK-RELATED INSTRUCTION (2 quirks) ====|
 --With the quirk *disabled*:
@@ -603,6 +601,42 @@ Do not alter the DXYN flag, as we dont need to remember if we did this instructi
 --With the quirk *enabled*:
 Set flag to true so that we can detect that we did a DXYN elsewhere in the code and act accordingly (stop doing further instructions, immediately render the next screen)
 */
+
+void Chip8::drawSprite(const uint8_t xCoord, const uint8_t yCoord, uint16_t spriteWidth, uint16_t spriteHeight, uint16_t currAddress)
+{
+    bool pixelWasTurnedOff{ false };
+    for (std::size_t yOffset{ 0 }; yOffset < spriteHeight; ++yOffset)
+    {
+        uint8_t nextByte{ readMemory(currAddress) };
+        ++currAddress;
+        for (std::size_t xOffset{ 0 }; xOffset < spriteWidth; ++xOffset)
+        {
+            const uint8_t currBit{ Utility::toU8(nextByte >> (7 - xOffset) & 1) };
+
+            uint16_t nextPixelX{ Utility::toU16((xCoord + xOffset)) };
+            uint16_t nextPixelY{ Utility::toU16((yCoord + yOffset)) };
+
+            if (m_isQuirkEnabled.wrapScreen)
+            {
+                nextPixelX %= m_width;
+                nextPixelY %= m_height;
+            }
+
+            // Skip rendering off-screen pixels if screenwrap quirk is off
+            if (!m_isQuirkEnabled.wrapScreen && (nextPixelX > m_width - 1 || nextPixelY > m_height - 1))
+            {
+                break;
+            }
+
+            if (currBit == 1 && m_screen[nextPixelY][nextPixelX] == 1)
+                pixelWasTurnedOff = true;
+
+            m_screen[nextPixelY][nextPixelX] ^= currBit;
+        }
+    }
+    m_registers[0xF] = pixelWasTurnedOff;
+}
+
 void Chip8::opDXYN(const uint16_t opcode)
 {
     if (m_isQuirkEnabled.displayWait)
@@ -620,39 +654,7 @@ void Chip8::opDXYN(const uint16_t opcode)
 
     uint16_t currAddress{ m_indexReg };
 
-    bool pixelTurnedOff{ false };
-
-    for (std::size_t i{ 0 }; i < spriteHeight; ++i)
-    {
-        uint8_t nextByte{ readMemory(currAddress) };
-        ++currAddress;
-        for (std::size_t j{ 0 }; j < spriteWidth; ++j)
-        {
-            const uint8_t currBit{ Utility::toU8(nextByte >> (7 - j) & 1) };
-
-            uint16_t nextPixelX{ Utility::toU16((xCoord + j)) };
-            uint16_t nextPixelY{ Utility::toU16((yCoord + i)) };
-
-            if (m_isQuirkEnabled.wrapScreen)
-            {
-                nextPixelX %= m_width;
-                nextPixelY %= m_height;
-            }
-
-            // Skip rendering off-screen pixels if screenwrap quirk is off
-            if (!m_isQuirkEnabled.wrapScreen && (nextPixelX > m_width - 1 || nextPixelY > m_height - 1))
-            {
-                break;
-            }
-
-            if (currBit == 1 && m_screen[nextPixelY][nextPixelX] == 1)
-                pixelTurnedOff = true;
-
-            m_screen[nextPixelY][nextPixelX] ^= currBit;
-        }
-    }
-
-    m_registers[0xF] = pixelTurnedOff;
+    drawSprite(xCoord, yCoord, spriteWidth, spriteHeight, currAddress);
 }
 
 void Chip8::opEX9E(const uint16_t opcode)
@@ -784,7 +786,7 @@ void Chip8::opFX65(const uint16_t opcode)
     const uint16_t regX{ extractX(opcode) };
 
     uint16_t currMemLocation{ m_indexReg };
-    
+
     for (uint16_t currReg{ 0x0 }; currReg <= regX; ++currReg)
     {
         m_registers[currReg] = readMemory(currMemLocation);

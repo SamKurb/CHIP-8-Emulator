@@ -178,6 +178,10 @@ private:
     void opANNN(uint16_t opcode);
     void opBNNN(uint16_t opcode);
     void opCXNN(uint16_t opcode);
+
+    // DXYN helper
+    void drawSprite(uint8_t xCoord, uint8_t yCoord, uint16_t spriteWidth, uint16_t spriteHeight, uint16_t currAddress);
+
     void opDXYN(uint16_t opcode);
     void opEX9E(uint16_t opcode);
     void opEXA1(uint16_t opcode);
