@@ -1,7 +1,11 @@
 #include "chip8.h"
+
 #include "../include/exceptions/badopcodeexception.h"
 #include "../include/exceptions/fileinputexception.h"
 #include "../include/exceptions/chipstackerrorexception.h"
+
+#include "../include/utils/random.h"
+
 #include <ranges>
 #include <algorithm>
 #include <utility>
@@ -219,16 +223,15 @@ void Chip8::decodeAndExecute(const uint16_t opcode)
 
 bool Chip8::wasKeyReleasedThisFrame() const
 {
-    for (const auto& [keyDownLastFrame, keyDownThisFrame]
-        : std::views::zip(m_keyDownLastFrame, m_keyDownThisFrame))
-    {
-        const bool keyUpThisFrame{ !keyDownThisFrame };
-        if (keyDownLastFrame && keyUpThisFrame)
+    return std::ranges::any_of(
+        std::views::zip(m_keyDownLastFrame, m_keyDownThisFrame),
+        [](const auto& keyStates)
         {
-            return true;
+            const auto& [wasKeyDownLastFrame, isKeyDownThisFrame] = keyStates;
+            const bool isKeyUpThisFrame{ !isKeyDownThisFrame };
+            return wasKeyDownLastFrame && isKeyUpThisFrame;
         }
-    }
-    return false;
+    );
 }
 
 Chip8::KeyInputs Chip8::findKeyReleasedThisFrame() const

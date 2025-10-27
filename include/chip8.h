@@ -12,7 +12,6 @@
 
 #include "exceptions/chipoobmemoryaccessexception.h"
 #include "utils/utility.h"
-#include "utils/random.h"
 
 #include "types/enumarray.h"
 
@@ -135,19 +134,19 @@ public:
 
 private:
     // Given opcode with X, i.e. 0x3XNN, extracts only the X nibble
-    uint16_t extractX(uint16_t opcode) const { return Utility::toU16((opcode & 0x0F00) >> 8); }
+    [[nodiscard]] uint16_t extractX(uint16_t opcode) const { return Utility::toU16((opcode & 0x0F00) >> 8); }
 
     // Given opcode with Y, i.e. 0x5XY0, extracts only the Y nibble
-    uint16_t extractY(uint16_t opcode) const { return Utility::toU16((opcode & 0x00F0) >> 4); }
+    [[nodiscard]] uint16_t extractY(uint16_t opcode) const { return Utility::toU16((opcode & 0x00F0) >> 4); }
 
     // Given opcode with an N segment, i.e. 0xDXYN, extracts only the N nibble
-    uint16_t extractN(uint16_t opcode) const { return Utility::toU16(opcode & 0x000F); }
+    [[nodiscard]] uint16_t extractN(uint16_t opcode) const { return Utility::toU16(opcode & 0x000F); }
 
     // Given opcode with an NN segment, i.e. 0x3XNN, extracts only the NN Byte
-    uint16_t extractNN(uint16_t opcode) const { return Utility::toU16(opcode & 0x00FF); }
+    [[nodiscard]] uint16_t extractNN(uint16_t opcode) const { return Utility::toU16(opcode & 0x00FF); }
 
     // Given opcode with an NNN segment, i.e. 0x1NNN, extracts only the NNN segment
-    uint16_t extractNNN(uint16_t opcode) const { return Utility::toU16(opcode & 0x0FFF); }
+    [[nodiscard]] uint16_t extractNNN(uint16_t opcode) const { return Utility::toU16(opcode & 0x0FFF); }
 
     uint16_t fetchOpcode();
     void decodeAndExecute(uint16_t opcode);
