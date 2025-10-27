@@ -1,6 +1,7 @@
 #include "chip8.h"
 #include "../include/exceptions/badopcodeexception.h"
 #include "../include/exceptions/fileinputexception.h"
+#include "../include/exceptions/chipstackerrorexception.h"
 #include <ranges>
 #include <algorithm>
 #include <utility>
@@ -71,55 +72,55 @@ void Chip8::decodeAndExecute(const uint16_t opcode)
     switch (opcode & 0xF000)
     {
     case 0x1000:
-        op1NNN(opcode);
+        executeOp1NNN(opcode);
         break;
     case 0x2000:
-        op2NNN(opcode);
+            executeOp2NNN(opcode);
         break;
     case 0x3000:
-        op3XNN(opcode);
+        executeOp3XNN(opcode);
         break;
     case 0x4000:
-        op4XNN(opcode);
+        executeOp4XNN(opcode);
         break;
     case 0x5000:
-        op5XY0(opcode);
+        executeOp5XY0(opcode);
         break;
     case 0x6000:
-        op6XNN(opcode);
+        executeOp6XNN(opcode);
         break;
     case 0x7000:
-        op7XNN(opcode);
+        executeOp7XNN(opcode);
         break;
     case 0x8000:
         switch (opcode & 0x000F)
         {
         case 0x0000:
-            op8XY0(opcode);
+            executeOp8XY0(opcode);
             break;
         case 0x0001:
-            op8XY1(opcode);
+            executeOp8XY1(opcode);
             break;
         case 0x0002:
-            op8XY2(opcode);
+            executeOp8XY2(opcode);
             break;
         case 0x0003:
-            op8XY3(opcode);
+            executeOp8XY3(opcode);
             break;
         case 0x0004:
-            op8XY4(opcode);
+            executeOp8XY4(opcode);
             break;
         case 0x0005:
-            op8XY5(opcode);
+            executeOp8XY5(opcode);
             break;
         case 0x0006:
-            op8XY6(opcode);
+            executeOp8XY6(opcode);
             break;
         case 0x0007:
-            op8XY7(opcode);
+            executeOp8XY7(opcode);
             break;
         case 0x000E:
-            op8XYE(opcode);
+            executeOp8XYE(opcode);
             break;
         default:
             handleInvalidOpcode(opcode);
@@ -127,29 +128,29 @@ void Chip8::decodeAndExecute(const uint16_t opcode)
         break;
 
     case 0x9000:
-        op9XY0(opcode);
+        executeOp9XY0(opcode);
         break;
     case 0xA000:
-        opANNN(opcode);
+        executeOpANNN(opcode);
         break;
     case 0xB000:
-        opBNNN(opcode);
+        executeOpBNNN(opcode);
         break;
     case 0xC000:
-        opCXNN(opcode);
+        executeOpCXNN(opcode);
         break;
     case 0xD000:
-        opDXYN(opcode);
+        executeOpDXYN(opcode);
         break;
 
     case 0xE000:
         switch (opcode & 0x00FF)
         {
         case 0x009E:
-            opEX9E(opcode);
+            executeOpEX9E(opcode);
             break;
         case 0x00A1:
-            opEXA1(opcode);
+            executeOpEXA1(opcode);
             break;
         default:
             handleInvalidOpcode(opcode);
@@ -161,31 +162,31 @@ void Chip8::decodeAndExecute(const uint16_t opcode)
         switch (opcode & 0x00FF)
         {
         case 0x0007:
-            opFX07(opcode);
+            executeOpFX07(opcode);
             break;
         case 0x000A:
-            opFX0A(opcode);
+            executeOpFX0A(opcode);
             break;
         case 0x0015:
-            opFX15(opcode);
+            executeOpFX15(opcode);
             break;
         case 0x0018:
-            opFX18(opcode);
+            executeOpFX18(opcode);
             break;
         case 0x001E:
-            opFX1E(opcode);
+            executeOpFX1E(opcode);
             break;
         case 0x0029:
-            opFX29(opcode);
+            executeOpFX29(opcode);
             break;
         case 0x0033:
-            opFX33(opcode);
+            executeOpFX33(opcode);
             break;
         case 0x0055:
-            opFX55(opcode);
+            executeOpFX55(opcode);
             break;
         case 0x0065:
-            opFX65(opcode);
+            executeOpFX65(opcode);
             break;
         default:
             handleInvalidOpcode(opcode);
@@ -197,10 +198,10 @@ void Chip8::decodeAndExecute(const uint16_t opcode)
         switch (opcode & 0x00FF)
         {
         case 0x00E0:
-            op00E0();
+            executeOp00E0();
             break;
         case 0x00EE:
-            op00EE();
+            executeOp00EE();
             break;
         default:
             handleInvalidOpcode(opcode);
@@ -283,7 +284,7 @@ void Chip8::executeInstructions(int count)
     The wikipedia page: https://en.wikipedia.org/wiki/CHIP-8
     CG's reference: http://devernay.free.fr/hacks/chip8/C8TECH10.HTM
 */
-void Chip8::op00E0()
+void Chip8::executeOp00E0()
 {
     const int valueForOffPixel{ 0 };
     for (auto& row : m_screen)
@@ -292,35 +293,41 @@ void Chip8::op00E0()
     }
 }
 
-void Chip8::op00EE()
+void Chip8::executeOp00EE()
 {
-    assert(m_stack.size() < InitialConfig::maxStackDepth && "Attempted to pop from empty stack in opcode 00EE");
+    if (std::size(m_stack) == 0)
+    {
+        std::string errorMsg { "Attempt to pop from empty stack in execution of opcode 00EE. "
+                               "Ensure the ROM is not buggy!" };
+        throw ChipStackErrorException(errorMsg);
+    }
 
     m_pc = m_stack.back();
     m_stack.pop_back();
 }
 
-void Chip8::op1NNN(const uint16_t opcode)
+void Chip8::executeOp1NNN(const uint16_t opcode)
 {
     const uint16_t address{ extractNNN(opcode) };
     m_pc = address;
 }
 
-void Chip8::op2NNN(const uint16_t opcode)
+void Chip8::executeOp2NNN(const uint16_t opcode)
 {
     const uint16_t address{ extractNNN(opcode) };
 
     if (std::size(m_stack) >= InitialConfig::maxStackDepth)
     {
-        std::cout << "Stack limit reached, cannot push to stack. Increase ChipConfig::levelsOfNesting or ensure that the program/ROM is not buggy";
-        std::exit(1);
+        std::string errorMsg { "Attempt to push to full stack in execution of opcode 2NNN. "
+                               "Ensure the ROM is not buggy!" };
+        throw ChipStackErrorException(errorMsg);
     }
 
     m_stack.push_back(m_pc);
     m_pc = address;
 }
 
-void Chip8::op3XNN(const uint16_t opcode)
+void Chip8::executeOp3XNN(const uint16_t opcode)
 {
     const uint16_t regNum{ extractX(opcode) };
     const uint8_t valueToCompare{ Utility::toU8(extractNN(opcode)) };
@@ -331,7 +338,7 @@ void Chip8::op3XNN(const uint16_t opcode)
     }
 }
 
-void Chip8::op4XNN(const uint16_t opcode)
+void Chip8::executeOp4XNN(const uint16_t opcode)
 {
     const uint16_t regNum{ extractX(opcode) };
     const uint8_t valueToCompare{ Utility::toU8(extractNN(opcode)) };
@@ -342,7 +349,7 @@ void Chip8::op4XNN(const uint16_t opcode)
     }
 }
 
-void Chip8::op5XY0(const uint16_t opcode)
+void Chip8::executeOp5XY0(const uint16_t opcode)
 {
     const  uint16_t regX{ extractX(opcode) };
     const uint16_t regY{ extractY(opcode) };
@@ -353,14 +360,14 @@ void Chip8::op5XY0(const uint16_t opcode)
     }
 }
 
-void Chip8::op6XNN(const uint16_t opcode)
+void Chip8::executeOp6XNN(const uint16_t opcode)
 {
     const uint16_t regNum{ extractX(opcode) };
     const uint8_t valueToPut{ Utility::toU8(extractNN(opcode)) };
     m_registers[regNum] = valueToPut;
 }
 
-void Chip8::op7XNN(const uint16_t opcode)
+void Chip8::executeOp7XNN(const uint16_t opcode)
 {
     const uint16_t regNum{ extractX(opcode) };
     const uint8_t valueToAdd{ Utility::toU8(extractNN(opcode)) };
@@ -368,7 +375,7 @@ void Chip8::op7XNN(const uint16_t opcode)
     m_registers[regNum] += valueToAdd;
 }
 
-void Chip8::op8XY0(const uint16_t opcode)
+void Chip8::executeOp8XY0(const uint16_t opcode)
 {
     const uint16_t regX{ extractX(opcode) };
     const uint16_t regY{ extractY(opcode) };
@@ -387,7 +394,7 @@ Register VF is left untouched through the operation
 --With the quirk *enabled*:
 Register VF is always set to 0 at the end of the instruction
 */
-void Chip8::op8XY1(const uint16_t opcode)
+void Chip8::executeOp8XY1(const uint16_t opcode)
 {
     const uint16_t regX{ extractX(opcode) };
     const uint16_t regY{ extractY(opcode) };
@@ -400,7 +407,7 @@ void Chip8::op8XY1(const uint16_t opcode)
     }
 }
 
-void Chip8::op8XY2(const uint16_t opcode)
+void Chip8::executeOp8XY2(const uint16_t opcode)
 {
     const uint16_t regX{ extractX(opcode) };
     const uint16_t regY{ extractY(opcode) };
@@ -413,7 +420,7 @@ void Chip8::op8XY2(const uint16_t opcode)
     }
 }
 
-void Chip8::op8XY3(const uint16_t opcode)
+void Chip8::executeOp8XY3(const uint16_t opcode)
 {
     const uint16_t regX{ extractX(opcode) };
     const uint16_t regY{ extractY(opcode) };
@@ -426,7 +433,7 @@ void Chip8::op8XY3(const uint16_t opcode)
     }
 }
 
-void Chip8::op8XY4(const uint16_t opcode)
+void Chip8::executeOp8XY4(const uint16_t opcode)
 {
     const uint16_t regX{ extractX(opcode) };
     const uint16_t regY{ extractY(opcode) };
@@ -438,7 +445,7 @@ void Chip8::op8XY4(const uint16_t opcode)
     m_registers[0xF] = sum > 255;
 }
 
-void Chip8::op8XY5(const uint16_t opcode)
+void Chip8::executeOp8XY5(const uint16_t opcode)
 {
     const uint16_t regX{ extractX(opcode) };
     const uint16_t regY{ extractY(opcode) };
@@ -465,7 +472,7 @@ So we ignore Y entirely (In CHIP8 code, the assumption is usually that X == Y at
 Note: Register VF needs to be assigned to at the very end incase register VF happens to be register X. Otherwise, instead of storing whether or not overflow occured,
 it would store the result of the shift which is not intended.
 */
-void Chip8::op8XY6(const uint16_t opcode)
+void Chip8::executeOp8XY6(const uint16_t opcode)
 {
     const uint16_t regX{ extractX(opcode) };
 
@@ -481,7 +488,7 @@ void Chip8::op8XY6(const uint16_t opcode)
     m_registers[0xF] = bitShiftedOut;
 }
 
-void Chip8::op8XY7(const uint16_t opcode)
+void Chip8::executeOp8XY7(const uint16_t opcode)
 {
     const uint16_t regX{ extractX(opcode) };
     const uint16_t regY{ extractY(opcode) };
@@ -508,7 +515,7 @@ Note: Register VF needs to be assigned to at the very end incase register VF hap
 it would store the result of the shift which is not intended.
 */
 
-void Chip8::op8XYE(const uint16_t opcode)
+void Chip8::executeOp8XYE(const uint16_t opcode)
 {
     const uint16_t regX{ extractX(opcode) };
 
@@ -525,7 +532,7 @@ void Chip8::op8XYE(const uint16_t opcode)
     m_registers[0xF] = bitShiftedOut;
 }
 
-void Chip8::op9XY0(const uint16_t opcode)
+void Chip8::executeOp9XY0(const uint16_t opcode)
 {
     const uint16_t regX{ extractX(opcode) };
     const uint16_t regY{ extractY(opcode) };
@@ -536,7 +543,7 @@ void Chip8::op9XY0(const uint16_t opcode)
     }
 }
 
-void Chip8::opANNN(const uint16_t opcode)
+void Chip8::executeOpANNN(const uint16_t opcode)
 {
     const uint16_t addressToSet{ extractNNN(opcode)};
 
@@ -550,14 +557,14 @@ void Chip8::opANNN(const uint16_t opcode)
 PC is set to the address NNN + the value stored in register 0 (always register 0, no matter what)
 
 --With the quirk *enabled*:
-PC is set to the address NNN + register X, where X is the first nibble in NNN i.e the leftmost N. 
+PC is set to the address NNN + register X, where X is the first nibble in NNN i.e the leftmost N.
                                                                           |
                                                                         this one
 */
-void Chip8::opBNNN(const uint16_t opcode)
+void Chip8::executeOpBNNN(const uint16_t opcode)
 {
 	if (!m_isQuirkEnabled.jump)
-    { 
+    {
         const uint16_t address{ extractNNN(opcode) };
         m_pc = Utility::toU16(address + m_registers[0x0]);
     }
@@ -569,7 +576,7 @@ void Chip8::opBNNN(const uint16_t opcode)
     }
 }
 
-void Chip8::opCXNN(const uint16_t opcode)
+void Chip8::executeOpCXNN(const uint16_t opcode)
 {
     const uint16_t regX{ extractX(opcode) };
 
@@ -587,8 +594,8 @@ There are 2 quirks related to this instruction. The wrapscreen quirk is "directl
 
 For the wrap screen quirk:
 --With the quirk *disabled*:
-For sprites positioned such that some pixels partially go offscreen, the pixels are directly wrapped around to the opposite side of the screen. 
-So if the sprite for letter 'H' were to on the very right side of the screen, with one half inside of the screen and one half technically outside, 
+For sprites positioned such that some pixels partially go offscreen, the pixels are directly wrapped around to the opposite side of the screen.
+So if the sprite for letter 'H' were to on the very right side of the screen, with one half inside of the screen and one half technically outside,
 then one on side of the screen we would half something like '|-' and on the other we would have '-|'
 
 --With the quirk *enabled*:
@@ -637,7 +644,7 @@ void Chip8::drawSprite(const uint8_t xCoord, const uint8_t yCoord, uint16_t spri
     m_registers[0xF] = pixelWasTurnedOff;
 }
 
-void Chip8::opDXYN(const uint16_t opcode)
+void Chip8::executeOpDXYN(const uint16_t opcode)
 {
     if (m_isQuirkEnabled.displayWait)
     {
@@ -657,7 +664,7 @@ void Chip8::opDXYN(const uint16_t opcode)
     drawSprite(xCoord, yCoord, spriteWidth, spriteHeight, currAddress);
 }
 
-void Chip8::opEX9E(const uint16_t opcode)
+void Chip8::executeOpEX9E(const uint16_t opcode)
 {
     const uint16_t regX{ extractX(opcode) };
 
@@ -671,7 +678,7 @@ void Chip8::opEX9E(const uint16_t opcode)
     }
 }
 
-void Chip8::opEXA1(const uint16_t opcode)
+void Chip8::executeOpEXA1(const uint16_t opcode)
 {
     const uint16_t regX{ extractX(opcode) };
 
@@ -685,14 +692,14 @@ void Chip8::opEXA1(const uint16_t opcode)
     }
 }
 
-void Chip8::opFX07(const uint16_t opcode)
+void Chip8::executeOpFX07(const uint16_t opcode)
 {
     const uint16_t regX{ extractX(opcode) };
 
     m_registers[regX] = m_delayTimer;
 }
 
-void Chip8::opFX0A(const uint16_t opcode)
+void Chip8::executeOpFX0A(const uint16_t opcode)
 {
     if (!wasKeyReleasedThisFrame())
     {
@@ -706,28 +713,28 @@ void Chip8::opFX0A(const uint16_t opcode)
     m_registers[regX] = Utility::toU8(std::to_underlying(keyReleased));
 }
 
-void Chip8::opFX15(const uint16_t opcode)
+void Chip8::executeOpFX15(const uint16_t opcode)
 {
     uint16_t regX{ extractX(opcode) };
 
     m_delayTimer = m_registers[regX];
 }
 
-void Chip8::opFX18(const uint16_t opcode)
+void Chip8::executeOpFX18(const uint16_t opcode)
 {
     const uint16_t regX{ extractX(opcode) };
 
     m_soundTimer = m_registers[regX];
 }
 
-void Chip8::opFX1E(const uint16_t opcode)
+void Chip8::executeOpFX1E(const uint16_t opcode)
 {
     const uint16_t regX{ extractX(opcode) };
 
     m_indexReg += m_registers[regX];
 }
 
-void Chip8::opFX29(const uint16_t opcode)
+void Chip8::executeOpFX29(const uint16_t opcode)
 {
     const uint16_t regX{ extractX(opcode) };
 
@@ -740,7 +747,7 @@ void Chip8::opFX29(const uint16_t opcode)
     m_indexReg = spriteLocation;
 }
 
-void Chip8::opFX33(const uint16_t opcode)
+void Chip8::executeOpFX33(const uint16_t opcode)
 {
     const uint16_t regX{ extractX(opcode) };
 
@@ -763,7 +770,7 @@ The index register is not affected during the instruction
 --With the quirk *enabled*:
 As we access/store information in a register, we increment the index register once for every register accessed/written to
 */
-void Chip8::opFX55(const uint16_t opcode)
+void Chip8::executeOpFX55(const uint16_t opcode)
 {
     const uint16_t regX{ extractX(opcode) };
 
@@ -781,7 +788,7 @@ void Chip8::opFX55(const uint16_t opcode)
     }
 }
 
-void Chip8::opFX65(const uint16_t opcode)
+void Chip8::executeOpFX65(const uint16_t opcode)
 {
     const uint16_t regX{ extractX(opcode) };
 
@@ -797,7 +804,7 @@ void Chip8::opFX65(const uint16_t opcode)
             ++m_indexReg;
         }
     }
-} 
+}
 
 
 void Chip8::loadFonts(const uint16_t startLocation)
@@ -841,7 +848,7 @@ void Chip8::loadFile(const std::string& name)
         writeToMemory(currAddress, nextByte);
         ++currAddress;
     }
-    
+
     m_runtimeMetaData.programEndAddress = currAddress - 1;
     m_runtimeMetaData.romIsLoaded = true;
 

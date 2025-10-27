@@ -14,6 +14,7 @@
 #include "../include/exceptions/sdlinitexception.h"
 #include "../include/exceptions/fileinputexception.h"
 #include "../include/exceptions/badopcodeexception.h"
+#include "exceptions/chipstackerrorexception.h"
 
 Emulator::Emulator()
 : m_chip{ std::make_unique<Chip8>() }
@@ -126,11 +127,11 @@ int Emulator::calculateNumInstructionsNeededForFrame()
     return targetNumInstrPerSecond / m_displaySettings->targetFPS;
 }
 
-void Emulator::handleChipExecutionError(const BadOpcodeException& exception)
+void Emulator::handleOpcodeExecutionError(const std::runtime_error& exception)
 {
     m_chip = std::make_unique<Chip8>();
-    m_currentErrorMessage = std::string(exception.what()) + " - Please try a different ROM! "
-                                                            + "Make sure it is CHIP-8 compatible.";
+    m_currentErrorMessage = std::string(exception.what()) + " - Please fix any bugs present in the ROM or try a different ROM! "
+                                                            + "Make sure it is CHIP-8 compatible";
 }
 
 void Emulator::handleFileInputError(const FileInputException &exception)
@@ -200,7 +201,15 @@ void Emulator::executeChipInstructions()
     }
     catch (const BadOpcodeException& exception)
     {
-        handleChipExecutionError(exception);
+        handleOpcodeExecutionError(exception);
+    }
+    catch (const ChipStackErrorException& exception)
+    {
+        handleOpcodeExecutionError(exception);
+    }
+    catch (const ChipOOBMemoryAccessException& exception)
+    {
+        handleOpcodeExecutionError(exception);
     }
 }
 
@@ -230,7 +239,7 @@ void Emulator::render()
     }
     else
     {
-        m_renderer->drawTextAt(m_currentErrorMessage.data(), 0, 0);
+        m_renderer->drawTextAt(m_currentErrorMessage, 0, 0);
     }
 
     if (m_displaySettings->showDebugWindows)

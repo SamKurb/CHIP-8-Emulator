@@ -10,6 +10,7 @@
 #include <array>
 #include <vector>
 
+#include "exceptions/chipoobmemoryaccessexception.h"
 #include "utils/utility.h"
 #include "utils/random.h"
 
@@ -47,6 +48,7 @@ public:
         bool shift{};
         bool jump{};
         bool displayWait{};
+        bool haltOnOOBAccess{};
     };
 
     struct RuntimeMetaData
@@ -156,44 +158,44 @@ private:
     KeyInputs findKeyReleasedThisFrame() const;
 
     // Opcodes
-    void op00E0();
-    void op00EE();
-    void op1NNN(uint16_t opcode);
-    void op2NNN(uint16_t opcode);
-    void op3XNN(uint16_t opcode);
-    void op4XNN(uint16_t opcode);
-    void op5XY0(uint16_t opcode);
-    void op6XNN(uint16_t opcode);
-    void op7XNN(uint16_t opcode);
-    void op8XY0(uint16_t opcode);
-    void op8XY1(uint16_t opcode);
-    void op8XY2(uint16_t opcode);
-    void op8XY3(uint16_t opcode);
-    void op8XY4(uint16_t opcode);
-    void op8XY5(uint16_t opcode);
-    void op8XY6(uint16_t opcode);
-    void op8XY7(uint16_t opcode);
-    void op8XYE(uint16_t opcode);
-    void op9XY0(uint16_t opcode);
-    void opANNN(uint16_t opcode);
-    void opBNNN(uint16_t opcode);
-    void opCXNN(uint16_t opcode);
+    void executeOp00E0();
+    void executeOp00EE();
+    void executeOp1NNN(uint16_t opcode);
+    void executeOp2NNN(uint16_t opcode);
+    void executeOp3XNN(uint16_t opcode);
+    void executeOp4XNN(uint16_t opcode);
+    void executeOp5XY0(uint16_t opcode);
+    void executeOp6XNN(uint16_t opcode);
+    void executeOp7XNN(uint16_t opcode);
+    void executeOp8XY0(uint16_t opcode);
+    void executeOp8XY1(uint16_t opcode);
+    void executeOp8XY2(uint16_t opcode);
+    void executeOp8XY3(uint16_t opcode);
+    void executeOp8XY4(uint16_t opcode);
+    void executeOp8XY5(uint16_t opcode);
+    void executeOp8XY6(uint16_t opcode);
+    void executeOp8XY7(uint16_t opcode);
+    void executeOp8XYE(uint16_t opcode);
+    void executeOp9XY0(uint16_t opcode);
+    void executeOpANNN(uint16_t opcode);
+    void executeOpBNNN(uint16_t opcode);
+    void executeOpCXNN(uint16_t opcode);
 
     // DXYN helper
     void drawSprite(uint8_t xCoord, uint8_t yCoord, uint16_t spriteWidth, uint16_t spriteHeight, uint16_t currAddress);
 
-    void opDXYN(uint16_t opcode);
-    void opEX9E(uint16_t opcode);
-    void opEXA1(uint16_t opcode);
-    void opFX07(uint16_t opcode);
-    void opFX0A(uint16_t opcode);
-    void opFX15(uint16_t opcode);
-    void opFX18(uint16_t opcode);
-    void opFX1E(uint16_t opcode);
-    void opFX29(uint16_t opcode);
-    void opFX33(uint16_t opcode);
-    void opFX55(uint16_t opcode);
-    void opFX65(uint16_t opcode);
+    void executeOpDXYN(uint16_t opcode);
+    void executeOpEX9E(uint16_t opcode);
+    void executeOpEXA1(uint16_t opcode);
+    void executeOpFX07(uint16_t opcode);
+    void executeOpFX0A(uint16_t opcode);
+    void executeOpFX15(uint16_t opcode);
+    void executeOpFX18(uint16_t opcode);
+    void executeOpFX1E(uint16_t opcode);
+    void executeOpFX29(uint16_t opcode);
+    void executeOpFX33(uint16_t opcode);
+    void executeOpFX55(uint16_t opcode);
+    void executeOpFX65(uint16_t opcode);
 
     // Wrapper functions to access memory, so that OOB is checked for. Will add logging in the future
     template <typename T>
@@ -201,13 +203,14 @@ private:
     {
         static_assert(std::is_unsigned<T>::value);
 
-        if (location >= std::size(m_memory))
+        if (m_isQuirkEnabled.haltOnOOBAccess && location > std::size(m_memory))
         {
-            std::cout << "Attempted to access OOB memory\n" << std::endl;
-            std::exit(1);
+            std::string errorMsg{ " Attempted to read from OOB memory in ROM!" };
+            throw ChipOOBMemoryAccessException(errorMsg);
         }
 
-        return m_memory[location];
+        const std::size_t wrappedLocation{ location % m_memory.size() };
+        return m_memory[wrappedLocation];
     }
 
     template <typename T>
@@ -215,13 +218,14 @@ private:
     {
         static_assert(std::is_unsigned<T>::value);
 
-        if (location > std::size(m_memory))
+        if (m_isQuirkEnabled.haltOnOOBAccess && location > std::size(m_memory))
         {
-            std::cout << "Attempted to write to OOB memory\n" << std::endl;
-            std::exit(1);
+            std::string errorMsg{ " Attempted to write to OOB memory in ROM!" };
+            throw ChipOOBMemoryAccessException(errorMsg);
         }
 
-        m_memory[location] = value;
+        const std::size_t wrappedLocation{ location % m_memory.size() };
+        m_memory[wrappedLocation] = value;
     }
 
     // Input handling
@@ -292,6 +296,7 @@ private:
         false,  // shift quirk
         false,  // jump quirk
         false,  // display wait quirk
+        false,
     };
 
     // FOR TESTING WITH testQuirks ROM
@@ -302,6 +307,7 @@ private:
         true,   // shift quirk
         true,   // jump quirk
         false,  // display wait quirk
+        false,
     };
 };
 

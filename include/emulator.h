@@ -48,7 +48,7 @@ private:
     void executeChipInstructions();
     int calculateNumInstructionsNeededForFrame();
 
-    void handleChipExecutionError(const BadOpcodeException& exception);
+    void handleOpcodeExecutionError(const std::runtime_error& exception);
     void handleFileInputError(const FileInputException& exception);
 
     std::unique_ptr<Chip8> m_chip{};

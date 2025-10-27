@@ -35,6 +35,8 @@ set(OTHER_SOURCES
         include/emulator.h
         src/emulator.cpp
         include/types/enumarray.h
+        include/exceptions/chipstackerrorexception.h
+        include/exceptions/chipoobmemoryaccessexception.h
 )
 
 add_executable(${PROJECT_NAME} ${MAIN_SOURCES} ${OTHER_SOURCES})

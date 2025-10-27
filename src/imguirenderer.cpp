@@ -392,6 +392,10 @@ void ImguiRenderer::drawChipSettingsWindow(Chip8::QuirkFlags& chipQuirkFlags, Ch
     ImGui::SameLine();
     displayHelpMarker("To be added");
 
+    ImGui::Checkbox("halt on OOB memory access", &chipQuirkFlags.haltOnOOBAccess);
+    ImGui::SameLine();
+    displayHelpMarker("To be added");
+
     ImGui::Separator();
 
     int instructionsPerSecond{ chip.getTargetNumInstrPerSecond() };
