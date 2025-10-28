@@ -25,6 +25,8 @@ public:
 		const float displayScaleFactor);
     ~ImguiRenderer();
 
+	void drawColourPicker(const std::string& title, Colour::RGBA& colourToEdit) const;
+
     void drawGeneralInfoWindow(const FrameInfo &frameInfo, uint8_t soundTimer,
     	const StateManager& currentState, uint64_t numInstructionsExecuted, const bool isAudioLoaded) const;
 

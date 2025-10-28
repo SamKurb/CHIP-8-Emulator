@@ -283,6 +283,17 @@ void ImguiRenderer::drawRegisterViewerWindow(const Chip8& chip) const
     ImGui::End();
 }
 
+void ImguiRenderer::drawColourPicker(const std::string& title, Colour::RGBA& colourToEdit) const
+{
+    displayText("{}", title);
+    ImVec4 bufferedColour{ colourToEdit };
+    ImGui::SameLine();
+    if (ImGui::ColorEdit4(title.data(), (float*) &(bufferedColour), ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel))
+    {
+        colourToEdit = bufferedColour;
+    }
+}
+
 void ImguiRenderer::drawDisplaySettingsWindowAndApplyChanges() const
 {
     ImGui::Begin("Settings Menu");
@@ -297,31 +308,9 @@ void ImguiRenderer::drawDisplaySettingsWindowAndApplyChanges() const
         m_displaySettings -> renderGameToImGuiWindow = !(m_displaySettings -> renderGameToImGuiWindow);
     }
 
-    displayText("Off Pixel Colour: ");
-
-    // Unfortunately ColorEdit4 only takes a float array as input, so this is the only easy way to do this
-    static ImVec4 bufferedOffPixelColour { m_displaySettings -> offPixelColour };
-    ImGui::SameLine();
-    if (ImGui::ColorEdit4("Off Pixel", (float*) &(bufferedOffPixelColour), ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel))
-    {
-        m_displaySettings -> offPixelColour = bufferedOffPixelColour;
-    }
-
-    displayText("On Pixel Colour: ");
-    ImGui::SameLine();
-    static ImVec4 bufferedOnPixelColour { m_displaySettings -> onPixelColour };
-    if (ImGui::ColorEdit4("On Pixel", (float*) &(bufferedOnPixelColour), ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel))
-    {
-        m_displaySettings -> onPixelColour = bufferedOnPixelColour;
-    }
-
-    displayText("Grid Colour: ");
-    ImGui::SameLine();
-    static ImVec4 bufferedGridColour { m_displaySettings -> gridColour };
-    if (ImGui::ColorEdit4("Grid Colour", (float*) &(bufferedGridColour), ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel))
-    {
-        m_displaySettings -> gridColour = bufferedGridColour;
-    }
+    drawColourPicker("Off Pixel Colour: ", m_displaySettings->offPixelColour);
+    drawColourPicker("On Pixel Colour: ", m_displaySettings->onPixelColour);
+    drawColourPicker("Grid Colour: ", m_displaySettings->gridColour);
 
     displayText("Target FPS:   ");
     ImGui::SameLine();
