@@ -294,6 +294,31 @@ void ImguiRenderer::drawColourPicker(const std::string& title, Colour::RGBA& col
     }
 }
 
+void ImguiRenderer::drawIntNumEditor(const std::string& title, int& numToEdit,
+                                     int minValInclusive, int maxValInclusive) const
+{
+    assert(minValInclusive <= maxValInclusive);
+
+    displayText("{}", title);
+    ImGui::SameLine();
+    if (ImGui::InputInt("##", &numToEdit))
+    {
+        if (numToEdit < minValInclusive)
+        {
+            numToEdit = minValInclusive;
+        }
+        else if (numToEdit > maxValInclusive)
+        {
+            numToEdit = maxValInclusive;
+        }
+    }
+}
+
+void ImguiRenderer::drawIntNumEditor(const std::string& title, int& numToEdit) const
+{
+    drawIntNumEditor(title, numToEdit, std::numeric_limits<int>::min(), std::numeric_limits<int>::max());
+}
+
 void ImguiRenderer::drawDisplaySettingsWindowAndApplyChanges() const
 {
     ImGui::Begin("Settings Menu");
@@ -312,18 +337,9 @@ void ImguiRenderer::drawDisplaySettingsWindowAndApplyChanges() const
     drawColourPicker("On Pixel Colour: ", m_displaySettings->onPixelColour);
     drawColourPicker("Grid Colour: ", m_displaySettings->gridColour);
 
-    displayText("Target FPS:   ");
-    ImGui::SameLine();
-
     constexpr int minFPS { 30 };
-
-    if (ImGui::InputInt("##TargetFPS", &(m_displaySettings->targetFPS)))
-    {
-        if (m_displaySettings->targetFPS < minFPS)
-        {
-            m_displaySettings->targetFPS = minFPS;
-        }
-    }
+    constexpr int maxFPS { 120 };
+    drawIntNumEditor("Target FPS: ", m_displaySettings->targetFPS, minFPS, maxFPS);
 
     displayText("UI Text Scale:");
     ImGui::SameLine();
@@ -348,55 +364,71 @@ void ImguiRenderer::displayHelpMarker(const std::string_view helpInfo) const
     }
 }
 
+void ImguiRenderer::drawCheckBoxWithDesc(const std::string& title, bool& valueToToggle, const std::string& description) const
+{
+    ImGui::Checkbox(title.data(), &valueToToggle);
+    if (description != "")
+    {
+        ImGui::SameLine();
+        displayHelpMarker(description);
+    }
+}
+
+void ImguiRenderer::drawIPSEditor(Chip8& chip) const
+{
+    int currIPS { chip.getTargetNumInstrPerSecond() };
+    int newIPS { currIPS };
+    drawIntNumEditor("IPS: ", newIPS);
+    if (newIPS != currIPS)
+    {
+        chip.setTargetNumInstrPerSecond(newIPS);
+    }
+}
+
 void ImguiRenderer::drawChipSettingsWindow(Chip8::QuirkFlags& chipQuirkFlags, Chip8& chip) const
 {
     ImGui::Begin("Chip Settings");
-
     displayText("Quirk Flags");
     ImGui::Separator();
 
-    ImGui::Checkbox("reset VF flag", &chipQuirkFlags.resetVF);
-    ImGui::SameLine();
-    displayHelpMarker("To be added");
+    static constexpr std::array quirkCheckboxTitles {
+        "Reset VF Flag",
+        "Index Register Flag",
+        "Pixel Wrap Screen Flag",
+        "Shift Flag",
+        "JMP Instruction Flag",
+        "Display Wait Flag",
+        "Halt on OOB memory Access",
+    };
 
+    static constexpr std::array quirkDescriptions {
+        "To be added",
+        "To be added",
+        "To be added",
+        "To be added",
+        "To be added",
+        "To be added",
+        "To be added",
+    };
 
-    ImGui::Checkbox("index register flag", &chipQuirkFlags.index);
-    ImGui::SameLine();
-    displayHelpMarker("To be added");
+    std::array quirkFlags {
+        std::ref(chipQuirkFlags.resetVF),
+        std::ref(chipQuirkFlags.index),
+        std::ref(chipQuirkFlags.wrapScreen),
+        std::ref(chipQuirkFlags.shift),
+        std::ref(chipQuirkFlags.jump),
+        std::ref(chipQuirkFlags.displayWait),
+        std::ref(chipQuirkFlags.haltOnOOBAccess),
+    };
 
-
-    ImGui::Checkbox("pixel wrap screen flag", &chipQuirkFlags.wrapScreen);
-    ImGui::SameLine();
-    displayHelpMarker("To be added");
-
-
-    ImGui::Checkbox("shift flag", &chipQuirkFlags.shift);
-    ImGui::SameLine();
-    displayHelpMarker("To be added");
-
-
-    ImGui::Checkbox("jmp instruction flag", &chipQuirkFlags.jump);
-    ImGui::SameLine();
-    displayHelpMarker("To be added");
-
-
-    ImGui::Checkbox("display wait flag", &chipQuirkFlags.displayWait);
-    ImGui::SameLine();
-    displayHelpMarker("To be added");
-
-    ImGui::Checkbox("halt on OOB memory access", &chipQuirkFlags.haltOnOOBAccess);
-    ImGui::SameLine();
-    displayHelpMarker("To be added");
+    for (auto [quirkTitle, quirkFlag, quirkDesc]
+        : std::ranges::views::zip(quirkCheckboxTitles, quirkFlags, quirkDescriptions))
+    {
+        drawCheckBoxWithDesc(quirkTitle, quirkFlag, quirkDesc);
+    }
 
     ImGui::Separator();
-
-    int instructionsPerSecond{ chip.getTargetNumInstrPerSecond() };
-    displayText("IPS:");
-    ImGui::SameLine();
-    if (ImGui::InputInt("##", &instructionsPerSecond))
-    {
-        chip.setTargetNumInstrPerSecond(instructionsPerSecond);
-    }
+    drawIPSEditor(chip);
 
     ImGui::End();
 }
