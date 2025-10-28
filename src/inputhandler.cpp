@@ -1,7 +1,7 @@
 #include "inputhandler.h"
 #include "chip8.h"
 #include "imgui_impl_sdl2.h"
-
+#include <algorithm>
 void InputHandler::readSystemInputs()
 {
     SDL_Event event{};

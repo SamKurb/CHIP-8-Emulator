@@ -247,6 +247,7 @@ Chip8::KeyInputs Chip8::findKeyReleasedThisFrame() const
         }
     }
     assert(false && "Chip8::findKeyReleasedThisFrame called in context where a key was not released");
+    return KeyInputs::K_0;
 }
 
 void Chip8::decrementTimers()
@@ -359,7 +360,7 @@ void Chip8::executeOp5XY0(const uint16_t opcode)
 
     if (m_registers[regX] == m_registers[regY])
     {
-        incrementPC();;
+        incrementPC();
     }
 }
 

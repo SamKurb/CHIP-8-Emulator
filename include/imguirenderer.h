@@ -12,6 +12,7 @@
 #include "statemanager.h"
 #include <vector>
 #include "chip8.h"
+#include <format>
 
 class Renderer;
 struct FrameInfo;

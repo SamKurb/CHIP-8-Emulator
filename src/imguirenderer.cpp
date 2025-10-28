@@ -1,6 +1,9 @@
 #include <array>
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "imguirenderer.h"
+
+#include <ranges>
+
 #include "chip8.h"
 #include "renderer.h"
 #include "../include/types/displaysettings.h"
@@ -100,31 +103,34 @@ void ImguiRenderer::printRowStartAddress(const std::size_t rowStartAddress,
     }
 }
 
-void ImguiRenderer::printASCIIRepresentationOfMemoryRow(const std::array<uint8_t, 4096> &memoryContents,
-    const std::size_t rowStartPos, const int numBytesToPrint) const
+bool isValidASCIIValue(uint8_t value)
 {
     constexpr uint8_t validAsciiStart{ 33 };
     constexpr uint8_t validAsciiEnd{ 126 };
-    constexpr char placeHolderForInvalidChar{ '.' };
 
+    return value >= validAsciiStart && value <= validAsciiEnd;
+}
+
+
+void ImguiRenderer::printASCIIRepresentationOfMemoryRow(const std::array<uint8_t, 4096> &memoryContents,
+    const std::size_t rowStartPos, const int numBytesToPrint) const
+{
     auto rowBegin { memoryContents.begin() + rowStartPos };
     auto rowEnd { rowBegin + numBytesToPrint };
 
-    for (auto currMemLocation { rowBegin} ; currMemLocation != rowEnd ; ++currMemLocation)
+    constexpr char placeHolderForInvalidChar{ '.' };
+    for (uint8_t currMemContents : std::ranges::subrange(rowBegin, rowEnd))
     {
         ImGui::SameLine(0.0f, 0.0f);
 
-        uint8_t memContentsAtCurrLocation { *currMemLocation };
-
-        if (memContentsAtCurrLocation >= validAsciiStart && memContentsAtCurrLocation <= validAsciiEnd)
+        if (isValidASCIIValue(currMemContents))
         {
-            displayText("{:c}", memContentsAtCurrLocation);
+            displayText("{:c}", currMemContents);
         }
         else
         {
             displayText("{:c}", placeHolderForInvalidChar);
         }
-
     }
 }
 
@@ -432,7 +438,7 @@ void ImguiRenderer::drawStackDisplayWindow(const std::vector<uint16_t>& stackCon
     ImGui::Columns(2);
 
     displayText("Depth");
-    for (std::size_t i { 0 } ; i < stackContents.capacity() ; ++i)
+    for (const auto& i : std::views::iota(0u, stackContents.capacity()))
     {
         displayText("{:2} ... ", i);
     }
@@ -440,12 +446,10 @@ void ImguiRenderer::drawStackDisplayWindow(const std::vector<uint16_t>& stackCon
     ImGui::NextColumn();
 
     displayText("Contents");
-    for (std::size_t i{ 0 } ; i < stackContents.capacity() ; ++i)
+    for (auto [index, stackItem] : std::views::enumerate(stackContents))
     {
-        const uint16_t stackItem = { Utility::toU16((i < stackContents.size()) ? stackContents[i] : 0) };
         displayText("{}  0x{:04X}", stackItem, stackItem);
-
-        if (i == stackContents.size() - 1)
+        if (Utility::toUZ(index) == stackContents.size() - 1)
         {
             ImGui::SameLine();
             displayText("<-- SP");
