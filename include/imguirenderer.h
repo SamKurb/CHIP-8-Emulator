@@ -38,15 +38,18 @@ public:
 
 
 private:
-	void drawColourPicker(const std::string& title, Colour::RGBA& colourToEdit) const;
-	void drawIntNumEditor(const std::string& title, int& numToEdit, int minValInclusive, int maxValInclusive) const;
-	void drawIntNumEditor(const std::string& title, int& numToEdit) const;
+	void displayTextCentredInBounds(std::string_view text,
+				const float leftBoundX, const float rightBoundX) const;
+
+	void drawColourPicker(std::string_view title, Colour::RGBA& colourToEdit) const;
+	void drawIntNumEditor(std::string_view title, int& numToEdit, int minValInclusive, int maxValInclusive) const;
+	void drawIntNumEditor(std::string_view title, int& numToEdit) const;
 
 	void drawIPSEditor(Chip8& chip) const;
 
-	void displayHelpMarker(const std::string_view helpInfo) const;
+	void displayHelpMarker(std::string_view) const;
 
-	void drawCheckBoxWithDesc(const std::string& title, bool& valueToToggle, const std::string& description) const;
+	void drawCheckBoxWithDesc(std::string_view title, bool& valueToToggle, const std::string& description) const;
 
 	void drawGeneralInfoWindow(const FrameInfo &frameInfo, uint8_t soundTimer,
 	const StateManager& currentState, uint64_t numInstructionsExecuted, const bool isAudioLoaded) const;

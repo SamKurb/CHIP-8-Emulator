@@ -207,14 +207,27 @@ void ImguiRenderer::drawMemoryViewerWindow(const Chip8& chip) const
     ImGui::End();
 }
 
+void ImguiRenderer::displayTextCentredInBounds(std::string_view text,
+                const float leftBoundX, const float rightBoundX) const
+{
+    const float boundCentrePos{ (leftBoundX + rightBoundX) / 2  };
+    const float textWidth{ ImGui::CalcTextSize(text.data()).x };
+
+    const float drawCoordStartX{ boundCentrePos - (textWidth / 2.0f) };
+
+    ImGui::SetCursorPosX(drawCoordStartX);
+
+    displayText("{}", text);
+}
+
 void ImguiRenderer::drawRegisterViewerWindow(const Chip8& chip) const
 {
     const std::array<uint8_t, 16> registerContents{ chip.getRegisterContents() };
-    constexpr int numColums{ 4 };
-    constexpr int maxRegistersPerColumn{ registerContents.size() / numColums };
+    constexpr int numColumns{ 4 };
+    constexpr int maxRegistersPerColumn{ registerContents.size() / numColumsn };
 
     ImGui::Begin("Register Viewer");
-    ImGui::Columns(numColums);
+    ImGui::Columns(numColumns);
 
     int numRegistersPlacedInCurrentColumn{ 0 };
     for(unsigned int i{ 0 } ; i < registerContents.size() ; ++i)
@@ -254,26 +267,17 @@ void ImguiRenderer::drawRegisterViewerWindow(const Chip8& chip) const
     ImGui::Columns(numOtherRegisters);
     float columnWidth { ImGui::GetColumnWidth(-1) };
 
-    for (std::size_t i{ 0 } ; i < numOtherRegisters ; ++i)
+    for (auto [i, nameContentPair] : std::views::enumerate(
+        std::views::zip(otherRegisterNames, otherRegisterContents)))
     {
-        const std::string_view currRegName{ otherRegisterNames[i] };
-
-        ImVec2 textDimensions { ImGui::CalcTextSize(currRegName.data()) };
-        float textWidth{ textDimensions.x };
-
+        auto [currRegName, currRegContents] = nameContentPair;
         float columnStartXPos { columnWidth * static_cast<float>(i) };
-        float columnCentreXPos { columnStartXPos + (columnWidth / 2.0f) };
+        float columnEndXPos{ columnStartXPos + columnWidth };
+        displayTextCentredInBounds(currRegName, columnStartXPos, columnEndXPos);
 
-        ImGui::SetCursorPosX(columnCentreXPos - (textWidth / 2.0f));
-        displayText("{}\n", currRegName);
+        displayTextCentredInBounds(std::format("0x{:02X}", currRegContents), columnStartXPos, columnEndXPos);
 
-        const uint16_t currRegContents{ otherRegisterContents[i] };
-
-        ImGui::SetCursorPosX(columnCentreXPos - (textWidth / 2.0f));
-        displayText("0x{:02X}\n", currRegContents);
-
-        ImGui::SetCursorPosX(columnCentreXPos - (textWidth / 2.0f));
-        displayText("{}", currRegContents);
+        displayTextCentredInBounds(std::format("{}", currRegContents), columnStartXPos, columnEndXPos);
 
         ImGui::NextColumn();
     }
@@ -283,7 +287,7 @@ void ImguiRenderer::drawRegisterViewerWindow(const Chip8& chip) const
     ImGui::End();
 }
 
-void ImguiRenderer::drawColourPicker(const std::string& title, Colour::RGBA& colourToEdit) const
+void ImguiRenderer::drawColourPicker(std::string_view title, Colour::RGBA& colourToEdit) const
 {
     displayText("{}", title);
     ImVec4 bufferedColour{ colourToEdit };
@@ -294,7 +298,7 @@ void ImguiRenderer::drawColourPicker(const std::string& title, Colour::RGBA& col
     }
 }
 
-void ImguiRenderer::drawIntNumEditor(const std::string& title, int& numToEdit,
+void ImguiRenderer::drawIntNumEditor(std::string_view title, int& numToEdit,
                                      int minValInclusive, int maxValInclusive) const
 {
     assert(minValInclusive <= maxValInclusive);
@@ -314,7 +318,7 @@ void ImguiRenderer::drawIntNumEditor(const std::string& title, int& numToEdit,
     }
 }
 
-void ImguiRenderer::drawIntNumEditor(const std::string& title, int& numToEdit) const
+void ImguiRenderer::drawIntNumEditor(std::string_view title, int& numToEdit) const
 {
     drawIntNumEditor(title, numToEdit, std::numeric_limits<int>::min(), std::numeric_limits<int>::max());
 }
@@ -364,7 +368,7 @@ void ImguiRenderer::displayHelpMarker(const std::string_view helpInfo) const
     }
 }
 
-void ImguiRenderer::drawCheckBoxWithDesc(const std::string& title, bool& valueToToggle, const std::string& description) const
+void ImguiRenderer::drawCheckBoxWithDesc(std::string_view title, bool& valueToToggle, const std::string& description) const
 {
     ImGui::Checkbox(title.data(), &valueToToggle);
     if (description != "")
