@@ -473,9 +473,10 @@ void ImguiRenderer::drawStackDisplayWindow(const std::vector<uint16_t>& stackCon
         }
     }
 
-    for ([[maybe_unused]] auto _ : std::views::iota(stackContents.size(), stackContents.capacity()))
+    const std::size_t numEmptyStackSlots{ stackContents.capacity() - stackContents.size() };
+    for (std::size_t i{ 0 } ; i < numEmptyStackSlots; ++i)
     {
-            displayText("{}  0x{:04X}", 0, 0);
+        displayText("{}  0x{:04X}", 0, 0);
     }
 
     ImGui::End();
