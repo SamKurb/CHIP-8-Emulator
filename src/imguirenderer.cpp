@@ -158,8 +158,10 @@ void ImguiRenderer::printMemoryRow(const std::array<uint8_t, 4096>& memoryConten
         if (currAddressInFontRange)
         {
             ImGui::TextColored(blue, "%02X", currMemContents);
+            continue;
         }
-        else if (currAddressInProgramRange)
+
+        if (currAddressInProgramRange)
         {
             if (currAddress == chipPCValue || currAddress == chipPCValue + 1)
             {
@@ -169,11 +171,10 @@ void ImguiRenderer::printMemoryRow(const std::array<uint8_t, 4096>& memoryConten
             {
                 ImGui::TextColored(green, "%02X", currMemContents);
             }
+            continue;
         }
-        else
-        {
-            displayText("{:02X}", currMemContents);
-        }
+
+        displayText("{:02X}", currMemContents);
     }
 
     ImGui::SameLine();
@@ -524,7 +525,6 @@ void ImguiRenderer::drawAllImguiWindows(
     ImGui_ImplSDL2_NewFrame();
     ImGui_ImplSDLRenderer2_NewFrame();
     ImGui::NewFrame();
-
 
     drawGeneralInfoWindow (
         frameInfo,
