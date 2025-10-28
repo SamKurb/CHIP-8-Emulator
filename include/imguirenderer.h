@@ -41,9 +41,11 @@ private:
 	void displayTextCentredInBounds(std::string_view text,
 				const float leftBoundX, const float rightBoundX) const;
 
-	void drawColourPicker(std::string_view title, Colour::RGBA& colourToEdit) const;
+	void drawColourPicker(std::string_view title, RGBA& colourToEdit) const;
 	void drawIntNumEditor(std::string_view title, int& numToEdit, int minValInclusive, int maxValInclusive) const;
 	void drawIntNumEditor(std::string_view title, int& numToEdit) const;
+	void drawTextScaleEditor(const float minTextScale, const float maxTextScale);
+
 
 	void drawIPSEditor(Chip8& chip) const;
 
@@ -69,7 +71,7 @@ private:
 	void drawSpecialChipRegisterContents(const Chip8& chip) const;
 	void drawRegisterViewerWindow(const Chip8& chip) const;
 
-	void drawDisplaySettingsWindowAndApplyChanges() const;
+	void drawDisplaySettingsWindowAndApplyChanges();
 
 	void drawChipSettingsWindow(Chip8::QuirkFlags& chipQuirkFlags, Chip8& chip) const;
 
@@ -83,7 +85,7 @@ private:
     int m_windowWidth{};
     int m_windowHeight{};
 	std::shared_ptr<DisplaySettings> m_displaySettings{};
-    const float m_dpiScaleFactor{ 0 };
+    float m_dpiScaleFactor{ 0 };
 
     static constexpr ImVec4 red{ 1.0f, 0.0f, 0.0f, 1.0f };
     static constexpr ImVec4 green{ 0.0f, 1.0f, 0.0f, 1.0f };

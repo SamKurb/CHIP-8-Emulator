@@ -238,14 +238,15 @@ void ImguiRenderer::drawSpecialChipRegisterContents(const Chip8& chip) const
         "Sound"
     };
     ImGui::Columns(numSpecialRegisters);
-    float columnWidth { ImGui::GetColumnWidth(-1) };
+    const float columnWidth { ImGui::GetColumnWidth(-1) };
 
-    for (auto [i, nameContentPair] : std::views::enumerate(
+    for (auto [index, nameContentPair] : std::views::enumerate(
         std::views::zip(otherRegisterNames, otherRegisterContents)))
     {
-        auto [currRegName, currRegContents] = nameContentPair;
-        float columnStartXPos { columnWidth * static_cast<float>(i) };
-        float columnEndXPos{ columnStartXPos + columnWidth };
+        const auto [currRegName, currRegContents] = nameContentPair;
+
+        const float columnStartXPos { columnWidth * static_cast<float>(index) };
+        const float columnEndXPos{ columnStartXPos + columnWidth };
         displayTextCentredInBounds(currRegName, columnStartXPos, columnEndXPos);
 
         displayTextCentredInBounds(std::format("0x{:02X}", currRegContents), columnStartXPos, columnEndXPos);
@@ -264,17 +265,20 @@ void ImguiRenderer::drawRegisterViewerWindow(const Chip8& chip) const
 
     ImGui::Begin("Register Viewer");
     ImGui::Columns(numColumns);
+    const float columnWidth { ImGui::GetColumnWidth(-1) };
+    float columnStartXPos{ 0 };
 
     for (auto [index, currContents] : std::views::enumerate(registerContents))
     {
         if (index > 0 && index % maxRegistersPerColumn == 0)
         {
             ImGui::NextColumn();
+            columnStartXPos += columnWidth;
         }
 
-        displayText("V{:X}", index);
-        ImGui::SameLine();
-        displayText("..{0:2X}", currContents);
+        const float columnEndXPos{ columnStartXPos + columnWidth };
+        std::string_view textToDraw{ std::format("V{0:X} ..{1:2X}", index, currContents) };
+        displayTextCentredInBounds(textToDraw, columnStartXPos, columnEndXPos);
     }
 
     ImGui::Columns(1);
@@ -286,7 +290,7 @@ void ImguiRenderer::drawRegisterViewerWindow(const Chip8& chip) const
     ImGui::End();
 }
 
-void ImguiRenderer::drawColourPicker(std::string_view title, Colour::RGBA& colourToEdit) const
+void ImguiRenderer::drawColourPicker(std::string_view title, RGBA& colourToEdit) const
 {
     displayText("{}", title);
     ImVec4 bufferedColour{ colourToEdit };
@@ -322,7 +326,15 @@ void ImguiRenderer::drawIntNumEditor(std::string_view title, int& numToEdit) con
     drawIntNumEditor(title, numToEdit, std::numeric_limits<int>::min(), std::numeric_limits<int>::max());
 }
 
-void ImguiRenderer::drawDisplaySettingsWindowAndApplyChanges() const
+void ImguiRenderer::drawTextScaleEditor(const float minTextScale, const float maxTextScale)
+{
+    if (ImGui::SliderFloat("##TextScale", &m_dpiScaleFactor, minTextScale, maxTextScale))
+    {
+        ImGui::GetIO().FontGlobalScale = m_dpiScaleFactor;
+    }
+}
+
+void ImguiRenderer::drawDisplaySettingsWindowAndApplyChanges()
 {
     ImGui::Begin("Display Settings Menu");
 
@@ -342,11 +354,10 @@ void ImguiRenderer::drawDisplaySettingsWindowAndApplyChanges() const
 
     displayText("UI Text Scale:");
     ImGui::SameLine();
-    static float textScale{ m_dpiScaleFactor };
-    if (ImGui::SliderFloat("##TextScale", &textScale, 0.5f, 10.0f))
-    {
-        ImGui::GetIO().FontGlobalScale = textScale;
-    }
+
+    constexpr float minTextScale{ 0.5f };
+    constexpr float maxTextScale{ 10.0f };
+    drawTextScaleEditor(minTextScale, maxTextScale);
 
     ImGui::End();
 }
@@ -363,7 +374,7 @@ void ImguiRenderer::displayHelpMarker(const std::string_view helpInfo) const
     }
 }
 
-void ImguiRenderer::drawCheckBoxWithDesc(std::string_view title, bool& valueToToggle, const std::string& description) const
+void ImguiRenderer::drawCheckBoxWithDesc(std::string_view title, bool& valueToToggle, const std::string& description = "") const
 {
     ImGui::Checkbox(title.data(), &valueToToggle);
     if (description != "")

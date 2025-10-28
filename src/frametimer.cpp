@@ -34,7 +34,7 @@ void FrameTimer::delayToReachTargetFrameTime()
 {
     if (m_frameTimeMs < m_targetFrameTimeMs)
     {
-        uint32_t timeToWaitMs{ m_targetFrameTimeMs - m_frameTimeMs };
+        const uint32_t timeToWaitMs{ m_targetFrameTimeMs - m_frameTimeMs };
         SDL_Delay(timeToWaitMs);
         m_frameTimeMs += timeToWaitMs;
     }

@@ -11,7 +11,7 @@
 #include <algorithm>
 
 #include "utils/utility.h"
-#include "types/colour.h"
+#include "types/rgba.h"
 
 #include "types/displaysettings.h"
 
@@ -22,7 +22,7 @@ public:
     struct Pixel
     {
         SDL_Rect rect{};
-        Colour::RGBA colour{};
+        RGBA colour{};
     };
 
     Renderer();
@@ -67,10 +67,10 @@ public:
             for (std::size_t x{ 0 }; x < C; ++x)
             {
                 uint8_t pixelOn{ screenBuffer[y][x] };
-                Colour::RGBA pixelColour{ pixelOn ? m_displaySettings -> onPixelColour : m_displaySettings -> offPixelColour};
+                RGBA pixelColour{ pixelOn ? m_displaySettings -> onPixelColour : m_displaySettings -> offPixelColour};
 
-                int xCoordOnScreen{ Utility::toInt(x) * pixelWidth  };
-                int yCoordOnScreen{ Utility::toInt(y) * pixelHeight };
+                const int xCoordOnScreen{ Utility::toInt(x) * pixelWidth  };
+                const int yCoordOnScreen{ Utility::toInt(y) * pixelHeight };
 
                 assert(xCoordOnScreen <= m_displaySettings -> mainWindowWidth && xCoordOnScreen >= 0);
                 assert(yCoordOnScreen <= m_displaySettings -> mainWindowHeight && yCoordOnScreen >= 0);
@@ -110,7 +110,7 @@ public:
 
     void clearDisplay() const;
 
-    void clearDisplay(const Colour::RGBA colour) const;
+    void clearDisplay(const RGBA colour) const;
 
 private:
     float m_defaultDPI{ 72.0f };
@@ -142,7 +142,7 @@ private:
             std::exit(1);
         }
 
-        float dpiScaleFactor { diagonalDPI / m_defaultDPI };
+        const float dpiScaleFactor { diagonalDPI / m_defaultDPI };
         return dpiScaleFactor;
     }
 

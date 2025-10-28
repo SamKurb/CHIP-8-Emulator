@@ -123,7 +123,7 @@ void Renderer::clearDisplay() const
     clearDisplay(m_displaySettings -> offPixelColour);
 }
 
-void Renderer::clearDisplay(const Colour::RGBA colour) const
+void Renderer::clearDisplay(const RGBA colour) const
 {
     SDL_Renderer* renderer{ m_renderer.get() };
     SDL_SetRenderDrawColor(renderer, colour.red, colour.green, colour.blue, colour.alpha);
@@ -132,7 +132,7 @@ void Renderer::clearDisplay(const Colour::RGBA colour) const
 
 void Renderer::drawGrid(const int pixelWidth, const int pixelHeight, int horizontalPixelAmount, int verticalPixelAmount)
 {
-    Colour::RGBA gridColour{ m_displaySettings -> gridColour };
+    RGBA gridColour{ m_displaySettings -> gridColour };
     SDL_SetRenderDrawColor(m_renderer.get(), gridColour.red, gridColour.green, gridColour.blue, gridColour.alpha);
 
     int frameWidth{ m_displaySettings -> mainWindowWidth };
