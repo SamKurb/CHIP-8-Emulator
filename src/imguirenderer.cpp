@@ -323,17 +323,13 @@ void ImguiRenderer::drawIntNumEditor(std::string_view title, int& numToEdit) con
 
 void ImguiRenderer::drawDisplaySettingsWindowAndApplyChanges() const
 {
-    ImGui::Begin("Settings Menu");
+    ImGui::Begin("Display Settings Menu");
 
-    if (ImGui::Button("Display Grid Toggle"))
-    {
-        m_displaySettings -> gridOn = !(m_displaySettings -> gridOn);
-    }
+    drawCheckBoxWithDesc("Display Grid", m_displaySettings->gridOn,
+            "Choose whether or not to display a grid onto the screen");
 
-    if (ImGui::Button("Toggle Rendering Game \nDisplay to GUI Window"))
-    {
-        m_displaySettings -> renderGameToImGuiWindow = !(m_displaySettings -> renderGameToImGuiWindow);
-    }
+    drawCheckBoxWithDesc("Render Game Display to GUI Window", m_displaySettings->renderGameToImGuiWindow,
+            "Choose whether or not to render the game onto a GUI window rather than the main window");
 
     drawColourPicker("Off Pixel Colour: ", m_displaySettings->offPixelColour);
     drawColourPicker("On Pixel Colour: ", m_displaySettings->onPixelColour);
@@ -404,13 +400,13 @@ void ImguiRenderer::drawChipSettingsWindow(Chip8::QuirkFlags& chipQuirkFlags, Ch
     };
 
     static constexpr std::array quirkDescriptions {
-        "To be added",
-        "To be added",
-        "To be added",
-        "To be added",
-        "To be added",
-        "To be added",
-        "To be added",
+        "Description to be added",
+        "Description to be added",
+        "Description to be added",
+        "Description to be added",
+        "Description to be added",
+        "Description to be added",
+        "Description to be added",
     };
 
     std::array quirkFlags {
