@@ -289,7 +289,7 @@ void Emulator::run()
     {
         m_frameTimer.startFrameTiming();
 
-        const uint64_t totalInstrExecutedBeforeFrame{ m_chip->getNumInstructionsExecuted() };
+        const uint64_t totalInstrExecutedBeforeFrame{ m_chip->getRuntimeMetaData().numInstructionsExecuted };
 
         processInputs();
 
@@ -302,7 +302,7 @@ void Emulator::run()
         render();
         updateFrameTimingInfo();
 
-        const uint64_t totalInstrExecutedAfterframe{ m_chip->getNumInstructionsExecuted() };
+        const uint64_t totalInstrExecutedAfterframe{ m_chip->getRuntimeMetaData().numInstructionsExecuted };
         m_numInstrExecutedThisFrame = totalInstrExecutedAfterframe - totalInstrExecutedBeforeFrame;
     }
 }

@@ -33,7 +33,7 @@ public:
 	const uint16_t fontStartAddress, const uint16_t fontEndAddress) const;
 
     void printMemoryRow(const std::array<uint8_t, 4096>& memoryContents, const std::size_t rowStartPos, const int numBytesToPrint,
-        const Chip8& chip) const;
+        const Chip8::RuntimeMetaData& runtimeData, const uint16_t chipPCValue) const;
 
     void printASCIIRepresentationOfMemoryRow(const std::array<uint8_t, 4096>& memoryContents,
     	const std::size_t rowStartPos, const int numBytesToPrint) const;

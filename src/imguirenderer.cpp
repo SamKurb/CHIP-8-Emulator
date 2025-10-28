@@ -135,47 +135,44 @@ void ImguiRenderer::printASCIIRepresentationOfMemoryRow(const std::array<uint8_t
 }
 
 void ImguiRenderer::printMemoryRow(const std::array<uint8_t, 4096>& memoryContents, const std::size_t rowStartPos,
-                                   const int numBytesToPrint, const Chip8& chip) const
+                                   const int numBytesToPrint,
+                                   const Chip8::RuntimeMetaData& runtimeData, const uint16_t chipPCValue) const
 {
-    const uint16_t currentPCAddress{ chip.getPCAddress() };
-    const uint16_t programStartAddress{ chip.getProgramStartAddress() };
-    const uint16_t programEndAddress{ chip.getProgramEndAddress() };
-
-    const uint16_t fontStartAddress{ chip.getFontStartAddress() };
-    const uint16_t fontEndAddress{ chip.getFontEndAddress() };
-
-    printRowStartAddress(rowStartPos, programStartAddress, programEndAddress, fontStartAddress, fontEndAddress);
+    printRowStartAddress(rowStartPos, runtimeData.programStartAddress, runtimeData.programEndAddress,
+                                      runtimeData.fontStartAddress, runtimeData.fontEndAddress);
 
     auto rowBegin { memoryContents.begin() + rowStartPos };
     auto rowEnd { rowBegin + numBytesToPrint };
-    for (auto currMemLocation{ rowBegin }; currMemLocation != rowEnd; ++currMemLocation)
+
+    auto memoryRowView{ std::ranges::subrange(rowBegin, rowEnd) };
+    for (auto [offset, currMemContents] : std::views::enumerate(memoryRowView))
     {
         ImGui::SameLine();
-        const uint8_t memContentsAtCurrLocation{ *currMemLocation };
+        uint16_t currAddress{ Utility::toU16(rowStartPos + Utility::toU16(offset)) };
 
-        uint16_t currAddress{ Utility::toU16(std::distance(memoryContents.begin(), currMemLocation))  };
-
-        const bool currAddressInFontRange { currAddress >= fontStartAddress && currAddress <= fontEndAddress };
-        const bool currAddressInProgramRange { currAddress >= programStartAddress && currAddress <= programEndAddress };
+        const bool currAddressInFontRange { currAddress >= runtimeData.fontStartAddress
+                                         && currAddress <= runtimeData.fontEndAddress };
+        const bool currAddressInProgramRange { currAddress >= runtimeData.programStartAddress
+                                         && currAddress <= runtimeData.programEndAddress };
 
         if (currAddressInFontRange)
         {
-            ImGui::TextColored(blue, "%02X", memContentsAtCurrLocation);
+            ImGui::TextColored(blue, "%02X", currMemContents);
         }
         else if (currAddressInProgramRange)
         {
-            if (currAddress == currentPCAddress || currAddress == currentPCAddress + 1)
+            if (currAddress == chipPCValue || currAddress == chipPCValue + 1)
             {
-                ImGui::TextColored(red, "%02X", memContentsAtCurrLocation);
+                ImGui::TextColored(red, "%02X", currMemContents);
             }
             else
             {
-                ImGui::TextColored(green, "%02X", memContentsAtCurrLocation);
+                ImGui::TextColored(green, "%02X", currMemContents);
             }
         }
         else
         {
-            displayText("{:02X}", memContentsAtCurrLocation);
+            displayText("{:02X}", currMemContents);
         }
     }
 
@@ -204,7 +201,7 @@ void ImguiRenderer::drawMemoryViewerWindow(const Chip8& chip) const
 
     for (std::size_t rowStartAddress{ 0 }; rowStartAddress < memoryContents.size(); rowStartAddress += bytesPerRow)
     {
-        printMemoryRow(memoryContents, rowStartAddress, bytesPerRow, chip);
+        printMemoryRow(memoryContents, rowStartAddress, bytesPerRow, chip.getRuntimeMetaData(), chip.getPCAddress());
     }
 
     ImGui::End();
@@ -456,6 +453,11 @@ void ImguiRenderer::drawStackDisplayWindow(const std::vector<uint16_t>& stackCon
         }
     }
 
+    for ([[maybe_unused]] auto _ : std::views::iota(stackContents.size(), stackContents.capacity()))
+    {
+            displayText("{}  0x{:04X}", 0, 0);
+    }
+
     ImGui::End();
 }
 
@@ -509,7 +511,7 @@ void ImguiRenderer::drawAllImguiWindows(
         frameInfo,
         chip.getSoundTimer(),
         stateManager,
-        chip.getNumInstructionsExecuted(),
+        chip.getRuntimeMetaData().numInstructionsExecuted,
         isAudioLoaded
     );
 

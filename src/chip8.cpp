@@ -34,11 +34,11 @@ void Chip8::resetDXYNFlag() { m_executedDXYNFlag = false; }
 
 Chip8::QuirkFlags& Chip8::getEnabledQuirks() { return m_isQuirkEnabled; }
 
-uint64_t Chip8::getNumInstructionsExecuted() const { return m_runtimeMetaData.numInstructionsExecuted; }
-uint16_t Chip8::getFontStartAddress() const { return m_runtimeMetaData.fontStartAddress; }
-uint16_t Chip8::getFontEndAddress() const { return m_runtimeMetaData.fontEndAddress; }
-uint16_t Chip8::getProgramStartAddress() const { return m_runtimeMetaData.programStartAddress; }
-uint16_t Chip8::getProgramEndAddress() const { return m_runtimeMetaData.programEndAddress; }
+const Chip8::RuntimeMetaData& Chip8::getRuntimeMetaData() const
+{
+    return m_runtimeMetaData;
+};
+
 bool Chip8::isRomLoaded() const { return m_runtimeMetaData.romIsLoaded; }
 
 int Chip8::getTargetNumInstrPerSecond() const { return m_targetNumInstrPerSecond; }

@@ -95,13 +95,11 @@ public:
     bool executedDXYN() const;
     void resetDXYNFlag();
 
+    const RuntimeMetaData& getRuntimeMetaData() const;
+
     QuirkFlags& getEnabledQuirks();
 
-    uint64_t getNumInstructionsExecuted() const;
-    uint16_t getFontStartAddress() const;
-    uint16_t getFontEndAddress() const;
-    uint16_t getProgramStartAddress() const;
-    uint16_t getProgramEndAddress() const;
+
     bool isRomLoaded() const;
 
     int getTargetNumInstrPerSecond() const;
