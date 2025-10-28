@@ -220,51 +220,23 @@ void ImguiRenderer::displayTextCentredInBounds(std::string_view text,
     displayText("{}", text);
 }
 
-void ImguiRenderer::drawRegisterViewerWindow(const Chip8& chip) const
+void ImguiRenderer::drawSpecialChipRegisterContents(const Chip8& chip) const
 {
-    const std::array<uint8_t, 16> registerContents{ chip.getRegisterContents() };
-    constexpr int numColumns{ 4 };
-    constexpr int maxRegistersPerColumn{ registerContents.size() / numColumns };
-
-    ImGui::Begin("Register Viewer");
-    ImGui::Columns(numColumns);
-
-    int numRegistersPlacedInCurrentColumn{ 0 };
-    for(unsigned int i{ 0 } ; i < registerContents.size() ; ++i)
-    {
-        displayText("V{:X}", i);
-
-        const uint8_t contentsAtRegister{ registerContents[i] };
-
-        ImGui::SameLine();
-        displayText(".. {:02X}", contentsAtRegister);
-        ++numRegistersPlacedInCurrentColumn;
-        ImGui::Dummy(ImVec2(0, 5.0f));
-
-        if (numRegistersPlacedInCurrentColumn >= maxRegistersPerColumn)
-        {
-            ImGui::NextColumn();
-            numRegistersPlacedInCurrentColumn = 0;
-        }
-    }
-    ImGui::Separator();
-
-    constexpr int numOtherRegisters { 4 };
-    std::array<uint16_t, numOtherRegisters> otherRegisterContents {
+    constexpr int numSpecialRegisters { 4 };
+    std::array<uint16_t, numSpecialRegisters> otherRegisterContents {
         chip.getPCAddress(),
         chip.getIndexRegisterContents(),
         chip.getDelayTimer(),
         chip.getSoundTimer()
     };
 
-    constexpr std::array<std::string_view, numOtherRegisters> otherRegisterNames {
+    constexpr std::array<std::string_view, numSpecialRegisters> otherRegisterNames {
         "PC",
         "IR",
         "Delay",
         "Sound"
     };
-
-    ImGui::Columns(numOtherRegisters);
+    ImGui::Columns(numSpecialRegisters);
     float columnWidth { ImGui::GetColumnWidth(-1) };
 
     for (auto [i, nameContentPair] : std::views::enumerate(
@@ -281,7 +253,33 @@ void ImguiRenderer::drawRegisterViewerWindow(const Chip8& chip) const
 
         ImGui::NextColumn();
     }
+}
 
+void ImguiRenderer::drawRegisterViewerWindow(const Chip8& chip) const
+{
+    const std::array<uint8_t, 16> registerContents{ chip.getRegisterContents() };
+    constexpr int numColumns{ 4 };
+    constexpr int maxRegistersPerColumn{ registerContents.size() / numColumns };
+
+    ImGui::Begin("Register Viewer");
+    ImGui::Columns(numColumns);
+
+    for (auto [index, currContents] : std::views::enumerate(registerContents))
+    {
+        if (index > 0 && index % maxRegistersPerColumn == 0)
+        {
+            ImGui::NextColumn();
+        }
+
+        displayText("V{:X}", index);
+        ImGui::SameLine();
+        displayText("..{0:2X}", currContents);
+    }
+
+    ImGui::Columns(1);
+
+    ImGui::Separator();
+    drawSpecialChipRegisterContents(chip);
     ImGui::Separator();
 
     ImGui::End();

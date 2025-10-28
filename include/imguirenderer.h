@@ -66,6 +66,7 @@ private:
 
 	void drawMemoryViewerWindow(const Chip8& chip) const;
 
+	void drawSpecialChipRegisterContents(const Chip8& chip) const;
 	void drawRegisterViewerWindow(const Chip8& chip) const;
 
 	void drawDisplaySettingsWindowAndApplyChanges() const;
