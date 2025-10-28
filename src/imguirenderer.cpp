@@ -224,7 +224,7 @@ void ImguiRenderer::drawRegisterViewerWindow(const Chip8& chip) const
 {
     const std::array<uint8_t, 16> registerContents{ chip.getRegisterContents() };
     constexpr int numColumns{ 4 };
-    constexpr int maxRegistersPerColumn{ registerContents.size() / numColumsn };
+    constexpr int maxRegistersPerColumn{ registerContents.size() / numColumns };
 
     ImGui::Begin("Register Viewer");
     ImGui::Columns(numColumns);
