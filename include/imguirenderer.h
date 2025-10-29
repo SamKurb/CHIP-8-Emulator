@@ -38,7 +38,7 @@ public:
 
 
 private:
-	void displayTextCentredInBounds(std::string_view text,
+	void displayTextCentredInBounds(const std::string& text,
 				const float leftBoundX, const float rightBoundX) const;
 
 	void drawColourPicker(std::string_view title, RGBA& colourToEdit) const;

@@ -208,7 +208,7 @@ void ImguiRenderer::drawMemoryViewerWindow(const Chip8& chip) const
     ImGui::End();
 }
 
-void ImguiRenderer::displayTextCentredInBounds(std::string_view text,
+void ImguiRenderer::displayTextCentredInBounds(const std::string& text,
                 const float leftBoundX, const float rightBoundX) const
 {
     const float boundCentrePos{ (leftBoundX + rightBoundX) / 2  };
@@ -237,24 +237,32 @@ void ImguiRenderer::drawSpecialChipRegisterContents(const Chip8& chip) const
         "Delay",
         "Sound"
     };
+
+    ImGui::PushID("Special_Registers");
     ImGui::Columns(numSpecialRegisters);
     const float columnWidth { ImGui::GetColumnWidth(-1) };
 
     for (auto [index, nameContentPair] : std::views::enumerate(
         std::views::zip(otherRegisterNames, otherRegisterContents)))
     {
+        ImGui::PushID(Utility::toInt(index*2));
+
         const auto [currRegName, currRegContents] = nameContentPair;
 
         const float columnStartXPos { columnWidth * static_cast<float>(index) };
         const float columnEndXPos{ columnStartXPos + columnWidth };
-        displayTextCentredInBounds(currRegName, columnStartXPos, columnEndXPos);
+        displayTextCentredInBounds(std::string(currRegName), columnStartXPos, columnEndXPos);
 
         displayTextCentredInBounds(std::format("0x{:02X}", currRegContents), columnStartXPos, columnEndXPos);
 
         displayTextCentredInBounds(std::format("{}", currRegContents), columnStartXPos, columnEndXPos);
 
         ImGui::NextColumn();
+
+        ImGui::PopID();
     }
+    ImGui::Columns(1);
+    ImGui::PopID();
 }
 
 void ImguiRenderer::drawRegisterViewerWindow(const Chip8& chip) const
@@ -270,6 +278,7 @@ void ImguiRenderer::drawRegisterViewerWindow(const Chip8& chip) const
 
     for (auto [index, currContents] : std::views::enumerate(registerContents))
     {
+        ImGui::PushID(Utility::toInt(index));
         if (index > 0 && index % maxRegistersPerColumn == 0)
         {
             ImGui::NextColumn();
@@ -277,8 +286,9 @@ void ImguiRenderer::drawRegisterViewerWindow(const Chip8& chip) const
         }
 
         const float columnEndXPos{ columnStartXPos + columnWidth };
-        std::string_view textToDraw{ std::format("V{0:X} ..{1:2X}", index, currContents) };
+        std::string textToDraw{ std::format("V{0:X} ..{1:2X}", index, currContents) };
         displayTextCentredInBounds(textToDraw, columnStartXPos, columnEndXPos);
+        ImGui::PopID();
     }
 
     ImGui::Columns(1);
@@ -295,7 +305,7 @@ void ImguiRenderer::drawColourPicker(std::string_view title, RGBA& colourToEdit)
     displayText("{}", title);
     ImVec4 bufferedColour{ colourToEdit };
     ImGui::SameLine();
-    if (ImGui::ColorEdit4(title.data(), (float*) &(bufferedColour), ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel))
+    if (ImGui::ColorEdit4(title.data(), &bufferedColour.x, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel))
     {
         colourToEdit = bufferedColour;
     }
@@ -308,7 +318,8 @@ void ImguiRenderer::drawIntNumEditor(std::string_view title, int& numToEdit,
 
     displayText("{}", title);
     ImGui::SameLine();
-    if (ImGui::InputInt("##", &numToEdit))
+    std::string windowID{ std::format("##{}", title) };
+    if (ImGui::InputInt(windowID.data(), &numToEdit))
     {
         if (numToEdit < minValInclusive)
         {
@@ -349,7 +360,7 @@ void ImguiRenderer::drawDisplaySettingsWindowAndApplyChanges()
     drawColourPicker("Grid Colour: ", m_displaySettings->gridColour);
 
     constexpr int minFPS { 30 };
-    constexpr int maxFPS { 120 };
+    constexpr int maxFPS { 1000 };
     drawIntNumEditor("Target FPS: ", m_displaySettings->targetFPS, minFPS, maxFPS);
 
     displayText("UI Text Scale:");
@@ -560,7 +571,6 @@ void ImguiRenderer::drawAllImguiWindows(
     }
 
     //drawKeyboardInputWindow();
-
     try
     {
         drawROMSelectWindow(chip);

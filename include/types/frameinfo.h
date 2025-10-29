@@ -6,9 +6,9 @@
 
 struct FrameInfo
 {
-    uint32_t startTimeMs{};
-    uint32_t endTimeMs{};
-    uint32_t frameTimeMs{};
+    int64_t startTimeMs{};
+    int64_t endTimeMs{};
+    float frameTimeMs{};
 
     float fps{};
     uint64_t numInstructionsExecuted{ 0 };

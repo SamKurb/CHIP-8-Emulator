@@ -2,15 +2,13 @@
 
 #include "../include/types/displaysettings.h"
 #include "../include/types/frameinfo.h"
+#include <chrono>
+#include <bits/this_thread_sleep.h>
 
 FrameTimer::FrameTimer(const int targetFPS)
-: m_actualFPS{ 0.0f }
-, m_targetFPS{ targetFPS }
-, m_startTimeMs{ 0 }
-, m_endTimeMs{ 0 }
-, m_frameTimeMs{ 0 }
-// For a target fps of 60 this will be 16ms (rounded down because it is an int), so we will actually be rendering roughly 62-63 frames rather than 60
-, m_targetFrameTimeMs{ 1000u / m_targetFPS }
+: m_targetFPS{ targetFPS }
+, m_targetFrameTimeMicroSec{ std::chrono::duration_cast<Microseconds>(
+                        Seconds(1)) / m_targetFPS }
 {
 }
 
@@ -21,25 +19,27 @@ FrameTimer::FrameTimer()
 
 void FrameTimer::startFrameTiming()
 {
-    m_startTimeMs = SDL_GetTicks();
+    m_startTimeMicroSec = Clock::now();
 }
 
 void FrameTimer::endFrameTiming()
 {
-    m_endTimeMs = SDL_GetTicks();
-    m_frameTimeMs = m_endTimeMs - m_startTimeMs;
+    m_endTimeMicroSec = Clock::now();
+    m_frameTimeMicroSec = std::chrono::duration_cast<Microseconds>(m_endTimeMicroSec - m_startTimeMicroSec);
 }
 
 void FrameTimer::delayToReachTargetFrameTime()
 {
-    if (m_frameTimeMs < m_targetFrameTimeMs)
+    if (m_frameTimeMicroSec < m_targetFrameTimeMicroSec)
     {
-        const uint32_t timeToWaitMs{ m_targetFrameTimeMs - m_frameTimeMs };
-        SDL_Delay(timeToWaitMs);
-        m_frameTimeMs += timeToWaitMs;
+        const auto timeToWaitMicroSec{ m_targetFrameTimeMicroSec - m_frameTimeMicroSec };
+        std::this_thread::sleep_for(timeToWaitMicroSec);
+        m_frameTimeMicroSec += timeToWaitMicroSec;
     }
 
-    m_actualFPS = (m_frameTimeMs > 0) ? (1000.0f / static_cast<float>(m_frameTimeMs)) : 0.0f;
+    m_actualFPS = (m_frameTimeMicroSec.count() > 0) ?
+    (1'000'000.0f / static_cast<float>(m_frameTimeMicroSec.count()) )
+    : 0.0f;
 }
 
 int FrameTimer::getTargetFPS() const
@@ -55,17 +55,15 @@ float FrameTimer::getActualFPS() const
 void FrameTimer::setTargetFPS(const int newTargetFPS)
 {
     m_targetFPS = newTargetFPS;
-    m_targetFrameTimeMs = 1000u / m_targetFPS;
+    m_targetFrameTimeMicroSec = std::chrono::duration_cast<Microseconds>(std::chrono::seconds(1)) / m_targetFPS;
 }
-
-
 
 FrameInfo FrameTimer::getFrameInfo() const
 {
     return FrameInfo {
-        .startTimeMs = m_startTimeMs,
-        .endTimeMs = m_endTimeMs,
-        .frameTimeMs = m_frameTimeMs,
+        .startTimeMs = std::chrono::duration_cast<Milliseconds>(m_startTimeMicroSec.time_since_epoch()).count(),
+        .endTimeMs = std::chrono::duration_cast<Milliseconds>(m_endTimeMicroSec.time_since_epoch()).count(),
+        .frameTimeMs = static_cast<float>(m_frameTimeMicroSec.count()) / 1000.0f,
         .fps = m_actualFPS,
         .numInstructionsExecuted = 0
     };
