@@ -42,8 +42,8 @@ private:
 				const float leftBoundX, const float rightBoundX) const;
 
 	void drawColourPicker(std::string_view title, RGBA& colourToEdit) const;
-	void drawIntNumEditor(std::string_view title, int& numToEdit, int minValInclusive, int maxValInclusive) const;
-	void drawIntNumEditor(std::string_view title, int& numToEdit) const;
+	void drawIntNumEditor(std::string_view title, int& numToEdit,
+		int minValInclusive = std::numeric_limits<int>::min(), int maxValInclusive = std::numeric_limits<int>::max()) const;
 	void drawTextScaleEditor(const float minTextScale, const float maxTextScale);
 
 

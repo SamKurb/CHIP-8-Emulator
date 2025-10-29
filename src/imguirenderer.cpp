@@ -312,7 +312,7 @@ void ImguiRenderer::drawColourPicker(std::string_view title, RGBA& colourToEdit)
 }
 
 void ImguiRenderer::drawIntNumEditor(std::string_view title, int& numToEdit,
-                                     int minValInclusive, int maxValInclusive) const
+                int minValInclusive, int maxValInclusive) const
 {
     assert(minValInclusive <= maxValInclusive);
 
@@ -330,11 +330,6 @@ void ImguiRenderer::drawIntNumEditor(std::string_view title, int& numToEdit,
             numToEdit = maxValInclusive;
         }
     }
-}
-
-void ImguiRenderer::drawIntNumEditor(std::string_view title, int& numToEdit) const
-{
-    drawIntNumEditor(title, numToEdit, std::numeric_limits<int>::min(), std::numeric_limits<int>::max());
 }
 
 void ImguiRenderer::drawTextScaleEditor(const float minTextScale, const float maxTextScale)

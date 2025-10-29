@@ -173,9 +173,16 @@ void Renderer::drawTextAt(const std::string_view text, const int xPos, const int
         SDL_SetRenderTarget(m_renderer.get(), m_currentGameFrame.get());
     }
 
-    SDL_Surface* textSurface{ TTF_RenderText_Solid(m_defaultFont.get(), text.data(), {0,0xFF,0, 0xFF}) };
+    const RGBA textColour{ RGBA::pureGreen() };
+    std::unique_ptr<SDL_Surface, decltype(&SDL_FreeSurface)> textSurface{
+        TTF_RenderText_Solid(m_defaultFont.get(), text.data(), textColour),
+        &SDL_FreeSurface
+    };
 
-    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(m_renderer.get(), textSurface);
+    std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> textTexture{
+        SDL_CreateTextureFromSurface(m_renderer.get(), textSurface.get()),
+        &SDL_DestroyTexture
+    };
 
     int textWidth{};
     int textHeight{};
@@ -183,10 +190,7 @@ void Renderer::drawTextAt(const std::string_view text, const int xPos, const int
 
     SDL_Rect textRect{ xPos, yPos, textWidth, textHeight };
 
-    SDL_RenderCopy(m_renderer.get(), textTexture, nullptr, &textRect);
-
-    SDL_FreeSurface(textSurface);
-    SDL_DestroyTexture(textTexture);
+    SDL_RenderCopy(m_renderer.get(), textTexture.get(), nullptr, &textRect);
 
     if (m_displaySettings->renderGameToImGuiWindow)
     {

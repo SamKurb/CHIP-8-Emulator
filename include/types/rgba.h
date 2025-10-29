@@ -54,6 +54,7 @@ struct RGBA
 
     static constexpr RGBA white()       { return RGBA{ 0xFF, 0xFF, 0xFF }; }
     static constexpr RGBA black()       { return RGBA{ 0x00, 0x00, 0x00 }; }
+    static constexpr RGBA pureGreen()       { return RGBA{ 0x00, 0xFF, 0x00 }; }
     static constexpr RGBA darkGreen()   { return RGBA{ 0x0F, 0x38, 0x0F }; }
     static constexpr RGBA lightGreen()  { return RGBA{ 0x9B, 0xBC, 0x0F }; }
     static constexpr RGBA amber()       { return RGBA{ 0xFF, 0xBF, 0x00 }; }

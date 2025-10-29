@@ -567,7 +567,7 @@ PC is set to the address NNN + register X, where X is the first nibble in NNN i.
 */
 void Chip8::executeOpBNNN(const uint16_t opcode)
 {
-	if (!m_isQuirkEnabled.jump)
+    if (!m_isQuirkEnabled.jump)
     {
         const uint16_t address{ extractNNN(opcode) };
         m_pc = Utility::toU16(address + m_registers[0x0]);
@@ -745,7 +745,7 @@ void Chip8::executeOpFX29(const uint16_t opcode)
     const uint16_t character{ m_registers[regX] };
     const uint16_t characterSanitised{ Utility::toU16(character & 0x000F) };
 
-    const uint16_t spriteWidthInBytes{ 5u };
+    constexpr uint16_t spriteWidthInBytes{ 5u };
     const uint16_t spriteLocation{ Utility::toU16((characterSanitised * spriteWidthInBytes) + m_fontsLocation) };
 
     m_indexReg = spriteLocation;
